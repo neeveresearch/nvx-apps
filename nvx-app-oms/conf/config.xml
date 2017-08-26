@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <env>
+        <nv>
+            <!-- Optimize for latency -->
+            <optimizefor>latency</optimizefor>
+            <conservecpu>true</conservecpu>
+
+            <!-- Switch on CPU affinitization -->
+            <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
+
+            <!-- Enable single master direct buffer for off heap memory management -->
+            <xiobuf.usesinglemasterdirectbuffer>true</xiobuf.usesinglemasterdirectbuffer>
+
+            <!-- Other stuff -->
+            <aep>
+                <trace>config</trace>
+            </aep>
+            <msg.latency.stats>false</msg.latency.stats>
+            <ods.latency.stats>false</ods.latency.stats>
+            <stats.latencymanager.samplesize>102400</stats.latencymanager.samplesize>
+
+            <server>
+                <autostop.onlastappstop>false</autostop.onlastappstop>
+            </server>
+        </nv>
+
+        <oms>
+            <!-- Driver parameters -->
+            <driver>
+                <sendCount>50000</sendCount>
+                <sendRate>1000</sendRate>
+                <sendAffinity>0</sendAffinity>
+            </driver>
+
+            <!-- OMS parameters -->
+            <cluster>
+                <!-- Order preallocate count -->
+                <orderPreallocateCount>50000</orderPreallocateCount>
+            </cluster>
+        </oms>
+
+    </env>
+
+    <buses>
+        <bus name="oms" descriptor="${oms.bus.oms.descriptor::local://.}">
+            <channels>
+                <channel name="requests" id="1">
+                    <qos>BestEffort</qos>
+                </channel>
+                <channel name="events" id="2">
+                    <qos>BestEffort</qos>
+                </channel>
+            </channels>
+        </bus>
+    </buses>
+
+    <apps>
+        <app name="oms" mainClass="com.neeve.oms.es.Application">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.oms.messages.MessageFactory"/>
+                    <factory name="com.neeve.fix.FixMessageFactory"/>
+                </factories>
+                <bus name="oms">
+                    <channels>
+                        <channel name="requests" join="true"/>
+                        <channel name="events" join="false"/>
+                    </channels>
+                    <detachedSend enabled="false">
+                        <queueDepth>128</queueDepth>
+                        <queueDrainerCpuAffinityMask>${oms.cluster.bus.events.detachedsender.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <storage>
+                <persistenceQuorum>1</persistenceQuorum>
+                <persistence enabled="true">
+                    <detachedPersist enabled="false">
+                        <queueDepth>128</queueDepth>
+                        <queueDrainerCpuAffinityMask>${oms.cluster.replication.detachedpersist.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                    <flushOnCommit>true</flushOnCommit>
+                    <autoRepair>true</autoRepair>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <clustering enabled="false">
+                    <localIfAddr>${oms.cluster.replication.localifaddr::0.0.0.0}</localIfAddr>
+                    <localPort>${oms.cluster.replication.localport::0}</localPort>
+                    <linkParams>${oms.cluster.replication.linkparams::maxreadspintime=0}</linkParams>
+                    <linkReaderCpuAffinityMask>${oms.cluster.replication.linkreader.cpuffinitymask::0}</linkReaderCpuAffinityMask>
+                    <detachedSend enabled="true">
+                        <queueDepth>128</queueDepth>
+                        <queueDrainerCpuAffinityMask>${oms.cluster.replication.detachedsender.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </clustering>
+            </storage>
+            <inboundEventMultiplexing type="FreeThreadedSerialized">
+                <queueDepth>128</queueDepth>
+                <queueDrainerCpuAffinityMask>${oms.cluster.eventmultiplexer.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+            <inboundMessageLogging policy="Off">
+                <detachedWrite enabled="false"/>
+            </inboundMessageLogging>
+            <outboundMessageLogging policy="Off">
+                <detachedWrite enabled="false"/>
+            </outboundMessageLogging>
+            <replicateInParallel>true</replicateInParallel>
+            <setSupportMetadata>false</setSupportMetadata>
+            <captureTransactionLatencyStats>false</captureTransactionLatencyStats>
+        </app>
+
+        <app name="driver" mainClass="com.neeve.oms.driver.remote.Driver">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.oms.messages.MessageFactory"/>
+                    <factory name="com.neeve.fix.FixMessageFactory"/>
+                </factories>
+                <bus name="oms">
+                    <channels>
+                        <channel name="requests" join="false"/>
+                        <channel name="events" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <inboundEventMultiplexing type="DedicatedThreaded">
+                <queueDepth>128</queueDepth>
+                <queueDrainerCpuAffinityMask>${oms.receiver.eventmultiplexer.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+            <storage enabled="false"/>
+            <sequenceUnsolicitedSends>true</sequenceUnsolicitedSends>
+        </app>
+    </apps>
+
+    <servers>
+        <server name="oms1.local" displayName="Primary OMS VM (Local)">
+            <apps>
+                <app name="oms" autoStart="${oms.autostart::true}"/>
+            </apps>
+            <heartbeats enabled="false"/>
+        </server>
+        <server name="oms2.local" displayName="Secondary OMS VM (Local)">
+            <apps>
+                <app name="oms" autoStart="${oms.autostart::true}"/>
+            </apps>
+            <heartbeats enabled="false"/>
+        </server>
+        <server name="driver.local" displayName="Driver VM (Local)">
+            <apps>
+                <app name="driver" autoStart="true"/>
+            </apps>
+            <heartbeats enabled="false"/>
+        </server>
+        <server name="oms1.neeve" displayName="Primary OMS VM (Neeve Lab)">
+            <acceptors>
+                <acceptor descriptor="tcp://192.168.2.13:12000" enabled="true"/>
+            </acceptors>
+            <apps>
+                <app name="oms" autoStart="${oms.autostart::false}"/>
+            </apps>
+            <heartbeats enabled="false" interval="5">
+                <tracing enabled="true">
+                    <traceAppStats>false</traceAppStats>
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>false</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        <server name="oms2.neeve" displayName="Secondary OMS VM (Neeve Lab)">
+            <acceptors>
+                <acceptor descriptor="tcp://192.168.2.12:12000" enabled="true"/>
+            </acceptors>
+            <apps>
+                <app name="oms" autoStart="${oms.autostart::false}"/>
+            </apps>
+            <heartbeats enabled="false" interval="5">
+                <tracing enabled="false">
+                    <traceAppStats>false</traceAppStats>
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>false</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        <server name="driver.neeve" displayName="Driver VM (Neeve Lab)">
+            <apps>
+                <app name="driver" autoStart="true"/>
+            </apps>
+            <heartbeats enabled="true" interval="5">
+                <tracing enabled="false"/>
+            </heartbeats>
+        </server>
+    </servers>
+</model>

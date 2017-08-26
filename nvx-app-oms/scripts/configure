@@ -1,0 +1,4 @@
+assume provision has run
+configure the driver.${oms.env::local} xvm
+configure the oms1.${oms.env::local} xvm
+configure the oms2.${oms.env::local} xvm

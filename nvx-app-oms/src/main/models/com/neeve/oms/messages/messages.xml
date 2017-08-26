@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.oms.messages">
+    <import model="com/neeve/fix/entities/entities.xml"/>
+
+    <factories>
+        <factory name="MessageFactory" id="1"/>
+    </factories>
+
+    <messages>
+        <message name="NewOrderMessage" id="1" factoryid="1">
+            <inline ref="FIXNewOrderSingle"/>
+        </message>
+
+        <message name="OrderEvent" id="2" factoryid="1">
+            <inline ref="FIXExecutionReport" />
+        </message>
+    </messages>
+</model>
+

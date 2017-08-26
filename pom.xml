@@ -1,0 +1,118 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.neeve</groupId>
+    <artifactId>nvx-apps-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>3.8-SNAPSHOT</version>
+    <name>X Platform Apps Parent</name>
+
+    <properties>
+        <nvx.talon.version>3.8.22</nvx.talon.version>
+        <nvx.jms.version>3.8.22</nvx.jms.version>
+        <nvx.eagle.version>2.4-M1</nvx.eagle.version>
+        <nvx.solace.version>3.8.22</nvx.solace.version>
+        <nvx.robin.version>2.5-M1</nvx.robin.version>
+    </properties>
+
+    <modules>
+        <module>nvx-app-oms</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-talon</artifactId>
+            <version>${nvx.talon.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-eagle</artifactId>
+            <version>${nvx.eagle.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-jms</artifactId>
+            <version>${nvx.jms.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.13.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-solace</artifactId>
+            <version>${nvx.solace.version}</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <!-- Visit http://license.neeveresearch.com to get credentials -->
+        <repository>
+            <id>neeve-public</id>
+            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-public/</url>
+            <name>Neeve Public Repository</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>neeve-licensed</id>
+            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
+            <name>Neeve Licensed Repository</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+        <!-- Visit http://license.neeveresearch.com to get credentials -->
+        <pluginRepository>
+            <id>neeve-licensed</id>
+            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
+            <name>Neeve Licensed Repository</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

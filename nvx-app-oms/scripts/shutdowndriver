@@ -1,0 +1,9 @@
+// assume launched
+assume launch has run
+
+// shutdown the driver
+stop the driver app in the driver.${oms.env::local} xvm
+
+// shutdown the xvms
+shutdown
+

@@ -1,0 +1,4 @@
+assume provision has run
+deploy to the driver.${oms.env::local} xvm
+deploy to the oms1.${oms.env::local} xvm
+deploy to the oms2.${oms.env::local} xvm
