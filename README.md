@@ -11,8 +11,8 @@ This repository contains the domain specific apps authored using the X Platform
 ## The Apps
 The following lists and describes the apps in this repository
 
-### [nvx-oms](nvx-adbidding-engine)
+### [nvx-oms](nvx-oms/)
 This is a simple financial service order management application. 
 
-### [nvx-adbidding-engine](nvx-adbidding-engine)
+### [nvx-adbidding-engine](nvx-adbidding-engine/)
 This application implements an ad-bidding-flow with the. 
