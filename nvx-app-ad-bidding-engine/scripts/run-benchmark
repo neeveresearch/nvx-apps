@@ -1,0 +1,10 @@
+##DISPLAYNAME Run Benchmark
+##DESCRIPTION Launches a benchmark run.
+
+##VAR numAdRequests [displayName="Ad Requests Send Count", type=int, defaultValue=100000, description="The number of ad requests to send"] 
+##VAR adRequestRate [displayName="Ad Request Rate", type=int, defaultValue=1000, description="The rate at which to send in ad requests"] 
+
+assume launch-all has run
+
+// Run add requests
+instruct the driver app in the driver-1 xvm to sendAdRequests with --count ${numAdRequests::100000} --rate ${adRequestRate::1000} --async

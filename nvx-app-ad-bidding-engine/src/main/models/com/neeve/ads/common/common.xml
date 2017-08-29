@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ads.common">
+    <enumerations>
+        <enum name="GenderEnumeration" type="char">
+            <const name="Male" value="M"/>
+            <const name="Female" value="F"/>
+        </enum>
+    </enumerations>
+</model>

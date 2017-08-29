@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ads.state">
+    <import model="com/neeve/ads/common/common.xml" />
+
+    <factories>
+        <factory name="StateFactory" id="2"/>
+    </factories>
+
+    <entities>
+        <entity name="SSPRepository" factoryid="2" id="10">
+        </entity>
+
+        <entity name="DMPRepository" factoryid="2" id="20">
+            <field name="visitors" type="Visitors"/>
+        </entity>
+        
+        <entity name="AdExchangeRepository" factoryid="2" id="30">
+        </entity>
+        
+        <entity name="DSPRepository" factoryid="2" id="40">
+            <field name="campaigns" type="Campaigns"/>
+            <field name="pendingCampaigns" type="PendingCampaigns"/>
+        </entity>
+        
+        <entity name="Visitor" factoryid="2" id="50">
+            <field name="visitorId" type="String" isKey="true"/>
+            <field name="gender" type="GenderEnumeration"/>
+            <field name="yearOfBirth" type="Short"/>
+            <field name="categories" type="String[]"/>
+        </entity>
+        
+        <entity name="Campaign" factoryid="2" id="60">
+            <field name="campaignId" type="String" isKey="true"/>
+            <field name="categories" type="String[]" doc=""/>
+            <field name="balance" type="Double" doc="Current balance for the campaign."/>
+            <field name="bidPerImpression" type="Double" doc="Maximum bid per impression. Must be greater or equal to start price."/>
+            <field name="url" type="String" doc="URL of ad to be served."/>
+        </entity>
+        <entity name="PendingCampaign" factoryid="2" id="70">
+            <field name="campaignId" type="String"/>
+        </entity>
+    </entities>
+    
+    <collections>
+        <collection name="Visitors" is="StringMap" contains="Visitor" factoryid="2" id="100"  />
+        <collection name="Campaigns" is="StringMap" contains="Campaign" factoryid="2" id="110"  />
+        <collection name="PendingCampaigns" is="StringMap" contains="PendingCampaign" factoryid="2" id="120" />
+    </collections>
+</model>

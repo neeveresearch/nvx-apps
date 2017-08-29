@@ -3,53 +3,61 @@
     <groupId>com.neeve</groupId>
     <artifactId>nvx-apps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.8-SNAPSHOT</version>
+    <version>3.7-SNAPSHOT</version>
     <name>X Platform Apps Parent</name>
 
     <properties>
-        <nvx.talon.version>3.8.22</nvx.talon.version>
-        <nvx.jms.version>3.8.22</nvx.jms.version>
-        <nvx.eagle.version>2.4-M1</nvx.eagle.version>
-        <nvx.solace.version>3.8.22</nvx.solace.version>
-        <nvx.robin.version>2.5-M1</nvx.robin.version>
+        <nvx.platform.version>3.7.1</nvx.platform.version>
     </properties>
 
     <modules>
         <module>nvx-app-oms</module>
+        <module>nvx-app-ad-bidding-engine</module>
     </modules>
+
+    <dependencyManagement>
+      <dependencies>  
+        <dependency>
+          <groupId>com.neeve</groupId>
+          <artifactId>nvx-platform-bom</artifactId>
+          <version>${nvx.platform.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-talon</artifactId>
-            <version>${nvx.talon.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-eagle</artifactId>
-            <version>${nvx.eagle.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-jms</artifactId>
-            <version>${nvx.jms.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-            <version>5.13.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-solace</artifactId>
-            <version>${nvx.solace.version}</version>
-        </dependency>
     </dependencies>
+    
+    <build>
+        <plugins>
+            <!-- configure jar manifests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Created-By>Maven</Created-By>
+                            <Specification-Title>${project.artifactId}</Specification-Title>
+                            <Specification-Version>${project.version}</Specification-Version>
+                            <Specification-Vendor>${vendor.name}</Specification-Vendor>
+                            <Implementation-Title>${project.artifactId}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${vendor.name}</Implementation-Vendor>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <repositories>
         <repository>
