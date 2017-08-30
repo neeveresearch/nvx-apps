@@ -19,9 +19,9 @@ The Tick To Trade app is intended to highlight the speed, simplicity, flexibilit
 
 ### OVERVIEW
 The following diagram outlines the overall flow for this application. In a nutshell there is a client that sends a NewOrderSingle to an Execution Management System that delegates to a SOR to slice the order to an exchange that fills the order. 
-![Tick To Trade App Flow](/docs/flow-diagram.png)
+![Tick To Trade App Flow](docs/flow-diagram.png)
 
-[Ems.java](/src/main/java/com/neeve/tick2trade/Ems.java)
+[Ems.java](src/main/java/com/neeve/tick2trade/Ems.java)
 ```java
     /**
      * Handler for {@link EMSNewOrderSingle} messages sent by the client.
