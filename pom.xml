@@ -5,6 +5,11 @@
     <packaging>pom</packaging>
     <version>3.7-SNAPSHOT</version>
     <name>X Platform Apps Parent</name>
+   
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
 
     <licenses>
         <license>
@@ -21,6 +26,7 @@
 
     <modules>
         <module>nvx-app-oms</module>
+        <module>nvx-app-tick-to-trade</module>
         <module>nvx-app-ad-bidding-engine</module>
         <module>nvx-app-geofencer</module>
         <module>nvx-app-bookstore</module>

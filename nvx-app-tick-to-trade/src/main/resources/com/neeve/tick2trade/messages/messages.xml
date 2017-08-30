@@ -1,0 +1,410 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    namespace="com.neeve.tick2trade.messages">
+    <factories>
+        <factory name="MessageFactory" id="199" />
+        <factory name="MessageFactoryCommon" id="101" />
+        <factory name="MessageFactoryEMS" id="110" />
+        <factory name="MessageFactorySOR" id="111" />
+        <factory name="MessageFactoryMarket" id="401" />
+    </factories>
+
+    <enumerations>
+        <enum name="HandlingInstructions" type="char">
+            <const name="AutoExecPriv" value="1" />
+            <const name="AutoExecPub" value="2" />
+            <const name="Manual" value="3" />
+        </enum>
+
+        <enum name="MsgType" type="string">
+            <const name="Reject" value="3" />
+            <const name="ExecutionReport" value="8" />
+            <const name="OrderCancelReject" value="R" />
+            <const name="NewOrderSingle" value="D" />
+            <const name="NewOrderList" value="E" />
+            <const name="OrderCancelRequest" value="F" />
+            <const name="OrderCancelReplaceRequest" value="G" />
+            <const name="OrderStatusRequest" value="H" />
+            <const name="NewOrderCross" value="s" />
+            <const name="TradeCaptureReport" value="AE" />
+            <const name="TradeCaptureReportAck" value="AR" />
+        </enum>
+
+        <enum name="DirectedOrderFlags" type="char">
+            <const name="NotCustomerDirectedOrder" value="N" />
+            <const name="CustomerDirectedOrder" value="Y" />
+        </enum>
+
+        <enum name="ExecType" type="char">
+            <const name="NEW" value="0" />
+            <const name="TRADE" value="F" />
+        </enum>
+
+        <enum name="Side" type="char">
+            <const name="BUY" value="1" />
+            <const name="SELL" value="2" />
+            <const name="SELL_SHORT" value="5" />
+            <const name="SELL_SHORT_EXEMPT" value="6" />
+            <const name="UNDISC" value="7" />
+            <const name="CROSS" value="8" />
+        </enum>
+
+        <enum name="SecurityIDSource" type="string">
+            <const name="Blmbrg" value="A" />
+            <const name="ESMP" value="105" />
+        </enum>
+
+        <enum name="OrderCapacity" type="char">
+            <const name="Agency" value="A" />
+            <const name="Individual" value="I" />
+            <const name="Principal" value="P" />
+            <const name="RisklessPrincipal" value="R" />
+            <const name="AgenctOtherMember" value="W" />
+        </enum>
+
+        <enum name="OrdType" type="char">
+            <const name="MARKET" value="1" />
+            <const name="LIMIT" value="2" />
+            <const name="STOP" value="3" />
+            <const name="PEGGED" value="4" />
+        </enum>
+
+        <enum name="SettlType" type="char">
+            <const name="Regular" value="0" />
+        </enum>
+
+        <enum name="TimeInForce" type="char">
+            <const name="Day" value="0" />
+        </enum>
+
+        <enum name="ExecRestatementReason" type="int">
+            <const name="Other" value="99" />
+        </enum>
+
+        <enum name="LastLiquidityInd" type="int">
+            <const name="Todo" value="0" />
+        </enum>
+
+        <enum name="OrdStatus" type="char">
+            <const name="NEW" value="0" />
+            <const name="FILLED" value="2" />
+        </enum>
+
+        <enum name="LastCapacity" type="char">
+            <const name="A" value="1" />
+            <const name="XA" value="2" />
+        </enum>
+
+        <enum name="LotType" type="char">
+            <const name="OddLot" value="1" />
+            <const name="RoundLot" value="2" />
+        </enum>
+
+        <enum name="OrderRestriction" type="string">
+            <const name="ProgramTrade" value="1" />
+            <const name="IndexArbitrage" value="2" />
+            <const name="NonIndexArbitrage" value="3" />
+            <const name="ActingAsMarkerMakerOrSpecialistInSecurity" value="5" />
+            <const name="SkipRiskLimitChecks" value="LB_NR" />
+            <const name="OverrideRestritedStockRestriction" value="LB_IR" />
+            <const name="SuppressInternalOATParentOrderCrossing" value="LB_NOCINT" />
+            <const name="LCXCrossing" value="LB_CL" />
+            <const name="EligibleForAgencyCrossOnly" value="LB_CA" />
+            <const name="AffiliateAccount" value="BC_AF" />
+        </enum>
+
+        <enum name="CxlRejReason" type="int">
+            <const name="TOO_LATE" value="0" />
+            <const name="UNKNOWN" value="1" />
+            <const name="BROKER_OPT" value="2" />
+            <const name="ALREADY_PENDING_CXL" value="3" />
+            <const name="UNABLE_TO_PROCESS" value="4" />
+            <const name="ORIG_ORD_MOD_TIME_MISMATCH" value="5" />
+            <const name="DUP_CL_ORD_ID" value="6" />
+            <const name="INVALID_PRICE_INCREMENT" value="18" />
+            <const name="SS_TICK_ISSUE" value="96" />
+            <const name="UNRECOVERABLE" value="97" />
+            <const name="RECOVERABLE" value="98" />
+            <const name="OTHER" value="99" />
+        </enum>
+
+        <enum name="OrdRejReason" type="int">
+            <const name="BROKER_OPT" value="0" />
+        </enum>
+
+        <enum name="BookingType" type="int">
+            <const name="RegularBooking" value="0" />
+        </enum>
+
+        <enum name="CrossType" type="int">
+            <const value="1" name="CrossAON" />
+            <const value="2" name="CrossIOC" />
+            <const value="3" name="CrossOneSide" />
+            <const value="4" name="CrossSamePrice" />
+        </enum>
+    </enumerations>
+
+    <fields>
+        <field name="ClOrdID" type="String" id="11" />
+        <field name="OrigClOrdID" type="String" id="41" />
+        <field name="ComplianceID" type="String" id="376" />
+        <field name="OrderID" type="String" id="37" />
+        <field name="SuspendedOrderIDNum" type="Long" id="1" />
+        <field name="Symbol" type="String" id="55" />
+        <field name="SecurityID" type="String" id="48" />
+        <field name="SecurityIDSource" type="SecurityIDSource" id="22" />
+        <field name="SecurityAltID" type="String" id="455" />
+        <field name="SecurityAltIDSource" type="SecurityIDSource" id="456" />
+        <field name="ClientID" type="String" id="109" />
+        <field name="ClientAcronym" type="String" id="9245" />
+        <field name="OrdType" type="OrdType" id="40" />
+        <field name="Side" type="Side" id="54" />
+        <field name="TransactTime" type="Date" id="60" />
+        <field name="Text" type="String" id="58" />
+        <field name="MsgType" type="MsgType" id="35" />
+        <field name="SenderCompID" type="String" id="49" />
+        <field name="SenderSubID" type="String" id="50" />
+        <field name="TargetCompId" type="String" id="56" />
+        <field name="TargetSubID" type="String" id="57" />
+        <field name="SendingTime" type="Date" id="52" />
+        <field name="DeskID" type="String" id="284" />
+        <field name="QuoteID" type="Long" id="117" />
+        <field name="OrderCapacity" type="OrderCapacity" id="528" />
+        <field name="LastCapacity" type="LastCapacity" id="29" />
+        <field name="Price" type="Double" id="44" />
+        <field name="ExDestination" type="String" id="100" />
+        <field name="Currency" type="String" id="15" />
+        <field name="SolicitedFlag" type="Boolean" id="377" />
+        <field name="OrderQty" type="Double" id="38" />
+        <field name="BookingType" type="BookingType" id="775" />
+        <field name="PossDupFlag" type="Boolean" id="43" />
+        <field name="SettlDate" type="Date" id="64" />
+        <field name="HandlInst" type="HandlingInstructions" id="21" />
+        <field name="EffectiveTime" type="Date" id="168" />
+        <field name="CxlRejReason" type="CxlRejReason" id="102" />
+        <field name="LeavesQty" type="Double" id="151" />
+        <field name="AvgPx" type="Double" id="6" />
+        <field name="SettlCurrency" type="String" id="120" />
+        <field name="TimeInForce" type="TimeInForce" id="59" />
+        <field name="ListID" type="String" id="66" />
+        <field name="TargetStrategy" type="String" id="847" />
+        <field name="TargetStrategyParameters" type="String" id="848" />
+        <field name="SettlType" type="SettlType" id="63" />
+        <field name="OrdStatus" type="OrdStatus" id="39" />
+        <field name="CumQty" type="Double" id="14" />
+        <field name="StopPx" type="Double" id="99" />
+        <field name="ExpireTime" type="Date" id="126" />
+        <field name="CrossType" type="CrossType" id="549" />
+        <field name="ExecType" type="ExecType" id="150" />
+        <field name="TradeDate" type="Date" id="75" />
+        <field name="CrossID" type="String" id="548" />
+        <field name="OrigCrossID" type="String" id="551" />
+        <field name="NoOrders" type="Long" id="73" />
+        <field name="ExecID" type="String" id="17" />
+        <field name="ExecRefID" type="String" id="19" />
+        <field name="LastMkt" type="Double" id="30" />
+        <field name="LastPx" type="Double" id="31" />
+        <field name="MaxFloor" type="Double" id="111" />
+        <field name="MinQty" type="Double" id="110" />
+        <field name="StrikePrice" type="Double" id="202" />
+        <field name="ParticipationRate" type="Double" id="849" />
+        <field name="ExecInst" type="String" id="18" />
+        <field name="LastQty" type="Double" id="32" />
+        <field name="ClOrdLinkID" type="String" id="583" />
+        <field name="OrderRestrictions" type="OrderRestriction[]" id="529" />
+        <field name="DiscretionOffsetValue" type="Double" id="389" />
+        <field name="ExecRestatementReason" type="ExecRestatementReason" id="378" />
+        <field name="LastLiquidityInd" type="LastLiquidityInd" id="851" />
+        <field name="ContraBroker" type="String" id="325" />
+        <field name="LocateReqd" type="Boolean" id="114" />
+        <field name="LotType" type="LotType" id="1093" />
+
+        <field name="NativeLiquidityInd" type="String" id="10086" />
+        <field name="PositionAccount" type="String" id="10176" />
+        <field name="DirectedOrderFlags" type="DirectedOrderFlags" id="10208" />
+        <field name="EnteringTrader" type="String" id="20025" />
+        <field name="ExecutingTrader" type="String" id="10274" />
+        <field name="ExecutingFirm" type="String" id="10280" />
+        <field name="TradeTime" type="Double" id="10400" />
+        <field name="BloombergSymbol" type="String" id="20109" />
+        <field name="OrdRejReason" type="OrdRejReason" id="31994" />
+        <field name="OrderTs" type="Long" id="31992" />
+        <field name="TickTs" type="Long" id="31994" />
+        <field name="StrategyParams" type="StrategyParams" id="31993" />
+    </fields>
+
+    <messages>
+        <message name="EMSNewOrderSingle" id="64" factoryid="110">
+            <inline ref="FIXNewOrderSingle" />
+            <fieldRef ref="StrategyParams" />
+        </message>
+
+        <message name="EMSSliceCommand" factoryid="110" id="209">
+            <fieldRef ref="OrderTs" />
+            <fieldRef ref="OrderID" />
+            <fieldRef ref="Symbol" />
+            <fieldRef ref="Side" />
+            <fieldRef ref="OrderQty" />
+            <fieldRef ref="TickTs" />
+        </message>
+
+        <message name="EMSOrderNew" id="25" factoryid="110">
+            <inline ref="FIXExecutionReport" />
+        </message>
+
+        <message name="EMSTrade" id="20" factoryid="110">
+            <inline ref="FIXExecutionReport" />
+        </message>
+
+        <message name="SORNewOrderSingle" id="1" factoryid="111">
+            <fieldRef ref="OrderID" />
+            <fieldRef ref="Symbol" />
+            <fieldRef ref="Side" />
+            <fieldRef ref="OrderQty" />
+            <fieldRef ref="TargetStrategy" />
+            <fieldRef ref="StrategyParams" />
+        </message>
+
+        <message name="MarketNewOrderSingle" id="64" factoryid="401">
+            <inline ref="FIXNewOrderSingle" />
+            <fieldRef ref="TickTs" />
+        </message>
+
+        <message name="MarketOrderNew" id="25" factoryid="401">
+            <inline ref="FIXExecutionReport" />
+        </message>
+
+        <message name="MarketTrade" id="20" factoryid="401">
+            <inline ref="FIXExecutionReport" />
+        </message>
+
+    </messages>
+
+    <entities>
+        <entity name="FIXMessageHeader" id="30" factoryid="101" asEmbedded="true">
+            <fieldRef ref="MsgType" />
+            <fieldRef ref="SenderCompID" />
+            <fieldRef ref="SenderSubID" />
+            <fieldRef ref="TargetCompId" />
+            <fieldRef ref="TargetSubID" />
+            <fieldRef ref="SendingTime" />
+        </entity>
+
+        <entity name="FIXNewOrderSingle" id="93" factoryid="101" asEmbedded="true">
+            <inline ref="FIXRequest" />
+            <inline ref="FIXOrder" />
+        </entity>
+
+        <entity name="FIXRequest" id="87" factoryid="101" asEmbedded="true">
+            <inline ref="FIXMessageHeader" />
+            <inline ref="OrderRoutingFields" />
+            <inline ref="Instrument" />
+            <fieldRef ref="OrderTs" />
+            <fieldRef ref="ClOrdID" required="true" />
+            <fieldRef ref="ComplianceID" required="true" />
+            <fieldRef ref="TransactTime" required="true" />
+            <fieldRef ref="Side" />
+            <fieldRef ref="ClientID" />
+            <fieldRef ref="Text" />
+            <fieldRef ref="EnteringTrader" />
+            <fieldRef ref="ExecutingTrader" />
+            <fieldRef ref="ExecutingFirm" />
+        </entity>
+
+        <entity name="OrderRoutingFields" id="82" factoryid="101" asEmbedded="true">
+            <fieldRef ref="Symbol" />
+            <fieldRef ref="ClientAcronym" />
+        </entity>
+
+        <entity name="Instrument" id="91" factoryid="101" asEmbedded="true">
+            <fieldRef ref="SecurityID" />
+            <fieldRef ref="SecurityIDSource" />
+            <fieldRef ref="SecurityAltID" />
+            <fieldRef ref="SecurityAltIDSource" />
+            <fieldRef ref="Symbol" />
+        </entity>
+
+        <entity name="FIXOrder" id="80" factoryid="101" asEmbedded="true">
+            <inline ref="FIXOrderInstructions" />
+            <inline ref="Instrument" />
+            <fieldRef ref="OrderCapacity" />
+            <fieldRef ref="OrdType" required="true" />
+            <fieldRef ref="OrderQty" />
+            <fieldRef ref="Price" />
+            <fieldRef ref="DirectedOrderFlags" />
+            <fieldRef ref="ExDestination" />
+            <fieldRef ref="ClientID" />
+            <fieldRef ref="Currency" />
+            <fieldRef ref="SolicitedFlag" />
+            <fieldRef ref="PositionAccount" />
+        </entity>
+
+        <entity name="FIXOrderInstructions" id="81" factoryid="101" asEmbedded="true">
+            <inline ref="DiscretionInstructions" />
+            <fieldRef ref="EffectiveTime" />
+            <fieldRef ref="ExpireTime" />
+            <fieldRef ref="SettlType" />
+            <fieldRef ref="SettlDate" />
+            <fieldRef ref="SettlCurrency" />
+            <fieldRef ref="ExecInst" />
+            <fieldRef ref="HandlInst" />
+            <fieldRef ref="MaxFloor" />
+            <fieldRef ref="MinQty" />
+            <fieldRef ref="OrderRestrictions" />
+            <fieldRef ref="TargetStrategy" />
+            <fieldRef ref="TargetStrategyParameters" />
+            <fieldRef ref="TimeInForce" />
+            <fieldRef ref="ClOrdLinkID" />
+            <fieldRef ref="ParticipationRate" />
+        </entity>
+
+        <entity name="DiscretionInstructions" id="99" factoryid="101" asEmbedded="true">
+            <fieldRef ref="DiscretionOffsetValue" />
+        </entity>
+
+        <entity name="FIXExecutionReport" id="83" factoryid="101" asEmbedded="true">
+            <inline ref="FIXMessageHeader" />
+            <inline ref="FIXExecutionStatus" />
+            <inline ref="OrderRoutingFields" />
+            <fieldRef ref="ExecRestatementReason" />
+            <fieldRef ref="Price" />
+            <fieldRef ref="ComplianceID" />
+            <fieldRef ref="ExecID" />
+            <fieldRef ref="ExecType" />
+            <fieldRef ref="ExecRefID" />
+            <fieldRef ref="BloombergSymbol" />
+            <fieldRef ref="OrdRejReason" />
+        </entity>
+
+        <entity name="FIXExecutionStatus" id="84" factoryid="101" asEmbedded="true">
+            <fieldRef ref="ClOrdID" required="true" />
+            <fieldRef ref="OrderID" />
+            <fieldRef ref="OrigClOrdID" />
+            <fieldRef ref="LastLiquidityInd" />
+            <fieldRef ref="NativeLiquidityInd" />
+            <fieldRef ref="Side" />
+            <fieldRef ref="OrdStatus" />
+            <fieldRef ref="TransactTime" />
+            <fieldRef ref="Text" />
+            <fieldRef ref="ExecutingTrader" />
+            <fieldRef ref="LastCapacity" />
+            <fieldRef ref="LeavesQty" />
+            <fieldRef ref="CumQty" />
+            <fieldRef ref="AvgPx" />
+            <fieldRef ref="LastQty" />
+            <fieldRef ref="LastPx" />
+            <fieldRef ref="LastMkt" />
+            <fieldRef ref="TradeDate" />
+            <fieldRef ref="TradeTime" />
+            <fieldRef ref="ContraBroker" />
+            <fieldRef ref="CrossID" />
+        </entity>
+
+        <entity name="StrategyParams" id="317" factoryid="110" asEmbedded="true">
+            <field name="target" type="String" />
+            <field name="params" type="String" />
+        </entity>
+    </entities>
+</model>
+
+

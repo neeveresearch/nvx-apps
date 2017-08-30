@@ -1,0 +1,173 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>nvx-app-tick-to-trade</artifactId>
+    <packaging>jar</packaging>
+    <name>X Platform Tick To Trade Application</name>
+    <url>https://github.com/neeveresearch/nvx-apps/tree/develop/nvx-app-tick-to-trade</url>
+    <description>The Tick To Trade Application implements a skeletal EMS and SOR implementation that highlights the ease with which multi agent applications can be authored using the X Platform and Hornet.</description>
+
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
+  
+    <parent>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-apps-parent</artifactId>
+        <version>3.7-SNAPSHOT</version>
+    </parent>
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- Generates messages from xml based message models -->
+            <plugin>
+                <groupId>com.neeve</groupId>
+                <artifactId>nvx-platform-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>Messages</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>adm-generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${basedir}/src/main/resources/com/neeve/tick2trade/messages/messages.xml</modelFile>
+                            <encodingType>Xbuf</encodingType>
+                            <namespace>com.neeve.tick2trade.messages</namespace>
+                            <protoXbufGenerationCompatibility>Protobuf</protoXbufGenerationCompatibility>
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>Xar</id>
+                        <goals>
+                            <goal>robin-xar</goal>
+                        </goals>
+                        <configuration>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Copy conf folder to testbed root for tests -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/testbed/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/conf</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Copies dependencies for bundled distribution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Creates a bundled distribution to install on servers -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>bundle-for-run</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <attach>true</attach>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptor>distribution.run.xml</descriptor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- Talon -->
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-talon-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-native</artifactId>
+            <classifier>linux-x86-64</classifier>
+        </dependency>
+
+        <!-- The topic oriented application layered on top of the X Platform -->
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-hornet</artifactId>
+        </dependency>
+
+        <!-- For running against active mq in the activemq profile -->
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-jms</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.13.0</version>
+        </dependency>
+        
+        <!-- For running against solace -->
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-solace</artifactId>
+        </dependency>
+    </dependencies>
+</project>

@@ -19,7 +19,6 @@
         </license>
     </licenses>
 
-
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>

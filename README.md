@@ -16,9 +16,15 @@ The following lists and describes the apps in this repository
 ### nvx-app-oms
 This is a simple financial service order management application. 
 
+### nvx-app-tick-to-trade
+This is a simple financial service execution management system which includes a smart order router. This application uses Hornet with type based routing.
+
 ### nvx-app-adbidding-engine
-This application implements an ad-bidding-flow on the X Platform
+This application implements an ad-bidding-flow on the X Platform.
 
 ### nvx-app-geofencer
 This application implements a geofencing flow on the X Platform demonstrating the platforms utility in handling IOT flows. 
+
+### nvx-app-bookstore
+This application uses Eagle to implement a classic "Bookstore App" e-commerce usecase using a microservices architecture.
 
