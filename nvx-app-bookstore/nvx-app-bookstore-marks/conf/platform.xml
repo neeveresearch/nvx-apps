@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <apps>
+        <app name="bookstore-marks-${bookstore.marks.env::prod}-1" mainClass="com.neeve.bookstore.marketing.service.App">
+            <storage descriptor="native://." enabled="true">
+                <checkpointingType>Default</checkpointingType>
+                <checkpointThreshold>1</checkpointThreshold>
+                <checkpointMaxInterval>5</checkpointMaxInterval>
+                <persistence>
+                    <flushOnCommit>true</flushOnCommit>
+                    <initialLogLength>0.01</initialLogLength>
+                    <autoRepair>true</autoRepair>
+                    <cdcEnabled>true</cdcEnabled>
+                    <compactionThreshold>8192</compactionThreshold>
+                    <maxCompactionWindowSize>1024</maxCompactionWindowSize>
+                    <detachedPersist enabled="false"/>
+                </persistence>
+            </storage>
+        </app>
+    </apps>
+
+    <servers>
+        <server name="bookstore-marks-1" group="default">
+            <apps>
+                <app name="bookstore-marks-${bookstore.marks.env::prod}-1" autoStart="true"/>
+            </apps>
+        </server>
+
+        <server name="bookstore-marks-2" group="default">
+            <apps>
+                <app name="bookstore-marks-${bookstore.marks.env::prod}-1" autoStart="true"/>
+            </apps>
+        </server>
+    </servers>
+</model>

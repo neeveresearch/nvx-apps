@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>nvx-app-bookstore-driver</artifactId>
+    <packaging>jar</packaging>
+    <name>Bookstore Application Driver</name>
+
+    <parent>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-app-bookstore</artifactId>
+        <version>3.7-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>bundle-for-run</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <attach>true</attach>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptor>distribution.xml</descriptor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-app-bookstore-carts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

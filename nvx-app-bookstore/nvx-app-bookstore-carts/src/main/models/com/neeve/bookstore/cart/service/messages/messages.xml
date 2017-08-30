@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.bookstore.cart.service.messages">
+    <import model="com/neeve/service/messages/messages.xml"/>
+    <import model="com/neeve/bookstore/cart/service/entities/entities.xml"/>
+
+    <factories>
+        <factory name="MessageFactory" id="2"/>
+    </factories>
+
+    <messages>
+        <message name="CreateCartRequest" factoryid="2" id="1">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+        </message>
+
+        <message name="CreateCartResponse" factoryid="2" id="2">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+        </message>
+
+        <message name="AddBookRequest" factoryid="2" id="3">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+            <field name="title" type="String"/>
+        </message>
+
+        <message name="AddBookResponse" factoryid="2" id="4">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="isbn" type="String"/>
+        </message>
+
+        <message name="RemoveBookRequest" factoryid="2" id="5">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+            <field name="isbn" type="String"/>
+        </message>
+
+        <message name="RemoveBookResponse" factoryid="2" id="6">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="isbn" type="String"/>
+        </message>
+
+        <message name="GetCartRequest" factoryid="2" id="7">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+        </message>
+
+        <message name="GetCartResponse" factoryid="2" id="8">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+            <field name="books" type="Book[]"/>
+        </message>
+
+        <!-- ********************************************* -->
+        <!-- **** Events (id=101-) **** -->
+        <!-- ********************************************* -->
+
+        <message name="CartCreatedEvent" factoryid="2" id="101">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+        </message>
+
+        <message name="BookAddedToCartEvent" factoryid="2" id="102">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+            <field name="isbn" type="String"/>
+        </message>
+
+        <message name="BookRemovedFromCartEvent" factoryid="2" id="103">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="cartId" type="Long"/>
+            <field name="isbn" type="String"/>
+        </message>
+
+        <!-- ********************************************* -->
+        <!-- **** Internal / App methods (id=9001-9050) **** -->
+        <!-- ********************************************* -->
+
+        <!-- DoDataMaintenance request -->
+        <message name="DoDataMaintenanceRequest" factoryid="2" id="9001">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+        </message>
+
+        <!-- Data maintenance done event -->
+        <message name="DataMaintenanceDoneEvent" factoryid="2" id="9002">
+            <field name="header" type="com.neeve.service.messages.MessageHeader"/>
+            <field name="agentName" type="String"/>
+            <field name="executionTime" type="Long"/>
+        </message>
+    </messages>
+
+    <entities>
+        <!-- ************************************************ -->
+        <!-- **** Message specific entities (id=1001...) **** -->
+        <!-- ************************************************ -->
+
+        <!-- Error context present in every request, reply message -->
+        <entity name="Book" id="1001" factoryid="2" asField="true">
+            <field name="isbn" type="String" isKey="true"/>
+            <field name="title" type="String"/>
+        </entity>
+    </entities>
+</model>

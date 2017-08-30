@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.bookstore.cart.service.entities">
+    <factories>
+        <factory name="EntityFactory" id="1"/>
+    </factories>
+
+    <enumerations>
+        <enum name="CustomerTitle">
+            <const name="Mr" value="1"/>
+            <const name="Mrs" value="3"/>
+            <const name="Ms" value="5"/>
+            <const name="Dr" value="7"/>
+            <const name="Madam" value="9"/>
+            <const name="Miss" value="11"/>
+        </enum>
+
+        <enum name="CustomerPhoneType">
+            <const name="Home" value="0"/>
+            <const name="Office" value="1"/>
+            <const name="Mobile" value="2"/>
+        </enum>
+    </enumerations>
+
+    <entities>
+        <entity name="CustomerProfile" id="1" factoryid="1" asEmbedded="true">
+            <field name="title" type="CustomerTitle"/>
+            <field name="firstName" type="String"/>
+            <field name="lastName" type="String"/>
+            <field name="emailAddress" type="String"/>
+            <field name="phoneNumber" type="CustomerPhoneNumber"/>
+            <field name="address" type="CustomerAddress"/>
+        </entity>
+
+        <entity name="CustomerPhoneNumber" id="2" factoryid="1" asEmbedded="true">
+            <field name="type" type="CustomerPhoneType"/>
+            <field name="number" type="String"/>
+        </entity>
+
+        <entity name="CustomerAddress" id="3" factoryid="1" asEmbedded="true">
+            <field name="street1" type="String"/>
+            <field name="street2" type="String"/>
+            <field name="city" type="String"/>
+            <field name="state" type="String"/>
+            <field name="country" type="String"/>
+            <field name="postalCode" type="String"/>
+        </entity>
+    </entities>
+</model>
+
