@@ -23,7 +23,9 @@ public class TestMessageFlow extends AbstractTest {
         Properties env = new Properties();
         env.put("driver.interactive", "false");
         env.put("nv.conservecpu", "true");
+        // Use in process discovery 
         env.put("nv.discovery.descriptor", "local://test&initWaitTime=0");
+        // Use loopback bus for in process testing
         env.put("AD_BIDDING_BUS_DESCRIPTOR", "loopback://ad-bidding");
 
         startApp(AdExchangeApplication.class, "ad-exchange", "ad-exchange-1", env);

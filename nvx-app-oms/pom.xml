@@ -9,7 +9,16 @@
         <artifactId>nvx-apps-parent</artifactId>
         <version>3.7-SNAPSHOT</version>
     </parent>
-
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    
     <properties>
         <nvx.fix.version>0.9-M6</nvx.fix.version>
     </properties>
@@ -62,6 +71,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
+                    
                     <execution>
                         <id>Messages</id>
                         <phase>generate-sources</phase>
@@ -72,6 +82,14 @@
                             <modelFile>${project.basedir}/src/main/models/com/neeve/oms/messages/messages.xml</modelFile>
                             <encodingType>Xbuf</encodingType>
                         </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>Xar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>robin-xar</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -88,28 +106,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.neeve</groupId>
-                <artifactId>nvx-robin-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>Xar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>xar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                <source>1.6</source>
-                <target>1.6</target>
-              </configuration>
             </plugin>
             
             <plugin>

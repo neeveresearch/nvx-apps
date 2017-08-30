@@ -34,10 +34,8 @@
             </driver>
 
             <!-- OMS parameters -->
-            <cluster>
-                <!-- Order preallocate count -->
-                <orderPreallocateCount>50000</orderPreallocateCount>
-            </cluster>
+            <!-- Order preallocate count -->
+            <orderPreallocateCount>50000</orderPreallocateCount>
         </oms>
 
     </env>
@@ -84,14 +82,14 @@
                     <autoRepair>true</autoRepair>
                     <flushUsingMappedMemory>true</flushUsingMappedMemory>
                 </persistence>
-                <clustering enabled="false">
-                    <localIfAddr>${oms.cluster.replication.localifaddr::0.0.0.0}</localIfAddr>
-                    <localPort>${oms.cluster.replication.localport::0}</localPort>
-                    <linkParams>${oms.cluster.replication.linkparams::maxreadspintime=0}</linkParams>
-                    <linkReaderCpuAffinityMask>${oms.cluster.replication.linkreader.cpuffinitymask::0}</linkReaderCpuAffinityMask>
+                <clustering enabled="${oms.clustering.enabled::false}">
+                    <localIfAddr>${oms.clustering.replication.localifaddr::0.0.0.0}</localIfAddr>
+                    <localPort>${oms.clustering.replication.localport::0}</localPort>
+                    <linkParams>${oms.clustclusteringer.replication.linkparams::maxreadspintime=0}</linkParams>
+                    <linkReaderCpuAffinityMask>${oms.clustering.replication.linkreader.cpuffinitymask::0}</linkReaderCpuAffinityMask>
                     <detachedSend enabled="true">
                         <queueDepth>128</queueDepth>
-                        <queueDrainerCpuAffinityMask>${oms.cluster.replication.detachedsender.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
+                        <queueDrainerCpuAffinityMask>${oms.clustering.replication.detachedsender.cpuaffinitymask::0}</queueDrainerCpuAffinityMask>
                     </detachedSend>
                 </clustering>
             </storage>

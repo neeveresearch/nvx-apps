@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.geofencer.messages">
+    <import model="com/neeve/geofencer/entities/entities.xml"/>
+
+    <factories>
+        <factory name="MessageFactory" id="1"/>
+    </factories>
+
+    <messages>
+        <message name="LocationEventMessage" factoryid="1" id="1">
+            <field name="vehicleID" type="String" id="1"/>
+            <field name="timestamp" type="Long" id="2"/>
+            <field name="location" type="com.neeve.geofencer.entities.GPSCoordinate" id="3"/>
+            <field name="speed" type="Integer" id="4"/>
+        </message>
+
+        <message name="RouteViolationEvent" factoryid="1" id="2">
+            <field name="vehicleID" type="String" id="1"/>
+            <field name="location" type="com.neeve.geofencer.entities.GPSCoordinate" id="2"/>
+            <field name="speed" type="Integer" id="3"/>
+            <field name="lastLocation" type="com.neeve.geofencer.entities.GPSCoordinate" id="4"/>
+            <field name="lastSpeed" type="Integer" id="5"/>
+        </message>
+
+        <message name="FirstMessage" factoryid="1" id="3">
+        </message>
+    </messages>
+</model>

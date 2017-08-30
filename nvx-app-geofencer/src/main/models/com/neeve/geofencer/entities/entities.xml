@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.geofencer.entities">
+    <factories>
+        <factory name="EntityFactory" id="3"/>
+    </factories>
+
+    <entities>
+        <entity name="GPSCoordinate" factoryid="3" id="1" asEmbedded="true">
+            <field name="latitude" type="Integer" id="1"/>
+            <field name="longitude" type="Integer" id="2"/>
+        </entity>
+
+        <entity name="VehicleRoute" factoryid="3" id="2" asEmbedded="true">
+            <field name="startLocation" type="com.neeve.geofencer.entities.GPSCoordinate" id="1"/>
+            <field name="endLocation" type="com.neeve.geofencer.entities.GPSCoordinate" id="2"/>
+            <field name="segments" type="Segment[]" id="3"/>
+        </entity>
+
+        <entity name="Segment" factoryid="3" id="3" asEmbedded="true">
+            <field name="startLocation" type="com.neeve.geofencer.entities.GPSCoordinate" id="1"/>
+            <field name="endLocation" type="com.neeve.geofencer.entities.GPSCoordinate" id="2"/>
+        </entity>
+    </entities>
+</model>

@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <env>
+        <nv>
+            <discovery.descriptor>mcast://224.0.1.200:4190</discovery.descriptor>
+
+            <!-- optimize for latency -->
+            <optimizefor>throughput</optimizefor>
+            <conservecpu>true</conservecpu>
+
+            <!-- turn on latency stats for underyling engines ... -->
+            <aep>
+                <trace>config</trace>
+            </aep>
+            <msg.latency.stats>true</msg.latency.stats>
+            <ods.latency.stats>true</ods.latency.stats>
+            <latencymanager.samplesize>102400</latencymanager.samplesize>
+
+            <!-- and enable servers stats to report them-->
+            <server>
+                <stats>
+                    <enable>true</enable>
+                    <interval>5000</interval>
+                    <userstats.trace>off</userstats.trace>
+                </stats>
+            </server>
+        </nv>
+
+        <!-- Configure the test drivers -->
+        <processor.channel>processor-events</processor.channel>
+        <master.channel>master-requests</master.channel>
+        <sender.sendRate>1000</sender.sendRate>
+        <sender.numEventsPerSegment>1000000</sender.numEventsPerSegment>
+        <sender.singleSimulation>false</sender.singleSimulation>
+        <route.numSegments>3200</route.numSegments>
+        <sender.numThreads>10</sender.numThreads>
+    </env>
+
+    <buses>
+        <bus name="vehicle-event-processor" descriptor="${vehicleevent.bus.descriptor::direct://vehicle-event-processor}">
+            <channels>
+                <channel name="processor-events" id="1"/>
+            </channels>
+        </bus>
+        <bus name="vehicle-master" descriptor="${vehiclemaster.bus.descriptor::direct://vehicle-master}">
+            <channels>
+                <channel name="master-requests" id="1"/>
+                <channel name="master-events" id="2"/>
+            </channels>
+        </bus>
+        <bus name="alerts" descriptor="${vehiclealerts.bus.descriptor::direct://vehicle-alert-receiver}">
+            <channels>
+                <channel name="alerts" id="1"/>
+            </channels>
+        </bus>
+    </buses>
+
+    <apps>
+        <app name="vehicle-master" mainClass="com.neeve.geofencer.VehicleMaster">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
+                </factories>
+                <bus name="vehicle-master">
+                    <channels>
+                        <channel name="master-requests" join="true" />
+                        <channel name="master-events" join="false" />
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <factories>
+                    <factory name="com.neeve.geofencer.vehiclemaster.state.StateFactory"/>
+                </factories>
+                <persistenceQuorum>1</persistenceQuorum>
+                <persistence enabled="true">
+                    <detachedPersist enabled="false"/>
+                    <autoRepair>true</autoRepair>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <clustering enabled="true">
+                    <detachedSend enabled="true"/>
+                    <detachedDispatch enabled="true"/>
+                </clustering>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+        </app>
+
+        <app name="vehicle-event-processor" mainClass="com.neeve.geofencer.VehicleEventProcessor">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
+                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
+                </factories>
+                <bus name="vehicle-event-processor">
+                    <channels>
+                        <channel name="processor-events" join="true"/>
+                    </channels>
+                </bus>
+                <bus name="alerts">
+                    <channels>
+                        <channel name="alerts" join="false"/>
+                    </channels>
+                </bus>
+                <bus name="vehicle-master">
+                    <channels>
+                        <channel name="master-requests" join="false"/>
+                        <channel name="master-events" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <factories>
+                    <factory name="com.neeve.geofencer.state.StateFactory"/>
+                </factories>
+                <persistenceQuorum>1</persistenceQuorum>
+                <persistence enabled="true">
+                    <detachedPersist enabled="false"/>
+                    <autoRepair>true</autoRepair>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <clustering enabled="true">
+                    <detachedSend enabled="true"/>
+                    <detachedDispatch enabled="true"/>
+                </clustering>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+        </app>
+
+        <app name="vehicle-event-sender" mainClass="com.neeve.geofencer.VehicleEventSender">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
+                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
+                </factories>
+                <bus name="vehicle-event-processor">
+                    <channels>
+                        <channel name="processor-events" join="false" />
+                    </channels>
+                </bus>
+                <bus name="vehicle-master">
+                    <channels>
+                        <channel name="master-requests" join="false" />
+                        <channel name="master-events" join="true" />
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <persistence enabled="false" />
+                <clustering enabled="false"/>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+        </app>
+
+        <app name="vehicle-alert-receiver" mainClass="com.neeve.geofencer.VehicleAlertReceiver">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
+                </factories>
+                <bus name="alerts">
+                    <channels>
+                        <channel name="alerts" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <persistence enabled="false"/>
+                <clustering enabled="false"/>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+        </app>
+    </apps>
+
+    <servers>
+        <server name="vehicle-event-processor-1">
+            <apps>
+                <app name="vehicle-event-processor" autoStart="true"/>
+            </apps>
+        </server>
+        <server name="vehicle-event-processor-2">
+            <apps>
+                <app name="vehicle-event-processor" autoStart="true"/>
+            </apps>
+        </server>
+        <server name="vehicle-event-sender">
+            <apps>
+                <app name="vehicle-event-sender" autoStart="true"/>
+            </apps>
+        </server>
+        <server name="vehicle-alert-receiver">
+            <apps>
+                <app name="vehicle-alert-receiver" autoStart="true"/>
+            </apps>
+        </server>
+        <server name="vehicle-master-1">
+            <apps>
+                <app name="vehicle-master" autoStart="true"/>
+            </apps>
+        </server>
+        <server name="vehicle-master-2">
+            <apps>
+                <app name="vehicle-master" autoStart="true"/>
+            </apps>
+        </server>
+    </servers>
+</model>

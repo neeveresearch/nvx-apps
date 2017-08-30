@@ -3,10 +3,8 @@ package com.neeve.oms.es;
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.annotations.EventHandler;
-import com.neeve.aep.event.AepEngineStartedEvent;
 import com.neeve.cli.annotations.Configured;
 import com.neeve.config.ConfigRepositoryFactory;
-import com.neeve.lang.XString;
 import com.neeve.lang.XLongLinkedHashMap;
 import com.neeve.server.app.annotations.AppInitializer;
 import com.neeve.server.app.annotations.AppInjectionPoint;
@@ -22,9 +20,9 @@ import com.neeve.oms.es.domain.Order;
 
 import com.neeve.fix.FixMessage;
 
-@AppHAPolicy(value=AepEngine.HAPolicy.EventSourcing)
+@AppHAPolicy(value = AepEngine.HAPolicy.EventSourcing)
 final public class Application {
-    @Configured(property = "oms.cluster.orderPreallocateCount")
+    @Configured(property = "oms.orderPreallocateCount", defaultValue = "1000")
     private int _orderPreallocateCount;
     private AepMessageSender _messageSender;
     private OrderPool _orderPool;
@@ -47,7 +45,7 @@ final public class Application {
     @AppInitializer
     final public void init() {
         _orderPool = new OrderPool(_orderPreallocateCount);
-        for (int i = 0 ; i < 1 ; i++) {
+        for (int i = 0; i < 1; i++) {
             System.gc();
         }
     }
@@ -107,4 +105,3 @@ final public class Application {
         _messageSender.sendMessage(2, event);
     }
 }
-

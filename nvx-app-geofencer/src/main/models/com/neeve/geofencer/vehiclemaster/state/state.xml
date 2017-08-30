@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.geofencer.vehiclemaster.state">
+    <import model="com/neeve/geofencer/entities/entities.xml"/>
+
+    <factories>
+        <factory name="StateFactory" id="12"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="12" id="1">
+            <field name="vehicles" type="Vehicles" id="1"/>
+        </entity>
+
+        <entity name="Vehicle" factoryid="12" id="2">
+            <field name="vehicleID" type="String" isKey="true" id="1"/>
+            <field name="route" type="com.neeve.geofencer.entities.VehicleRoute" id="2"/>
+        </entity>
+    </entities>
+
+    <collections>
+        <collection name="Vehicles" is="StringMap" contains="Vehicle" factoryid="12" id="101"/>
+    </collections>
+</model>

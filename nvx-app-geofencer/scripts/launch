@@ -1,0 +1,9 @@
+assume deploy has run
+
+launch the vehicle-master-1 xvm
+
+launch the vehicle-alert-receiver xvm
+
+launch the vehicle-event-processor-1 xvm
+
+launch the vehicle-event-sender xvm
