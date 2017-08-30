@@ -3,8 +3,8 @@
 Showcases Real-Time Ad Bidding System built on X Platform.
 
 Take a look at:
-* [Whitepaper](raw/master/docs/x%20platform%20ad%20bidding%20white%20paper.docx) (word)
-* [Presentation](raw/master/docs/nvx-ad-bidding-presentation.pptx) (powerpoint)
+* [Whitepaper](docs/x%20platform%20ad%20bidding%20white%20paper.docx?raw=true) (word)
+* [Presentation](docs/nvx-ad-bidding-presentation.pptx?raw=true) (powerpoint)
 
 ## Background on Ad Bidding Systems
 
