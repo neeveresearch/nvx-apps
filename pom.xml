@@ -16,6 +16,7 @@
 
     <modules>
         <module>nvx-app-oms</module>
+        <module>nvx-app-bookstore</module>
     </modules>
 
     <dependencies>

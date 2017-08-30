@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>nvx-app-bookstore-marks</artifactId>
+    <packaging>jar</packaging>
+    <name>Bookstore Application Marketing Service</name>
+
+    <parent>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-app-bookstore</artifactId>
+        <version>3.8-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.neeve</groupId>
+                <artifactId>nvx-core-maven-plugin</artifactId>
+                <version>${nvx.talon.version}</version>
+                <executions>
+                    <execution>
+                        <id>Marketing Entities</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/entities/entities.xml</modelFile>
+                            <encodingType>Json</encodingType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Marketing Messages</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/messages/messages.xml</modelFile>
+                            <encodingType>Json</encodingType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Marketing State</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/repository/model.xml</modelFile>
+                            <encodingType>Json</encodingType>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.neeve</groupId>
+                <artifactId>nvx-eagle-maven-plugin</artifactId>
+                <version>${nvx.eagle.version}</version>
+                <executions>
+                    <execution>
+                        <id>Marketing Service</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/service.xml</modelFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>bundle-for-run</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <attach>true</attach>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptor>distribution.xml</descriptor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-app-bookstore-carts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

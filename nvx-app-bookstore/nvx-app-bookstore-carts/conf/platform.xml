@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <apps>
+        <app name="bookstore-carts-${bookstore.carts.env::prod}-1" mainClass="com.neeve.bookstore.cart.service.App">
+            <storage descriptor="native://." enabled="true">
+                <checkpointingType>Default</checkpointingType>
+                <checkpointThreshold>1</checkpointThreshold>
+                <checkpointMaxInterval>5</checkpointMaxInterval>
+                <persistence>
+                    <flushOnCommit>true</flushOnCommit>
+                    <initialLogLength>0.01</initialLogLength>
+                    <autoRepair>true</autoRepair>
+                    <cdcEnabled>true</cdcEnabled>
+                    <compactionThreshold>8192</compactionThreshold>
+                    <maxCompactionWindowSize>1024</maxCompactionWindowSize>
+                    <detachedPersist enabled="false"/>
+                </persistence>
+            </storage>
+        </app>
+
+        <app name="bookstore-carts-${bookstore.carts.env::prod}-2" mainClass="com.neeve.bookstore.cart.service.App">
+            <storage descriptor="native://.">
+                <checkpointingType>Default</checkpointingType>
+                <checkpointThreshold>1</checkpointThreshold>
+                <checkpointMaxInterval>5</checkpointMaxInterval>
+                <persistence>
+                    <flushOnCommit>true</flushOnCommit>
+                    <initialLogLength>0.01</initialLogLength>
+                    <autoRepair>true</autoRepair>
+                    <cdcEnabled>true</cdcEnabled>
+                    <compactionThreshold>8192</compactionThreshold>
+                    <maxCompactionWindowSize>1024</maxCompactionWindowSize>
+                    <detachedPersist enabled="false"/>
+                </persistence>
+            </storage>
+        </app>
+    </apps>
+
+    <servers>
+        <server name="bookstore-carts-1p" group="default">
+            <apps>
+                <app name="bookstore-carts-${bookstore.carts.env::prod}-1" autoStart="true"/>
+            </apps>
+        </server>
+
+        <server name="bookstore-carts-2" group="default">
+            <apps>
+                <app name="bookstore-carts-${bookstore.carts.env::prod}-1" autoStart="true"/>
+            </apps>
+        </server>
+
+        <server name="bookstore-carts-3" group="default">
+            <apps>
+                <app name="bookstore-carts-${bookstore.carts.env::prod}-2" autoStart="true"/>
+            </apps>
+        </server>
+
+        <server name="bookstore-carts-4" group="default">
+            <apps>
+                <app name="bookstore-carts-${bookstore.carts.env::prod}-2" autoStart="true"/>
+            </apps>
+        </server>
+    </servers>
+</model>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.bookstore.cart.service.repository">
+    <import model="com/neeve/bookstore/cart/service/entities/entities.xml"/>
+
+    <factories>
+        <factory name="ObjectFactory" id="3"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="3" id="1">
+            <field name="partitions" type="Partitions"/>
+            <field name="carts" type="Carts"/>
+        </entity>
+
+        <entity name="Partition" factoryid="3" id="2">
+            <field name="partitionId" type="Integer"/>
+            <field name="nextCartId" type="Long"/>
+        </entity>
+
+        <entity name="Cart" factoryid="3" id="3">
+            <field name="cartId" type="Long" isKey="true"/>
+            <field name="items" type="Items"/>
+        </entity>
+
+        <entity name="Item" factoryid="3" id="4">
+            <field name="isbn" type="String" isKey="true"/>
+            <field name="cartId" type="Long"/>
+            <field name="title" type="String"/>
+        </entity>
+    </entities>
+
+    <collections>
+        <collection name="Partitions" is="LongMap" contains="Partition" factoryid="3" id="99"/>
+        <collection name="Carts" is="LongMap" contains="Cart" factoryid="3" id="100"/>
+        <collection name="Items" is="StringMap" contains="Item" factoryid="3" id="101"/>
+    </collections>
+</model>
