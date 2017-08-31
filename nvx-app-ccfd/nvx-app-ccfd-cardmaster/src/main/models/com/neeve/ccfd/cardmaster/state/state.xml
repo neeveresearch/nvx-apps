@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ccfd.cardmaster.state">
+    <factories>
+        <factory name="StateFactory" id="4"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="4" id="1">
+            <field name="cards" type="PaymentCards" id="1"/>
+        </entity>
+
+        <entity name="PaymentCard" factoryid="4" id="2" doc="Identifies card holder by card number">
+            <field name="cardNumber" type="String" id="1" isKey="true" doc="Card number"/>
+            <field name="cardHolderId" type="String" id="2" doc="Id of card holder"/>
+        </entity>
+    </entities>
+
+    <collections>
+        <collection name="PaymentCards" is="StringMap" contains="PaymentCard" factoryid="4" id="100"/>
+    </collections>
+</model>

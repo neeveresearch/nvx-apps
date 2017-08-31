@@ -1,0 +1,14 @@
+##DISPLAYNAME Launch All
+##DESCRIPTION Launches all XVMs in the system
+
+assume provision has run
+
+// launch the processor cluster 
+launch the merchantmaster-1 xvm
+launch the merchantmaster-2 xvm
+
+// Launch the receiver driver
+launch the merchantmaster-receive-driver xvm
+
+// launch the send driver
+launch the merchantmaster-send-driver xvm

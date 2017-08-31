@@ -1,0 +1,9 @@
+##DISPLAYNAME Send ...
+##DESCRIPTION Intrucst the driver to send some messages
+##VAR numMessages [displayName="Number of Messages", type=Int, description="The number of messages to send"] 
+##VAR sendRate [displayName="Send Rate", type=Int, description="The rate at which to send"] 
+
+assume provision has run
+
+// launch the processor cluster
+instruct the cardholdermaster-send-driver app in the cardholdermaster-send-driver xvm to send with ${numMessages::1000} ${sendRate::100}

@@ -1,0 +1,16 @@
+##DISPLAYNAME Shutdown All
+##DESCRIPTION Shuts down all XVMs in the system
+
+assume launch-all has run
+
+// stop the send driver
+stop the perfdriver-send-driver app in the perfdriver-send-driver xvm
+
+// shutdown the processor cluster
+stop the perfdriver app in the perfdriver-2 xvm
+stop the perfdriver app in the perfdriver-1 xvm
+
+// stop the receive driver
+stop the perfdriver-receive-driver app in the perfdriver-receive-driver xvm
+
+shutdown

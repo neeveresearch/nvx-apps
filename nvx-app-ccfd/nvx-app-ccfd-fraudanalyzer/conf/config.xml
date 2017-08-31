@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <env>
+        <nv>
+            <!-- optimize for latency -->
+            <optimizefor>latency</optimizefor>
+            <aep.trace>info</aep.trace>
+
+            <!-- global latency stats settings -->
+            <msg.latency.stats>true</msg.latency.stats>
+            <ods.latency.stats>true</ods.latency.stats>
+            <latencymanager.samplesize>10240</latencymanager.samplesize>
+        </nv>
+
+        <!-- Configure the test drivers -->
+        <driver.sendRate>1000</driver.sendRate>
+        <driver.sendCount>1000</driver.sendCount>
+        
+        <cardmaster.numShards>1</cardmaster.numShards>
+        <merchantmaster.numShards>1</merchantmaster.numShards>
+        <cardholdermaster.numShards>1</cardholdermaster.numShards>
+        <fraudanalyzer.numShards>1</fraudanalyzer.numShards>
+    </env>
+
+    <buses>
+        <bus name="ccfd" descriptor="${CCFD_BUS_DESCRIPTOR::${SERVICE_BUS_CONNECTION_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=false&amp;FLOW_FORWARDING_MODE=2}}">
+            <channels>
+                <channel name="authreq" id="1">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${cardMasterShardId}</key>
+                </channel>
+                <channel name="authreq2" id="2">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${merchantMasterShardId}</key>
+                </channel>
+                <channel name="authreq3" id="3">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${cardholderMasterShardId}</key>
+                </channel>
+                <channel name="authreq4" id="4">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${fraudanalyzerShardId}</key>
+                </channel>
+                <channel name="authresp" id="5">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                </channel>
+            </channels>
+
+        </bus>
+    </buses>
+
+    <apps>
+        <app name="fraudanalyzer-send-driver" mainClass="com.neeve.ccfd.fraudanalyzer.driver.SendDriver">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory" />
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq4" join="false"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
+        </app>
+
+        <app name="fraudanalyzer" mainClass="com.neeve.ccfd.fraudanalyzer.Application">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq4" join="true">
+                            <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID::0}</filter>
+                        </channel>
+                        <channel name="authresp" join="false"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <factories>
+                    <factory name="com.neeve.ccfd.fraudanalyzer.state.StateFactory"/>
+                </factories>
+                <clustering enabled="true">
+                  <localIfAddr>${FRAUDANALYZER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                </clustering>
+                <persistence enabled="true">
+                    <!-- detached persist is not supported for state replication -->
+                    <detachedPersist enabled="false"/>
+                </persistence>
+            </storage>
+            <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+        </app>
+
+        <app name="fraudanalyzer-receive-driver" mainClass="com.neeve.ccfd.fraudanalyzer.driver.ReceiveDriver">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory" />
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authresp" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage enabled="false">
+                <clustering enabled="false"/>
+                <persistence enabled="false"/>
+            </storage>
+        </app>
+    </apps>
+
+    <servers>
+        <server name="fraudanalyzer-1">
+            <apps>
+                <app name="fraudanalyzer" autoStart="true"/>
+            </apps>           
+            <heartbeats enabled="true" interval="10">
+                <collectIndividualThreadStats>false</collectIndividualThreadStats>
+                <tracing enabled="true">
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <traceAppStats>false</traceAppStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>true</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        <server name="fraudanalyzer-2">
+            <apps>
+                <app name="fraudanalyzer" autoStart="true"/>
+            </apps>           
+            <heartbeats enabled="true" interval="10">
+                <collectIndividualThreadStats>false</collectIndividualThreadStats>
+                <tracing enabled="true">
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <traceAppStats>false</traceAppStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>true</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        
+        <server name="fraudanalyzer-send-driver">
+            <apps>
+                <app name="fraudanalyzer-send-driver" autoStart="true"/>
+            </apps>           
+            <heartbeats enabled="true" interval="10">
+                <collectIndividualThreadStats>false</collectIndividualThreadStats>
+                <tracing enabled="true">
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <traceAppStats>false</traceAppStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>true</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        <server name="fraudanalyzer-receive-driver">
+            <apps>
+                <app name="fraudanalyzer-receive-driver" autoStart="true"/>
+            </apps>           
+            <heartbeats enabled="true" interval="10">
+                <collectIndividualThreadStats>false</collectIndividualThreadStats>
+                <tracing enabled="true">
+                    <traceAdminClientStats>false</traceAdminClientStats>
+                    <traceAppStats>false</traceAppStats>
+                    <tracePoolStats>false</tracePoolStats>
+                    <traceSysStats>false</traceSysStats>
+                    <traceThreadStats>false</traceThreadStats>
+                    <traceUserStats>true</traceUserStats>
+                </tracing>
+            </heartbeats>
+        </server>
+        
+    </servers>
+</model>

@@ -1,0 +1,8 @@
+##DISPLAYNAME Shutdown XVM ...
+##DESCRIPTION Shuts down an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="cardmaster-1,cardmaster-2,cardmaster-send-driver,cardmaster-receive-driver", description="The name of the XVM to shutdown"] 
+
+assume launch-xvm has run
+
+// shutdown the xvm
+shutdown the ${xvmName::cardmaster-1} xvm

@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>nvx-app-ccfd</artifactId>
+    <packaging>pom</packaging>
+    <name>X Platform Credit Card Fraud Detection Parent</name>
+
+    <parent>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-apps-parent</artifactId>
+      <version>3.7-SNAPSHOT</version>
+    </parent>
+   
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <modules>
+        <module>nvx-app-ccfd-roe</module>
+        <module>nvx-app-ccfd-util</module>
+        <module>nvx-app-ccfd-cardmaster</module>
+        <module>nvx-app-ccfd-merchantmaster</module>
+        <module>nvx-app-ccfd-cardholdermaster</module>
+        <module>nvx-app-ccfd-fraudanalyzer</module>
+        <module>nvx-app-ccfd-perfdriver</module>
+        <module>nvx-app-ccfd-all</module>
+    </modules>
+    
+    <build>
+        <plugins>
+            <plugin>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                <source>1.6</source>
+                <target>1.6</target>
+              </configuration>
+              <version>3.6.1</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <!-- Visit http://license.neeveresearch.com to get credentials -->
+        <repository>
+            <id>neeve-licensed</id>
+            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
+            <name>Neeve Licensed Repository</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+        <!-- Visit http://license.neeveresearch.com to get credentials -->
+        <pluginRepository>
+            <id>neeve-licensed</id>
+            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
+            <name>Neeve Licensed Repository</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
