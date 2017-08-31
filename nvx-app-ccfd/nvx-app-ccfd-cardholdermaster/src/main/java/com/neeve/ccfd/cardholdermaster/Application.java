@@ -1,10 +1,13 @@
 package com.neeve.ccfd.cardholdermaster;
 
+import java.util.Iterator;
+
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.IAepApplicationStateFactory;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.ccfd.cardholdermaster.state.CardHolder;
+import com.neeve.ccfd.cardholdermaster.state.IPaymentTransaction;
 import com.neeve.ccfd.cardholdermaster.state.PaymentTransaction;
 import com.neeve.ccfd.cardholdermaster.state.Repository;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
@@ -41,8 +44,18 @@ public class Application {
     @Configured(property = "fraudanalyzer.numShards")
     private int fraudanalyzerNumShards;
 
-    private boolean simulateSoftwareFraudCheck() {
+    private boolean simulateSoftwareFraudCheck(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
         long ts = System.nanoTime();
+
+        final Iterator<PaymentTransaction> transactions = cardholder.getHistory().iterator();
+        while (transactions.hasNext()) {
+            @SuppressWarnings("unused")
+            IPaymentTransaction transaction = transactions.next();
+
+            // TODO: Implement check based on transaction history here. 
+        }
+
+        // busy spin to simulate additional work. 
         while ((System.nanoTime() - ts) < 100000)
             ;
         return false;
@@ -83,35 +96,39 @@ public class Application {
     }
 
     @EventHandler
-    final public void onAuthorizationRequest(AuthorizationRequestMessage message, Repository repository) {
+    final public void onAuthorizationRequest(AuthorizationRequestMessage authRequest, Repository repository) {
         // stats
         authorizationRequestCount.increment();
         long start = UtlTime.now();
 
+        final CardHolder cardholder = repository.getCardHolders().get(authRequest.getCardHolderId());
+
         /****
          * This is where one would do the non-hardware accelerated fraud checks. 
-         * In the code here, we simulate the fraud check by sleeping for 100 microseconds.  
+         * In the code here, we simulate the fraud check by iterating the through all
+         * the entire transaction history and add a busy spin to simulate actual detection
+         * logic cpu usage:  
          ****/
-        if (!simulateSoftwareFraudCheck()) {
+        if (!simulateSoftwareFraudCheck(cardholder, authRequest)) {
             FraudAnalysisRequestMessage outboundMessage = FraudAnalysisRequestMessage.create();
-            outboundMessage.setRequestIdFrom(message.getRequestIdUnsafe());
-            outboundMessage.setFlowStartTs(message.getFlowStartTs());
-            outboundMessage.setNewTransaction(testDataGenerator.generateTransformedTransactionMessage(message.getNewTransaction()));
-            outboundMessage.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
-            outboundMessage.setMerchantStoreCountryCodeFrom(message.getMerchantStoreCountryCodeUnsafe());
-            outboundMessage.setMerchantStorePostcodeFrom(message.getMerchantStorePostcodeUnsafe());
+            outboundMessage.setRequestIdFrom(authRequest.getRequestIdUnsafe());
+            outboundMessage.setFlowStartTs(authRequest.getFlowStartTs());
+            outboundMessage.setNewTransaction(testDataGenerator.generateTransformedTransactionMessage(authRequest.getNewTransaction()));
+            outboundMessage.setCardHolderIdFrom(authRequest.getCardHolderIdUnsafe());
+            outboundMessage.setMerchantStoreCountryCodeFrom(authRequest.getMerchantStoreCountryCodeUnsafe());
+            outboundMessage.setMerchantStorePostcodeFrom(authRequest.getMerchantStorePostcodeUnsafe());
 
             // Fraud Analyzer has no partitioned state. We know that in our demo it will have same number of shards for 
             // cardholdermaster and fraudanalyzer, so we will use cardholder ID to make shard key for fraud analyzer. 
             // We could choose anything to make fraudanalyzer shard key, including generating with RNG,
             // as long as it will result in spreading the message load evenly across fraud analyzer instances. 
-            _messageSender.sendMessage("authreq4", outboundMessage, UtlCommon.getShardKey(message.getCardHolderId(), fraudanalyzerNumShards));
+            _messageSender.sendMessage("authreq4", outboundMessage, UtlCommon.getShardKey(authRequest.getCardHolderId(), fraudanalyzerNumShards));
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
         else {
             AuthorizationResponseMessage authorizationResponseMessage = AuthorizationResponseMessage.create();
-            authorizationResponseMessage.setFlowStartTs(message.getFlowStartTs());
-            authorizationResponseMessage.setRequestIdFrom(message.getRequestIdUnsafe());
+            authorizationResponseMessage.setFlowStartTs(authRequest.getFlowStartTs());
+            authorizationResponseMessage.setRequestIdFrom(authRequest.getRequestIdUnsafe());
             authorizationResponseMessage.setDecision(false);
             authorizationResponseMessage.setDecisionScore(0);
             _messageSender.sendMessage("authresp", authorizationResponseMessage);
