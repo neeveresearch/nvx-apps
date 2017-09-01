@@ -11,5 +11,8 @@ This repository contains the domain specific apps authored using the X Platform
 ## The Apps
 The following lists and describes the apps in this repository
 
-### nvx-oms
-This is a simple financial service order management application. 
+### nvx-app-oms
+This is a simple, Talon based, financial service order management application. It accepts new orders, adds orders to an order table and dispatches order events to indicate receipt of new order events
+
+### nvx-app-bookstore
+This is a simple, Eagle based, bookstore app. It enables CRUD operations on carts, allows for books to be added/removed from carts and dispatches cart change events consumed by a marketing service
