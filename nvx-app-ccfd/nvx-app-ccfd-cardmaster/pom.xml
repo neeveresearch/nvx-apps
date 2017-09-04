@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd-cardmaster</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Fraud Detection Credit Card Master</name>
+    <name>Fraud Detection Credit Card Master</name>
 
     <parent>
         <groupId>com.neeve</groupId>
@@ -25,10 +25,10 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-jms</artifactId>

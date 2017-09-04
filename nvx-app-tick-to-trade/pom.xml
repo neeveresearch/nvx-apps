@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-tick-to-trade</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Tick To Trade Application</name>
+    <name>Tick To Trade Application</name>
     <url>https://github.com/neeveresearch/nvx-apps/tree/develop/nvx-app-tick-to-trade</url>
     <description>The Tick To Trade Application implements a skeletal EMS and SOR implementation that highlights the ease with which multi agent applications can be authored using the X Platform and Hornet.</description>
 

@@ -62,7 +62,6 @@
                     </channels>
                 </bus>
             </messaging>
-            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
         </app>
 
         <app name="fraudanalyzer" mainClass="com.neeve.ccfd.fraudanalyzer.Application">

@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd-roe</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Fraud Detection Shared ROE</name>
+    <name>Fraud Detection Shared ROE</name>
 
     <parent>
         <groupId>com.neeve</groupId>
@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

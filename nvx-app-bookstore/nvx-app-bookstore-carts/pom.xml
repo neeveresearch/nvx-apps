@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-bookstore-carts</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Bookstore Application Cart Service</name>
+    <name>Bookstore Application Cart Service</name>
    
     <organization>
         <name>Neeve Research, LLC</name>

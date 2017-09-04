@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd-perfdriver</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Fraud Detection Performance Driver</name>
+    <name>Fraud Detection Performance Driver</name>
 
     <parent>
         <groupId>com.neeve</groupId>
@@ -53,7 +53,7 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
 

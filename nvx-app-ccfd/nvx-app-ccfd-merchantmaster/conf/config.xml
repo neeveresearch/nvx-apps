@@ -62,7 +62,6 @@
                     </channels>
                 </bus>
             </messaging>
-            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
         </app>
 
         <app name="merchantmaster" mainClass="com.neeve.ccfd.merchantmaster.Application">

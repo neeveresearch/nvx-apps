@@ -39,6 +39,8 @@ public class Application {
     @AppStat
     private final Counter newCardHolderRequestCount = StatsFactory.createCounterStat("New CardHolder Request Received Count");
     @AppStat
+    private final Counter unknownCardHolderRequestCount = StatsFactory.createCounterStat("Unknown CardHolder Request Received Count");
+    @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
     @Configured(property = "fraudanalyzer.numShards")
@@ -47,18 +49,26 @@ public class Application {
     private boolean simulateSoftwareFraudCheck(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
         long ts = System.nanoTime();
 
-        final Iterator<PaymentTransaction> transactions = cardholder.getHistory().iterator();
-        while (transactions.hasNext()) {
-            @SuppressWarnings("unused")
-            IPaymentTransaction transaction = transactions.next();
+        boolean invalid = false;
 
-            // TODO: Implement check based on transaction history here. 
+        if (cardholder != null) {
+            final Iterator<PaymentTransaction> transactions = cardholder.getHistory().iterator();
+            while (transactions.hasNext()) {
+                @SuppressWarnings("unused")
+                IPaymentTransaction transaction = transactions.next();
+
+                // TODO: Implement check based on transaction history here. 
+            }
+            invalid = false;
+        }
+        else {
+            unknownCardHolderRequestCount.increment();
+            invalid = true;
         }
 
         // busy spin to simulate additional work. 
-        while ((System.nanoTime() - ts) < 100000)
-            ;
-        return false;
+        while ((System.nanoTime() - ts) < 100000) {}
+        return invalid;
     }
 
     @AppStateFactoryAccessor

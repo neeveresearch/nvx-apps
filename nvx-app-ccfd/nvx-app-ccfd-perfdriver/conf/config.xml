@@ -64,7 +64,6 @@
                     </channels>
                 </bus>
             </messaging>
-            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
             <storage enabled="false"/>
         </app>
     </apps>

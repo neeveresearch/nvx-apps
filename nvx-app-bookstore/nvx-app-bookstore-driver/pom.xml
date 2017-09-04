@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-bookstore-driver</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Bookstore Application Driver</name>
+    <name>Bookstore Application Driver</name>
    
     <organization>
         <name>Neeve Research, LLC</name>

@@ -63,7 +63,6 @@
                     </channels>
                 </bus>
             </messaging>
-            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
         </app>
 
         <app name="cardmaster" mainClass="com.neeve.ccfd.cardmaster.Application">

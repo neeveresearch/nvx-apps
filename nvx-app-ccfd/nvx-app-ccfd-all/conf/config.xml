@@ -67,6 +67,7 @@
                             <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
                         </channel>
                         <channel name="authreq4" join="false" />
+                        <channel name="authresp" join="false" />
                     </channels>
                 </bus>
             </messaging>
@@ -99,6 +100,7 @@
                             <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::1}</filter>
                         </channel>
                         <channel name="authreq4" join="false" />
+                        <channel name="authresp" join="false" />
                     </channels>
                 </bus>
             </messaging>
@@ -313,7 +315,6 @@
                     </channels>
                 </bus>
             </messaging>
-            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
             <storage enabled="false"/>
         </app>
         

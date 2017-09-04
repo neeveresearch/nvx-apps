@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-bookstore-marks</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Bookstore Application Marketing Service</name>
+    <name>Bookstore Application Marketing Service</name>
    
     <organization>
         <name>Neeve Research, LLC</name>

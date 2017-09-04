@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd-all</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Fraud Detection Aggregator</name>
+    <name>Fraud Detection All</name>
     <description>Module that packages entire Fraud Detection system into a single deployment unit.</description>
 
     <parent>
@@ -57,7 +57,7 @@
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
 

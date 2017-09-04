@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ad-bidding-engine</artifactId>
     <packaging>jar</packaging>
-    <name>X Platform Ad Serving System</name>
+    <name>Ad Serving System</name>
 
     <parent>
       <groupId>com.neeve</groupId>
@@ -23,14 +23,16 @@
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
+        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
+        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
