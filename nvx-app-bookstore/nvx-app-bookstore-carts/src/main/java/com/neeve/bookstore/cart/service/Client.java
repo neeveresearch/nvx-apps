@@ -1,22 +1,20 @@
 package com.neeve.bookstore.cart.service;
 
-import com.neeve.rog.IRogMessage;
 import com.neeve.bookstore.cart.service.domain.CartId;
-import com.neeve.bookstore.cart.service.messages.AddBookRequest;
-import com.neeve.bookstore.cart.service.messages.CreateCartRequest;
 import com.neeve.service.EServiceException;
 import com.neeve.service.entities.ErrorCode;
 import com.neeve.service.entities.ErrorType;
-import com.neeve.service.messages.MessageHeader;
 
 final public class Client extends AbstractClient {
     // ---- Constructors
     public Client() {
         this(null, null);
     }
+
     public Client(final String name) {
         this(name, null);
     }
+
     public Client(final String name, final Object handlers) {
         super(name, App.APP_MAJOR_VERSION, App.APP_MINOR_VERSION, handlers);
     }

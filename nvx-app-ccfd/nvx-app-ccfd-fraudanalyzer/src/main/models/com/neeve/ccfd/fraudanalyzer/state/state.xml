@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ccfd.fraudanalyzer.state">
+    <factories>
+        <factory name="StateFactory" id="6"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="6" id="1">
+        </entity>
+    </entities>
+</model>

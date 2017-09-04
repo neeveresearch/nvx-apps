@@ -1,10 +1,7 @@
 package com.neeve.bookstore.marketing.service.domain.handlers;
 
-import com.google.inject.*;
-
 import com.neeve.sma.MessageView;
 import com.neeve.service.MessageHandler;
-import com.neeve.service.MessageSender;
 
 import com.neeve.bookstore.cart.service.messages.CartCreatedEvent;
 import com.neeve.service.messages.NullMessage;
@@ -22,8 +19,8 @@ final public class com_neeve_bookstore_cart_service_messages_CartCreatedEventHan
      * Implementation of {@link MessageHandler#handle}
      */
     final public MessageView handle(final String origin,
-                                    final CartCreatedEvent request, 
-                                    final NullMessage response, 
+                                    final CartCreatedEvent request,
+                                    final NullMessage response,
                                     final Repository repository) throws Exception {
         System.out.println("Received new cart created event (cart id=" + request.getCartId() + ")");
         return null;

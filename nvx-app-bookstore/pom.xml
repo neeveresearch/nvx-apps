@@ -3,12 +3,26 @@
     <artifactId>nvx-app-bookstore</artifactId>
     <packaging>pom</packaging>
     <name>Bookstore Application</name>
-
+   
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
+  
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-apps-parent</artifactId>
-        <version>3.8-SNAPSHOT</version>
+        <version>3.7-SNAPSHOT</version>
     </parent>
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
 
     <properties>
         <nvx.encoding>Protobuf</nvx.encoding>
@@ -47,20 +61,32 @@
                 </configuration>
             </plugin>
 
-            <!-- Set compiler version to 1.6 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.0</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-talon</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-eagle</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-jms</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.13.0</version>
+        </dependency>
+        
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>

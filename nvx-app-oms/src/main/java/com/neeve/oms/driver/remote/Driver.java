@@ -11,7 +11,6 @@ import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.stats.IStats.Counter;
-import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
 import com.neeve.stats.Stats;
 import com.neeve.util.UtlGovernor;
@@ -33,7 +32,9 @@ public class Driver {
     private int sendRate;
     @Configured(property = "oms.driver.sendAffinity")
     private String sendThreadAffinity;
-    @Configured(property = "oms.driver.useFix")
+    @Configured(property = "oms.driver.autoStart", defaultValue = "true")
+    private boolean autoStart;
+    @Configured(property = "oms.driver.useFix", defaultValue = "true")
     private boolean useFix;
     @AppStat
     final private Counter sentCount = StatsFactory.createCounterStat("NumSent");
@@ -54,7 +55,7 @@ public class Driver {
             return message;
         }
         else {
-            final NewOrderMessage message = NewOrderMessage.create(); 
+            final NewOrderMessage message = NewOrderMessage.create();
             NewOrderMessagePopulator.populate(message);
             return message;
         }
@@ -105,16 +106,17 @@ public class Driver {
                                 }
                                 final IRogMessage message = createNewOrderMessage(useFix);
                                 if (message instanceof FixMessage) {
-                                    NewOrderMessagePopulator.populate((FixMessage)message); 
+                                    NewOrderMessagePopulator.populate((FixMessage)message);
                                 }
                                 else {
-                                    NewOrderMessagePopulator.populate((NewOrderMessage)message); 
+                                    NewOrderMessagePopulator.populate((NewOrderMessage)message);
                                 }
                                 sendTs = UtlTime.now();
                                 receivedResponse.set(false);
                                 messageSender.sendMessage(1, message);
                                 sentCount.increment();
-                                while (!receivedResponse.get());
+                                while (!receivedResponse.get())
+                                    ;
                             }
                         });
                     }
@@ -129,6 +131,16 @@ public class Driver {
         }
     }
 
+    @Command(name = "getSentCount", displayName = "Get Sent Count")
+    final public long getSentCount() throws Exception {
+        return sentCount.getCount();
+    }
+
+    @Command(name = "getReceivedCount", displayName = "Get Received Count")
+    final public long getReceivedCount() throws Exception {
+        return receivedCount.getCount();
+    }
+
     @Command(name = "stop")
     final public void stop() throws Exception {
         running.set(false);
@@ -136,6 +148,8 @@ public class Driver {
 
     @AppMain
     final public void main(final String args[]) throws Exception {
-        start(sendCount, sendRate, useFix);
+        if (autoStart) {
+            start(sendCount, sendRate, useFix);
+        }
     }
 }

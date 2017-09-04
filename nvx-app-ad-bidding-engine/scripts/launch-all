@@ -1,0 +1,13 @@
+##DISPLAYNAME Launch all XVMs
+##DESCRIPTION Launches all of the XVMS (assuming they are all shutdown)
+
+assume provision has run
+
+// launch the processor cluster 
+// launch the processor cluster 
+launch the dsp-1 xvm on numa node 1
+launch the dmp-1 xvm on numa node 0
+launch the ssp-1 xvm on numa node 0
+launch the ad-exchange-1 xvm on numa node 1
+launch the ad-exchange-2 xvm on numa node 1
+launch the driver-1 xvm on numa node 0

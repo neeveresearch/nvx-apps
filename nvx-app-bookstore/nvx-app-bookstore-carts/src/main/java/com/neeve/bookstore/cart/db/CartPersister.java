@@ -29,8 +29,6 @@ final public class CartPersister extends DbEntityPersister {
     final private static String CART_ID_FIELD_NAME = "ID";
     final private static String CART_STOREID_FIELD_NAME = "STOREID";
 
-    final private static int CART_STOREID_FIELD_MAX_LENGTH = 36;
-
     private PreparedStatement _insertCart;
     private PreparedStatement _updateCart;
     private PreparedStatement _deleteCart;
@@ -365,8 +363,7 @@ final public class CartPersister extends DbEntityPersister {
     /**
      * Validate a Cart against persistence constraints
      */
-    final static void validateConstraints(final Cart cart) {
-    }
+    final static void validateConstraints(final Cart cart) {}
 
     final public void printStatements() throws Exception {
         // create

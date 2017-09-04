@@ -1,0 +1,15 @@
+##DISPLAYNAME Shut down all XVMs
+##DESCRIPTION Shuts down all of the XVMS (assuming they are all running)
+
+assume launch-all has run
+
+// stop all apps gracefully to remove subscriptions
+stop the driver app in the driver-1 xvm
+stop the ssp app in the ssp-1 xvm
+stop the dsp app in the dsp-1 xvm
+stop the dmp app in the dmp-1 xvm
+stop the ad-exchange app in the ad-exchange-2 xvm
+stop the ad-exchange app in the ad-exchange-1 xvm
+
+shutdown
+

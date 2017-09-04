@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.geofencer.vehiclemaster.messages">
+    <import model="com/neeve/geofencer/entities/entities.xml"/>
+
+    <factories>
+        <factory name="MessageFactory" id="11"/>
+    </factories>
+
+    <messages>
+        <message name="UpdateVehicleMessage" factoryid="11" id="1">
+            <field name="vehicleID" type="String" id="1"/>
+            <field name="route" type="com.neeve.geofencer.entities.VehicleRoute" id="2"/>
+        </message>
+
+        <message name="GetVehiclesMessage" factoryid="11" id="2">
+            <field name="transactionID" type="UUID" id="1"/>
+        </message>
+
+        <message name="VehicleUpdatedEvent" factoryid="11" id="101">
+            <field name="vehicleID" type="String" id="1"/>
+            <field name="route" type="com.neeve.geofencer.entities.VehicleRoute" id="2"/>
+        </message>
+
+        <message name="GetVehiclesResponseEvent" factoryid="11" id="102">
+            <field name="transactionID" type="UUID" id="1"/>
+            <field name="vehicleID" type="String" id="2"/>
+            <field name="route" type="com.neeve.geofencer.entities.VehicleRoute" id="3"/>
+        </message>
+    </messages>
+</model>

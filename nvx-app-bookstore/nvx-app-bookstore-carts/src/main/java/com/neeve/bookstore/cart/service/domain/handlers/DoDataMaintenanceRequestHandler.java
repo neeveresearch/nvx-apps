@@ -5,18 +5,16 @@ import com.neeve.ci.XRuntime;
 
 import com.neeve.sma.MessageView;
 import com.neeve.service.MessageHandler;
-import com.neeve.service.MessageSender;
 
 import com.neeve.bookstore.cart.service.messages.DoDataMaintenanceRequest;
 import com.neeve.bookstore.cart.service.messages.DataMaintenanceDoneEvent;
 import com.neeve.bookstore.cart.service.repository.Repository;
 import com.neeve.trace.Tracer;
-import com.neeve.util.UtlProps;
 
 final public class DoDataMaintenanceRequestHandler implements MessageHandler<DoDataMaintenanceRequest, DataMaintenanceDoneEvent, Repository> {
     @Inject
     private Tracer _tracer;
-    final static private long _maintenanceTime = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.datamaintenance.duration", 1) * 1000L;
+    final static private long _maintenanceTime = XRuntime.getValue("bookstore.carts.datamaintenance.duration", 1) * 1000L;
 
     /**
      * Implementation of {@link MessageHandler#getType}

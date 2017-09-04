@@ -1,11 +1,9 @@
 package com.neeve.bookstore.cart.service.domain.handlers;
 
-import com.google.inject.*;
 import com.neeve.bookstore.cart.service.messages.Book;
 
 import com.neeve.sma.MessageView;
 import com.neeve.service.MessageHandler;
-import com.neeve.service.MessageSender;
 
 import com.neeve.bookstore.cart.service.messages.GetCartRequest;
 import com.neeve.bookstore.cart.service.messages.GetCartResponse;
@@ -32,7 +30,7 @@ final public class GetCartRequestHandler implements MessageHandler<GetCartReques
         if (cart != null) {
             final Book[] books = new Book[cart.getItems().size()];
             int i = 0;
-            for (Item item: cart.getItems().values()) {
+            for (Item item : cart.getItems().values()) {
                 final Book book = Book.create();
                 book.setIsbn(item.getIsbn());
                 book.setTitle(item.getTitle());

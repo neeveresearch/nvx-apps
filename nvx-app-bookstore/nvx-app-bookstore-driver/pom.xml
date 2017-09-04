@@ -3,14 +3,27 @@
     <artifactId>nvx-app-bookstore-driver</artifactId>
     <packaging>jar</packaging>
     <name>Bookstore Application Driver</name>
-
+   
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
+  
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-app-bookstore</artifactId>
-        <version>3.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <version>3.7-SNAPSHOT</version>
     </parent>
-
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    
     <build>
         <plugins>
             <plugin>

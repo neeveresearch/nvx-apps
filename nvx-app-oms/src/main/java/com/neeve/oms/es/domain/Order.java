@@ -3,13 +3,8 @@ package com.neeve.oms.es.domain;
 import com.neeve.lang.XString;
 import com.neeve.util.UtlPool;
 
-import com.neeve.fix.entities.HandlingInstructions;
 import com.neeve.fix.entities.OrdStatus;
-import com.neeve.fix.entities.OrdType;
-import com.neeve.fix.entities.OrderCapacity;
-import com.neeve.fix.entities.SecurityIDSource;
 import com.neeve.fix.entities.Side;
-import com.neeve.fix.entities.TimeInForce;
 import com.neeve.fix.entities.ExecType;
 import com.neeve.fix.entities.LastCapacity;
 import com.neeve.fix.entities.MsgType;
@@ -18,35 +13,34 @@ import com.neeve.fix.FixAppField;
 import com.neeve.fix.FixMessage;
 import com.neeve.fix.FixMessageFactory;
 
-import com.neeve.oms.Constants;
 import com.neeve.oms.messages.NewOrderMessage;
 import com.neeve.oms.messages.OrderEvent;
 
 final public class Order implements UtlPool.Item<Order> {
     final public class NewOrderMessageFields {
-        @FixAppField(tag=49)
+        @FixAppField(tag = 49)
         final private XString senderCompID = XString.create(32, false, true);
-        @FixAppField(tag=56)
-        final private XString targetCompID = XString.create(32, false, true); 
-        @FixAppField(tag=55)
+        @FixAppField(tag = 56)
+        final private XString targetCompID = XString.create(32, false, true);
+        @FixAppField(tag = 55)
         final private XString symbol = XString.create(4, false, true);
-        @FixAppField(tag=11)
+        @FixAppField(tag = 11)
         final private XString clOrdId = XString.create(32, false, true);
-        @FixAppField(tag=54)
+        @FixAppField(tag = 54)
         private char side;
-        @FixAppField(tag=40)
+        @FixAppField(tag = 40)
         private char ordType;
-        @FixAppField(tag=44)
+        @FixAppField(tag = 44)
         private double price;
-        @FixAppField(tag=38)
+        @FixAppField(tag = 38)
         private double orderQty;
-        @FixAppField(tag=59)
+        @FixAppField(tag = 59)
         private char timeInForce;
-        @FixAppField(tag=37)
+        @FixAppField(tag = 37)
         private long orderId;
-        @FixAppField(tag=14)
+        @FixAppField(tag = 14)
         private double cumQuantity;
-        @FixAppField(tag=151)
+        @FixAppField(tag = 151)
         private double leavesQty;
 
         /**
@@ -76,27 +70,27 @@ final public class Order implements UtlPool.Item<Order> {
         // these fields are only used for FixMessage population. ADM generated
         // message population happens directly from NewOrderMessage and Order 
         // fields - see populate() below
-        @FixAppField(tag=35)
+        @FixAppField(tag = 35)
         final private XString msgType = XString.create(MsgType.ExecutionReport.getCodeString());
-        @FixAppField(tag=49)
+        @FixAppField(tag = 49)
         private XString senderCompID;
-        @FixAppField(tag=56)
+        @FixAppField(tag = 56)
         private XString targetCompID;
-        @FixAppField(tag=55)
+        @FixAppField(tag = 55)
         private XString symbol;
-        @FixAppField(tag=11)
+        @FixAppField(tag = 11)
         private XString clOrdId;
-        @FixAppField(tag=54)
+        @FixAppField(tag = 54)
         private char side;
-        @FixAppField(tag=19)
+        @FixAppField(tag = 19)
         private char lastCapacity;
-        @FixAppField(tag=14)
+        @FixAppField(tag = 14)
         private double cumQuantity;
-        @FixAppField(tag=75)
+        @FixAppField(tag = 75)
         private long tradeDate;
-        @FixAppField(tag=17)
+        @FixAppField(tag = 17)
         private long execID;
-        @FixAppField(tag=17)
+        @FixAppField(tag = 17)
         private char execType;
         // ---
 
@@ -124,7 +118,7 @@ final public class Order implements UtlPool.Item<Order> {
         final void populate(final FixMessage message) {
             final long now = System.currentTimeMillis();
             senderCompID = newOrderMessageFields.targetCompID;
-            targetCompID = newOrderMessageFields.senderCompID; 
+            targetCompID = newOrderMessageFields.senderCompID;
             side = newOrderMessageFields.side;
             symbol = newOrderMessageFields.symbol;
             clOrdId = newOrderMessageFields.clOrdId;
@@ -139,7 +133,7 @@ final public class Order implements UtlPool.Item<Order> {
 
     // order id counter
     private static long nextOrderId;
-    
+
     // embedded domain specific representations of messages for optimized serialization/deserialization
     final private NewOrderMessageFields newOrderMessageFields;
     final private OrderEventFields orderEventFields;
@@ -194,6 +188,18 @@ final public class Order implements UtlPool.Item<Order> {
 
     final public long getOrderId() {
         return orderId;
+    }
+
+    public final double getCumQuantity() {
+        return cumQuantity;
+    }
+
+    public final double getLeavesQty() {
+        return leavesQty;
+    }
+
+    public final OrdStatus getOrdStatus() {
+        return ordStatus;
     }
 
     /*

@@ -1,0 +1,16 @@
+##DISPLAYNAME Shutdown All
+##DESCRIPTION Shuts down all XVMs in the system
+
+assume launch-all has run
+
+// stop the send driver
+stop the merchantmaster-send-driver app in the merchantmaster-send-driver xvm
+
+// shutdown the processor cluster
+stop the merchantmaster app in the merchantmaster-2 xvm
+stop the merchantmaster app in the merchantmaster-1 xvm
+
+// stop the receive driver
+stop the merchantmaster-receive-driver app in the merchantmaster-receive-driver xvm
+
+shutdown

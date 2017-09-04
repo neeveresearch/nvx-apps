@@ -1,0 +1,31 @@
+##DISPLAYNAME Launch All
+##DESCRIPTION Launches all XVMs in the system
+
+assume provision has run
+
+// launch the fraudanalyzer clusters 
+launch the fraudanalyzer-1-1 xvm
+launch the fraudanalyzer-1-2 xvm
+launch the fraudanalyzer-2-1 xvm
+launch the fraudanalyzer-2-2 xvm
+
+// launch the cardholdermaster clusters 
+launch the cardholdermaster-1-1 xvm
+launch the cardholdermaster-1-2 xvm
+launch the cardholdermaster-2-1 xvm
+launch the cardholdermaster-2-2 xvm
+
+// launch the merchantmaster cluster2 
+launch the merchantmaster-1-1 xvm
+launch the merchantmaster-1-2 xvm
+launch the merchantmaster-2-1 xvm
+launch the merchantmaster-2-2 xvm
+
+// launch the cardmaster clusters
+launch the cardmaster-1-1 xvm
+launch the cardmaster-1-2 xvm
+launch the cardmaster-2-1 xvm
+launch the cardmaster-2-2 xvm
+
+// launch the test driver clusters
+launch the perfdriver-1 xvm

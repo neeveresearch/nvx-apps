@@ -1,0 +1,8 @@
+##DISPLAYNAME Launch XVM ...
+##DESCRIPTION Launches an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="fraudanalyzer-1-1,fraudanalyzer-1-2,fraudanalyzer-2-1,fraudanalyzer-2-2,cardholdermaster-1-1,cardholdermaster-1-2,cardholdermaster-2-1,cardholdermaster-2-2,merchantmaster-1-1,merchantmaster-1-2,merchantmaster-2-1,merchantmaster-2-2,cardmaster-1-1,cardmaster-1-2,cardmaster-2-1,cardmaster-2-2,perfdriver-1", description="The name of the XVM to launch"] 
+
+assume provision has run
+
+// launch the processor cluster
+launch the ${xvmName::cardholdermaster-1-1} xvm

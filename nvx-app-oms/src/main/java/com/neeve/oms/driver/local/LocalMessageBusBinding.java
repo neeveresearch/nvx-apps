@@ -1,10 +1,7 @@
 package com.neeve.oms.driver.local;
 
-import java.nio.ByteBuffer;
-
 import com.neeve.ci.XRuntime;
 import com.neeve.event.IEventHandler;
-import com.neeve.io.IOBuffer;
 import com.neeve.pkt.PktPacket;
 import com.neeve.sma.MessageView;
 import com.neeve.sma.MessageChannel;
@@ -18,13 +15,12 @@ import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlThread;
 
 import com.neeve.oms.driver.NewOrderMessagePopulator;
-import com.neeve.oms.messages.MessageFactory;
 import com.neeve.oms.messages.NewOrderMessage;
 
 import com.neeve.fix.*;
 
 final public class LocalMessageBusBinding extends MessageBusBindingBase implements Runnable {
-    final private boolean useFix = XRuntime.getValue("oms.driver.useFix", false); 
+    final private boolean useFix = XRuntime.getValue("oms.driver.useFix", false);
     final private int sender = hashCode();
     final private LatencyManager latencyManager = new LatencyManager("w2w", 1000000);
     private int sendCount;
@@ -46,7 +42,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
             return message;
         }
         else {
-            final NewOrderMessage message = NewOrderMessage.create(); 
+            final NewOrderMessage message = NewOrderMessage.create();
             NewOrderMessagePopulator.populate(message);
             return message;
         }
@@ -56,7 +52,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
         if (++totalReceived > warmupCount) {
             final long preWireTs = System.nanoTime();
             view.setPreWireTs(preWireTs);
-            latencyManager.add(view.getPreWireTs() - view.getPostWireTs()); 
+            latencyManager.add(view.getPreWireTs() - view.getPostWireTs());
             if (totalReceived % 1000 == 0) {
                 latencyManager.compute();
                 StringBuilder sb = new StringBuilder();
@@ -70,13 +66,14 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                     latencyManager.get(new com.neeve.stats.IStats.Series.Collector() {
                         private double sum = 0.0;
                         private int count = 0;
+
                         @Override
                         final public void add(final long sequenceNumber, final double value) {
                             sum += value;
                             count++;
                             if (count == 1000) {
                                 try {
-                                    writer.write(String.valueOf((long)(sum / count))); 
+                                    writer.write(String.valueOf((long)(sum / count)));
                                     writer.write("\n");
                                 }
                                 catch (java.io.IOException e1) {
@@ -92,7 +89,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                 catch (Throwable e) {
                     e.printStackTrace();
                 }
-                finally { 
+                finally {
                     tracer.log("Done", Tracer.Level.INFO);
                 }
                 System.exit(0);
@@ -111,8 +108,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
     }
 
     @Override
-    final protected void doStart() throws SmaException {
-    }
+    final protected void doStart() throws SmaException {}
 
     @Override
     final protected void doFlush(final FlushContext flushContext) throws SmaException {
@@ -147,22 +143,21 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
     }
 
     @Override
-    final protected void doClose() throws SmaException {
-    }
+    final protected void doClose() throws SmaException {}
 
     @Override
     final public void run() {
         try {
-            sendCount = (int)XRuntime.getValue("oms.driver.sendCount", 10000); 
-            sendRate = (int)XRuntime.getValue("oms.driver.sendRate", 1000);
-            sendAffinity = UtlThread.parseAffinityMask(XRuntime.getValue("oms.driver.sendAffinity", "0")); 
+            sendCount = XRuntime.getValue("oms.driver.sendCount", 10000);
+            sendRate = XRuntime.getValue("oms.driver.sendRate", 1000);
+            sendAffinity = UtlThread.parseAffinityMask(XRuntime.getValue("oms.driver.sendAffinity", "0"));
             warmupCount = Math.min(50000, (sendCount / 3));
             tracer.log("*** Send Rate=" + sendRate, Tracer.Level.INFO);
             tracer.log("*** Send Count=" + sendCount, Tracer.Level.INFO);
             tracer.log("*** Send Affinity =" + sendAffinity, Tracer.Level.INFO);
             tracer.log("*** Use FIX =" + useFix, Tracer.Level.INFO);
             UtlThread.setCPUAffinityMask(sendAffinity);
-            Thread.currentThread().sleep(10000);
+            Thread.sleep(10000);
             final LocalMessageChannel channel = (LocalMessageChannel)getMessageChannel("requests");
             UtlGovernor.run(sendCount, sendRate, new Runnable() {
                 @Override
@@ -175,7 +170,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                         final int encodingType = view.getMessageEncodingType();
                         view.dispose();
                         final long now = System.nanoTime();
-                        LocalMessageBusBinding.this.onMessage(channel, 
+                        LocalMessageBusBinding.this.onMessage(channel,
                                                               LocalMessageBusBinding.this.wrap(packet,
                                                                                                vfid,
                                                                                                type,
@@ -187,7 +182,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                                                                                                0l,
                                                                                                0l,
                                                                                                now,
-                                                                                               now), 
+                                                                                               now),
                                                               null);
                     }
                     catch (Exception e) {

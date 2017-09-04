@@ -1,0 +1,3 @@
+To get started take a look at the Getting Started page on the GitHub Wiki:
+
+https://github.com/neeveresearch/nvx-app-hornet-tick-to-trade/wiki/Getting-Started

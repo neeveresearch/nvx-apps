@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ccfd.cardholdermaster.state">
+    <factories>
+        <factory name="StateFactory" id="5"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="5" id="1">
+            <field name="cardHolders" type="CardHolders" id="1"/>
+        </entity>
+
+        <entity name="CardHolder" factoryid="5" id="2" doc="Contains card holder's payment history">
+            <field name="cardHolderId" type="String" id="1" isKey="true"/>
+			<field name="history" type="History" id="2"/>
+			<field name="stats" type="PaymentStats" id="3"/>
+        </entity>
+
+        <entity name="PaymentTransaction" factoryid="5" id="3" doc="Data for one transaction" >
+            <field name="paymentTransactionId" type="String" id="1" />
+            <field name="cardNumber" type="String" id="2" />
+            <field name="amount" type="Double" id="3"/>
+            <field name="merchantId" type="String" id="4"/>
+            <field name="merchantStoreId" type="String" id="5"/>
+            <field name="merchantStoreCountryCode" type="String" id="6" doc="Denormalized merchant data kept in transaction."/>
+            <field name="merchantStorePostcode" type="String" id="7" doc="Denormalized merchant data kept in transaction."/>
+        </entity>
+
+        <entity name="PaymentStats" factoryid="5" id="4" doc="Contains card holder's payment history statistical model">
+        	<field name="medians" type="Float[]" id="1" doc="Median values for all transaction fields" />
+        	<field name="variances" type="Float[]" id="2" doc="Variance values for all transaction fields" />
+        	<field name="standardDeviations" type="Float[]" id="3" doc="Standard deviation values for all transaction fields"/>
+    	</entity>
+    </entities>
+
+    <collections>
+        <collection name="CardHolders" is="StringMap" contains="CardHolder" factoryid="5" id="100"/>
+        <collection name="History" is="Queue" contains="PaymentTransaction" factoryid="5" id="110"/>
+        
+    </collections>
+</model>

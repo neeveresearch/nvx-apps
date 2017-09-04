@@ -6,7 +6,6 @@ import com.neeve.service.messages.Credentials;
 import com.neeve.bookstore.cart.service.messages.CreateCartRequest;
 import com.neeve.bookstore.cart.service.messages.GetCartRequest;
 import com.neeve.bookstore.cart.service.messages.RemoveBookRequest;
-import com.neeve.util.UtlProps;
 
 final public class Driver {
     final public static void main(final String args[]) throws InterruptedException {
@@ -16,10 +15,10 @@ final public class Driver {
         credentials.setPassword("doesntmatter");
         client.open(credentials);
 
-        final int numThreads = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.driver.numthreads", 1);
-        final int addBookInterval = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.driver.addbook.interval", 100);
-        final int createCartInterval = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.driver.createcart.interval", 100);
-        final int numCarts = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.driver.numcarts", 1000);
+        final int numThreads = XRuntime.getValue("bookstore.driver.numthreads", 1);
+        final int addBookInterval = XRuntime.getValue("bookstore.driver.addbook.interval", 100);
+        final int createCartInterval = XRuntime.getValue("bookstore.driver.createcart.interval", 100);
+        final int numCarts = XRuntime.getValue("bookstore.driver.numcarts", 1000);
 
         final Thread[] threads = new Thread[numThreads];
         for (int t = 0; t < threads.length; t++) {
@@ -36,7 +35,7 @@ final public class Driver {
                                 addBookRequest.setCartId(cartId);
                                 addBookRequest.setTitle("book " + cartId + "-" + j);
                                 System.out.println(num + ":   ...added book to cart (isbn=" + (isbn = client.addBook(addBookRequest).getIsbn()) + ")");
-                                Thread.currentThread().sleep(addBookInterval);
+                                Thread.sleep(addBookInterval);
                             }
                             if (i % 3 == 0) {
                                 final RemoveBookRequest removeBookRequest = RemoveBookRequest.create();
@@ -57,10 +56,9 @@ final public class Driver {
                         }
                         finally {
                             try {
-                                Thread.currentThread().sleep(createCartInterval);
+                                Thread.sleep(createCartInterval);
                             }
-                            catch (InterruptedException ex) {
-                            }
+                            catch (InterruptedException ex) {}
                         }
                     }
                 }

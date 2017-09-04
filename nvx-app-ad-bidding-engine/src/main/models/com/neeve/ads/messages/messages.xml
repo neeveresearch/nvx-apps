@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ads.messages">
+    
+    <import model="com/neeve/ads/common/common.xml" />
+    <factories>
+        <factory name="MessageFactory" id="1"/>
+    </factories>
+
+    <messages>
+        <!-- SSP messages - Ad Exchange Messages-->
+        <message name="ClientAdRequestMessage" factoryid="1" id="10">
+            <field name="adRequestId" type="String" id="10"/>
+            <field name="visitorId" type="String" id="20"/>
+            <field name="url" type="String" id="30"/>
+            <field name="keywords" type="String[]" id="40"/>
+            <field name="adStartTs" type="Long" id="60" doc="Timestamp at the start of the ad request."/>
+        </message>
+        <message name="ClientAdResponseMessage" factoryid="1" id="20">
+            <field name="adRequestId" type="String" id="10"/>
+            <field name="bannerUrl" type="String" id="20"/>
+            <field name="adStartTs" type="Long" id="60"/>
+        </message>
+        <message name="AdRequestMessage" factoryid="1" id="30">
+            <field name="adRequestId" type="String" id="10"/>
+            <field name="visitorId" type="String" id="20"/>
+            <field name="url" type="String" id="30"/>
+            <field name="keywords" type="String[]" id="40"/>
+            <field name="adStartTs" type="Long" id="60"/>
+        </message>
+        <message name="AdResponseMessage" factoryid="1" id="40">
+            <field name="adRequestId" type="String" id="1"/>
+            <field name="bannerUrl" type="String" id="3"/>
+            <field name="adStartTs" type="Long" id="60"/>
+        </message>
+        
+        <!-- Ad Exchange - DSP Messages -->
+        <message name="BidRequestMessage" factoryid="1" id="50">
+            <field name="adRequestId" type="String" id="10"/>
+            <field name="bidRequestId" type="String" id="20"/>
+            <field name="visitorId" type="String" id="30"/>
+            <field name="url" type="String" id="40"/>
+            <field name="keywords" type="String[]" id="50"/>
+            <field name="adStartTs" type="Long" id="60"/>
+        </message>
+
+        <message name="BidResponseMessage" factoryid="1" id="60">
+            <field name="adRequestId" type="String" id="10"/>
+            <field name="bidRequestId" type="String" id="20"/>
+            <field name="bidValue" type="Double" id="30"/>
+            <field name="bannerUrl" type="String" id="40" doc="URL for ad banner to be served."/>
+            <field name="adStartTs" type="Long" id="50"/>
+        </message>
+        
+        <message name="WinningBidNotificationMessage" factoryid="1" id="70">
+            <field name="bidRequestId" type="String" id="10"/>
+            <field name="bidValue" type="Double" id="20"/>
+            <field name="adStartTs" type="Long" id="60"/>
+        </message>
+
+        <!-- Ad Exchange - DMP Messages -->
+        <message name="VisitorLookupRequestMessage" factoryid="1" id="80">
+            <field name="visitorId" type="String" id="10"/>
+            <field name="adRequestId" type="String" id="20"/>
+            <field name="url" type="String" id="30"/>
+            <field name="keywords" type="String[]" id="40"/>
+            <field name="adStartTs" type="Long" id="50"/>
+        </message>
+        
+        <message name="VisitorLookupResponseMessage" factoryid="1" id="90">
+            <field name="visitorId" type="String" id="10"/>
+            <field name="adRequestId" type="String" id="20"/>
+            <field name="keywords" type="String[]" id="30"/>
+            <field name="url" type="String" id="40"/>
+            <field name="adStartTs" type="Long" id="50"/>
+        </message>
+        
+        <!--  Campaign management -->
+        <!-- TODO This could be based on entity in some way -->
+        <message name="NewCampaignMessage" factoryid="1" id="100">
+            <field name="campaignId" type="String" id="10"/>
+            <field name="categories" type="String[]" id="20"/>
+            <field name="budget" type="Double" doc="Initial balance for the campaign."  id="30"/>
+            <field name="bidPerImpression" type="Double" doc="Maximum bid per impression. Must be greater or equal to start price."  id="40"/>
+            <field name="url" type="String" doc="URL of ad to be served."  id="50"/>
+        </message>
+        
+        <message name="ClearCampaignsMessage" factoryid="1" id="101">
+        </message>
+        
+        <!-- Tracking data management -->
+        <!-- TODO This could be based on entity in some way -->
+        <message name="NewVisitorMessage" factoryid="1" id="110">
+            <field name="visitorId" type="String" isKey="true" id="10"/>
+            <field name="gender" type="GenderEnumeration" id="20"/>
+            <field name="yearOfBirth" type="Short" id="30"/>
+            <field name="categories" type="String[]" id="40" doc="Sorted array of categories"/>
+        </message>
+        
+        <message name="ClearVisitorsMessage" factoryid="1" id="111">
+        </message>
+    </messages>
+</model>
+

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<Service xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.neeveresearch.com/schema/x-tsml"
+    namespace="com.neeve.tick2trade.ems" name="ems">
+    <Models>
+        <Model file="com/neeve/tick2trade/messages/messages.xml" />
+    </Models>
+    <Channels prefixChannelNames="false">
+        <Channel name="orders" bus="ems" key="orders" />
+        <Channel name="trade" bus="ems" key="trade" />
+    </Channels>
+    <Roles>
+        <To role="Ems">
+            <Message name="EMSNewOrderSingle" channel="orders" />
+        </To>
+        <To role="Client">
+            <Message name="EMSOrderNew" channel="trade" />
+            <Message name="EMSTrade" channel="trade" />
+        </To>
+    </Roles>
+</Service>

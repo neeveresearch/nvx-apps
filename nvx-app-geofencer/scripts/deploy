@@ -1,0 +1,2 @@
+assume provision has run
+deploy to all xvms

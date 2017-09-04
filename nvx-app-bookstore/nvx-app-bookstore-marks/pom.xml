@@ -3,26 +3,38 @@
     <artifactId>nvx-app-bookstore-marks</artifactId>
     <packaging>jar</packaging>
     <name>Bookstore Application Marketing Service</name>
-
+   
+    <organization>
+        <name>Neeve Research, LLC</name>
+        <url>http://www.neeveresearch.com</url>
+    </organization>
+  
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-app-bookstore</artifactId>
-        <version>3.8-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <version>3.7-SNAPSHOT</version>
     </parent>
-
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    
     <build>
         <plugins>
             <plugin>
                 <groupId>com.neeve</groupId>
-                <artifactId>nvx-core-maven-plugin</artifactId>
-                <version>${nvx.talon.version}</version>
+                <artifactId>nvx-platform-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <id>Marketing Entities</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>adm-generate</goal>
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/entities/entities.xml</modelFile>
@@ -33,7 +45,7 @@
                         <id>Marketing Messages</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>adm-generate</goal>
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/messages/messages.xml</modelFile>
@@ -44,26 +56,19 @@
                         <id>Marketing State</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>adm-generate</goal>
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/repository/model.xml</modelFile>
                             <encodingType>Json</encodingType>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.neeve</groupId>
-                <artifactId>nvx-eagle-maven-plugin</artifactId>
-                <version>${nvx.eagle.version}</version>
-                <executions>
+                    
                     <execution>
                         <id>Marketing Service</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>eagle-generate</goal>
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/service.xml</modelFile>

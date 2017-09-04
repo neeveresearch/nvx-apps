@@ -1,7 +1,5 @@
 package com.neeve.bookstore.cart.service.domain.handlers;
 
-import java.util.UUID;
-
 import com.google.inject.*;
 
 import com.neeve.sma.MessageView;
@@ -18,8 +16,10 @@ import com.neeve.bookstore.cart.service.repository.Repository;
 import com.neeve.bookstore.cart.service.repository.Cart;
 
 final public class CreateCartRequestHandler implements MessageHandler<CreateCartRequest, CreateCartResponse, Repository> {
-    @Inject private IdentityInformationProvider _identityInformationProvider;
-    @Inject private MessageSender<com.neeve.bookstore.cart.service.messages.CartCreatedEvent> _cartCreatedEventSender;
+    @Inject
+    private IdentityInformationProvider _identityInformationProvider;
+    @Inject
+    private MessageSender<com.neeve.bookstore.cart.service.messages.CartCreatedEvent> _cartCreatedEventSender;
 
     /**
      * Implementation of {@link MessageHandler#getType}
@@ -32,8 +32,8 @@ final public class CreateCartRequestHandler implements MessageHandler<CreateCart
      * Implementation of {@link MessageHandler#handle}
      */
     final public MessageView handle(final String origin,
-                                    final CreateCartRequest request, 
-                                    final CreateCartResponse response, 
+                                    final CreateCartRequest request,
+                                    final CreateCartResponse response,
                                     final Repository repository) throws Exception {
         // create a new cart
         final Cart cart = Cart.create();

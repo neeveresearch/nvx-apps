@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ccfd.merchantmaster.state">
+    <factories>
+        <factory name="StateFactory" id="3"/>
+    </factories>
+
+    <entities>
+        <entity name="Repository" factoryid="3" id="1">
+            <field name="merchants" type="Merchants" id="1"/>
+        </entity>
+
+        <entity name="Merchant" factoryid="3" id="2" doc="Represents merchant data">
+            <field name="merchantId" type="String" id="1" doc="Id of merchant"/>
+            <field name="name" type="String" id="2" doc="Business name"/>
+            <field name="address" type="String" id="3" doc="Hq. Street Address"/>
+            <field name="postOrZip" type="String" id="4" doc="Hq. Postal /zip code"/>
+            <field name="countryCode" type="String" id="5" doc="Hq. Country Code"/>
+            <field name="stores" type="MerchantStores" id="6" doc="Merchant Stores if applicable"/>
+        </entity>
+
+        <entity name="MerchantStore" factoryid="3" id="3" doc="Represents merchant data">
+            <field name="storeId" type="String" id="1" doc="Id of store, unique at least within merchant"/>
+            <field name="name" type="String" id="2" doc="Store name"/>
+            <field name="address" type="String" id="3" doc="Store Street Address"/>
+            <field name="postOrZip" type="String" id="4" doc="Store Postal /zip code"/>
+            <field name="countryCode" type="String" id="5" doc="Store Country Code"/>
+        </entity>
+    </entities>
+
+    <collections>
+        <collection name="Merchants" is="StringMap" contains="Merchant" factoryid="3" id="100"/>
+        <collection name="MerchantStores" is="StringMap" contains="MerchantStore" factoryid="3" id="101"/>
+    </collections>
+</model>

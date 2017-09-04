@@ -18,7 +18,6 @@ import com.neeve.bookstore.cart.service.messages.DoDataMaintenanceRequest;
 import com.neeve.service.IMessageScheduler;
 import com.neeve.service.messages.MessageHeader;
 import com.neeve.trace.Tracer;
-import com.neeve.util.UtlProps;
 
 @com.neeve.server.app.annotations.AppVersion(1)
 public class App extends AbstractApp {
@@ -53,6 +52,7 @@ public class App extends AbstractApp {
             }
         }
     }
+
     // --- Injectable members
     @Inject
     private com.neeve.service.cdc.main.RunnerController _mainCdcRunnerController;
@@ -89,27 +89,27 @@ public class App extends AbstractApp {
         super.configure();
 
         // DB config
-        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.url")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.oracle.url", "jdbc:oracle:thin:@testdb.cebh0d49ki9c.us-east-1.rds.amazonaws.com:1521/BOOKSTORE"));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.username")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.oracle.username", "dbuser"));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.password")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.oracle.password", "dbpassword"));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.oracle.createtables")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.oracle.createtables", true));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.oracle.createindexes")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.oracle.createindexes", true));
-        bind(Integer.class).annotatedWith(Names.named("nv.service.db.oracle.numreaderthreads")).toInstance((int)UtlProps.getValue(com.neeve.ci.XRuntime.getProps(), "bookstore.carts.db.oracle.numreaderthreads", 25));
-        bind(Long.class).annotatedWith(Names.named("nv.service.db.oracle.reconnectfrequency")).toInstance((long)UtlProps.getValue(com.neeve.ci.XRuntime.getProps(), "bookstore.carts.db.oracle.reconnectfrequency", 1) * 1000L);
-        bind(Long.class).annotatedWith(Names.named("nv.service.db.oracle.reconnectattemptduration")).toInstance((long)UtlProps.getValue(com.neeve.ci.XRuntime.getProps(), "bookstore.carts.db.oracle.reconnectattemptduration", 10 * 60) * 1000L);
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.influx.enabled")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.influx.enabled", false));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.url")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.influx.url", "http://localhost:8086"));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.username")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.influx.username", "root"));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.password")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.influx.password", "root"));
-        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.dbname")).toInstance(UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.db.influx.dbname", "bookstore"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.url")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.url", "jdbc:oracle:thin:@testdb.cebh0d49ki9c.us-east-1.rds.amazonaws.com:1521/BOOKSTORE"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.username")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.username", "dbuser"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.oracle.password")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.password", "dbpassword"));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.oracle.createtables")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.createtables", true));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.oracle.createindexes")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.createindexes", true));
+        bind(Integer.class).annotatedWith(Names.named("nv.service.db.oracle.numreaderthreads")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.numreaderthreads", 25));
+        bind(Long.class).annotatedWith(Names.named("nv.service.db.oracle.reconnectfrequency")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.reconnectfrequency", 1) * 1000L);
+        bind(Long.class).annotatedWith(Names.named("nv.service.db.oracle.reconnectattemptduration")).toInstance(XRuntime.getValue("bookstore.carts.db.oracle.reconnectattemptduration", 10 * 60) * 1000L);
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.db.influx.enabled")).toInstance(XRuntime.getValue("bookstore.carts.db.influx.enabled", false));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.url")).toInstance(XRuntime.getValue("bookstore.carts.db.influx.url", "http://localhost:8086"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.username")).toInstance(XRuntime.getValue("bookstore.carts.db.influx.username", "root"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.password")).toInstance(XRuntime.getValue("bookstore.carts.db.influx.password", "root"));
+        bind(String.class).annotatedWith(Names.named("nv.service.db.influx.dbname")).toInstance(XRuntime.getValue("bookstore.carts.db.influx.dbname", "bookstore"));
 
         // CDC config
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.mps.enabled")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.mps.enabled", false));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.mps.disableonfail")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.mps.disableonfail", false));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.alert.enabled")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.alert.enabled", false));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.alert.disableonfail")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.alert.disableonfail", false));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.enabled")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.enabled", false));
-        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.disableonfail")).toInstance((Boolean)UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.cdc.disableonfail", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.mps.enabled")).toInstance(XRuntime.getValue("bookstore.carts.cdc.mps.enabled", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.mps.disableonfail")).toInstance(XRuntime.getValue("bookstore.carts.cdc.mps.disableonfail", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.alert.enabled")).toInstance(XRuntime.getValue("bookstore.carts.cdc.alert.enabled", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.alert.disableonfail")).toInstance(XRuntime.getValue("bookstore.carts.cdc.alert.disableonfail", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.enabled")).toInstance(XRuntime.getValue("bookstore.carts.cdc.enabled", false));
+        bind(Boolean.class).annotatedWith(Names.named("nv.service.cdc.disableonfail")).toInstance(XRuntime.getValue("bookstore.carts.cdc.disableonfail", false));
     }
 
     /**
@@ -157,7 +157,7 @@ public class App extends AbstractApp {
     final public void onMessagingStarted2(final AepMessagingStartedEvent event) {
         if (event.getStatus() == null) {
             if (_doDataMaintenanceExecutor != null) {
-                int interval = (int) UtlProps.getValue(XRuntime.getProps(), "bookstore.carts.datamaintenance.interval", 24 * 60);
+                int interval = XRuntime.getValue("bookstore.carts.datamaintenance.interval", 24 * 60);
                 _tracer.log("Scheduling data maintenance now and after every " + interval + " minutes.", Tracer.Level.INFO);
                 _doDataMaintenanceExecutor.scheduleWithFixedDelay(new DoDataMaintenanceExecutor(), 0, interval, TimeUnit.MINUTES);
             }

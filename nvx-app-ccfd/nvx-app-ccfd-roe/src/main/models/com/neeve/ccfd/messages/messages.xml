@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+
+<model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.ccfd.messages">
+    <factories>
+        <factory name="MessageFactory" id="1"/>
+    </factories>
+
+    <messages>
+        <message name="AuthorizationRequestMessage" factoryid="1" id="10">
+        	<field name="requestId" type="String" id="10" doc="Unique ID of verification request."/>
+        	<field name="flowStartTs" type="Long" id="60" doc="Timestamp at the start of the message flow."/>
+        	<field name="newTransaction" type="PaymentTransactionDTO" id="70" doc="New transaction to be verified."/>
+        	<field name="cardHolderId" type="String" doc="This is set after lookup by card number is performed."/>
+            <field name="merchantStoreCountryCode" type="String" doc="This is set after lookup by merchant id is performed."/>
+            <field name="merchantStorePostcode" type="String" doc="This is set after lookup by merchant id is performed."/>
+        </message>
+
+        <message name="FraudAnalysisRequestMessage" factoryid="1" id="20">
+            <field name="requestId" type="String" id="10" doc="Unique ID of verification request."/>
+            <field name="flowStartTs" type="Long" id="60" doc="Timestamp at the start of the message flow."/>
+            <field name="newTransaction" type="TransformedPaymentTransactionDTO" id="70" doc="New transaction to be verified."/>
+            <field name="cardHolderId" type="String" doc="This is set after lookup by card number is performed."/>
+            <field name="merchantStoreCountryCode" type="String" doc="This is set after lookup by merchant id is performed."/>
+            <field name="merchantStorePostcode" type="String" doc="This is set after lookup by merchant id is performed."/>
+        </message>
+        
+        <message name="AuthorizationResponseMessage" factoryid="1" id="30">
+        	<field name="requestId" type="String" id="10" doc="Unique ID of verification request for which this response is generated."/>
+        	<field name="flowStartTs" type="Long" id="60" doc="Timestamp at the start of the message flow."/>
+        	<field name="decision" type="Boolean" id="70" doc="Classifies transaction as either fraud if true or not if false."/>
+        	<field name="decisionScore" type="Float" id="80" doc="Heuristic value used to determine result, if applicable."/>
+        </message>
+        
+        <message name="NewCardHolderMessage" factoryid="1" id="200">
+        	<field name="requestId" type="String" id="10" doc="Unique ID of request."/>
+        	<field name="cardHolderId" type="String" id="20" doc="Unique ID of card holder."/>
+        	<field name="cardNumbers" type="String[]" id="30" doc="List of card numbers contained in history" />
+        	<field name="history" type="PaymentTransactionDTO[]" id="40"/>
+        </message>
+
+        <message name="NewCardMessage" factoryid="1" id="210" doc="Registers new card number and associates card holder with it.">
+            <field name="requestId" type="String" id="10" doc="Unique ID of request."/>
+            <field name="cardHolderId" type="String" id="20" doc="Unique ID of card holder."/>
+            <field name="cardNumber" type="String" id="30" doc="Card number." />
+        </message>
+
+        <message name="NewMerchantMessage" factoryid="1" id="220" doc="Registers new card number and associates card holder with it.">
+            <field name="merchantId" type="String" doc="Id of merchant"/>
+            <field name="name" type="String" doc="Business name"/>
+            <field name="address" type="String" doc="Hq. Street Address"/>
+            <field name="postOrZip" type="String" doc="Hq. Postal /zip code"/>
+            <field name="countryCode" type="String" doc="Hq. Country Code"/>
+            <field name="stores" type="NewMerchantStoreDTO[]" id="40" doc="Merchant's stores." />
+        </message>
+        
+        <message name="ClearCardsMessage" factoryid="1" id="230">
+            <field name="requestId" type="String" id="10" doc="Unique ID of the request."/>
+        </message>
+
+        <message name="ClearMerchantsMessage" factoryid="1" id="240">
+            <field name="requestId" type="String" id="10" doc="Unique ID of the request."/>
+        </message>
+
+        <message name="ClearCardHoldersMessage" factoryid="1" id="250">
+            <field name="requestId" type="String" id="10" doc="Unique ID of the request."/>
+        </message>
+    </messages>
+    
+    <entities>
+        <entity name="PaymentTransactionDTO" asEmbedded="true" factoryid="1" id="300">
+        	<field name="transactionId" type="String" id="10" />
+        	<field name="cardNumber" type="String" id="20" />
+            <field name="amount" type="Double" id="30" />
+            <field name="merchantId" type="String" id="40" />
+            <field name="merchantStoreId" type="String" id="50" />
+        </entity>
+
+        <entity name="TransformedPaymentTransactionDTO" asEmbedded="true" factoryid="1" id="310">
+            <field name="transactionId" type="String" id="10" />
+            <field name="cardNumber" type="String" id="20" />
+            <field name="amount" type="Double" id="30" />
+            <field name="merchantId" type="String" id="40" />
+            <field name="merchantStoreId" type="String" id="50" />
+
+            <!-- 
+                Fields below are transaction data that is in some way interesting for fraud detection 
+                Fraud is indicated when there is a deviation in the field value from the distribution (or mean) for the field. 
+                This can be determined with statistical analysis such as Bayesian Classifiers or with Neural Networks.
+                We get the distribution density function by analyzing all the values from the incoming data.
+                Distribution density must have only one global extrema. We assume that any interesting fields for analysis 
+                will have Normal Distribution.
+                Field probabilities must be uncorrelated. Input data may be already uncorrelated or linearly correlated. 
+                If linearly correlated, we could run principal component analysis on them and create new fields.
+                We assume that incoming data is already statistically processed and uncorrelated. 
+             -->
+            
+            <field name="value000" type="Float" id="100" />
+            <field name="value001" type="Float" id="101" />
+            <field name="value002" type="Float" id="102" />
+            <field name="value003" type="Float" id="103" />
+            <field name="value004" type="Float" id="104" />
+            <field name="value005" type="Float" id="105" />
+            <field name="value006" type="Float" id="106" />
+            <field name="value007" type="Float" id="107" />
+            <field name="value008" type="Float" id="108" />
+            <field name="value009" type="Float" id="109" />
+            <field name="value010" type="Float" id="110" />
+            <field name="value011" type="Float" id="111" />
+            <field name="value012" type="Float" id="112" />
+            <field name="value013" type="Float" id="113" />
+            <field name="value014" type="Float" id="114" />
+            <field name="value015" type="Float" id="115" />
+            <field name="value016" type="Float" id="116" />
+            <field name="value017" type="Float" id="117" />
+            <field name="value018" type="Float" id="118" />
+            <field name="value019" type="Float" id="119" />
+            <field name="value020" type="Float" id="120" />
+            <field name="value021" type="Float" id="121" />
+            <field name="value022" type="Float" id="122" />
+            <field name="value023" type="Float" id="123" />
+            <field name="value024" type="Float" id="124" />
+            <field name="value025" type="Float" id="125" />
+            <field name="value026" type="Float" id="126" />
+            <field name="value027" type="Float" id="127" />
+            <field name="value028" type="Float" id="128" />
+            <field name="value029" type="Float" id="129" />
+            <field name="value030" type="Float" id="130" />
+            <field name="value031" type="Float" id="131" />
+            <field name="value032" type="Float" id="132" />
+            <field name="value033" type="Float" id="133" />
+            <field name="value034" type="Float" id="134" />
+            <field name="value035" type="Float" id="135" />
+            <field name="value036" type="Float" id="136" />
+            <field name="value037" type="Float" id="137" />
+            <field name="value038" type="Float" id="138" />
+            <field name="value039" type="Float" id="139" />
+            <field name="value040" type="Float" id="140" />
+            <field name="value041" type="Float" id="141" />
+            <field name="value042" type="Float" id="142" />
+            <field name="value043" type="Float" id="143" />
+            <field name="value044" type="Float" id="144" />
+            <field name="value045" type="Float" id="145" />
+            <field name="value046" type="Float" id="146" />
+            <field name="value047" type="Float" id="147" />
+            <field name="value048" type="Float" id="148" />
+            <field name="value049" type="Float" id="149" />
+            <field name="value050" type="Float" id="150" />
+            <field name="value051" type="Float" id="151" />
+            <field name="value052" type="Float" id="152" />
+            <field name="value053" type="Float" id="153" />
+            <field name="value054" type="Float" id="154" />
+            <field name="value055" type="Float" id="155" />
+            <field name="value056" type="Float" id="156" />
+            <field name="value057" type="Float" id="157" />
+            <field name="value058" type="Float" id="158" />
+            <field name="value059" type="Float" id="159" />
+            <field name="value060" type="Float" id="160" />
+            <field name="value061" type="Float" id="161" />
+            <field name="value062" type="Float" id="162" />
+            <field name="value063" type="Float" id="163" />
+            <field name="value064" type="Float" id="164" />
+            <field name="value065" type="Float" id="165" />
+            <field name="value066" type="Float" id="166" />
+            <field name="value067" type="Float" id="167" />
+            <field name="value068" type="Float" id="168" />
+            <field name="value069" type="Float" id="169" />
+            <field name="value070" type="Float" id="170" />
+            <field name="value071" type="Float" id="171" />
+            <field name="value072" type="Float" id="172" />
+            <field name="value073" type="Float" id="173" />
+            <field name="value074" type="Float" id="174" />
+            <field name="value075" type="Float" id="175" />
+            <field name="value076" type="Float" id="176" />
+            <field name="value077" type="Float" id="177" />
+            <field name="value078" type="Float" id="178" />
+            <field name="value079" type="Float" id="179" />
+            <field name="value080" type="Float" id="180" />
+            <field name="value081" type="Float" id="181" />
+            <field name="value082" type="Float" id="182" />
+            <field name="value083" type="Float" id="183" />
+            <field name="value084" type="Float" id="184" />
+            <field name="value085" type="Float" id="185" />
+            <field name="value086" type="Float" id="186" />
+            <field name="value087" type="Float" id="187" />
+            <field name="value088" type="Float" id="188" />
+            <field name="value089" type="Float" id="189" />
+            <field name="value090" type="Float" id="190" />
+            <field name="value091" type="Float" id="191" />
+            <field name="value092" type="Float" id="192" />
+            <field name="value093" type="Float" id="193" />
+            <field name="value094" type="Float" id="194" />
+            <field name="value095" type="Float" id="195" />
+            <field name="value096" type="Float" id="196" />
+            <field name="value097" type="Float" id="197" />
+            <field name="value098" type="Float" id="198" />
+            <field name="value099" type="Float" id="199" />
+        </entity>
+        
+        <entity name="NewMerchantStoreDTO" factoryid="1" id="320" asEmbedded="true" doc="Represents merchant's store">
+            <field name="storeId" type="String" doc="Id of store, unique at least within merchant"/>
+            <field name="name" type="String" doc="Store name"/>
+            <field name="address" type="String" doc="Store Street Address"/>
+            <field name="postOrZip" type="String" doc="Store Postal /zip code"/>
+            <field name="countryCode" type="String" doc="Store Country Code"/>
+        </entity>
+    </entities>
+</model>
+
