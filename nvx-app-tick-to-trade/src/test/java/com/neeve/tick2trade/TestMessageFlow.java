@@ -30,10 +30,10 @@ public class TestMessageFlow extends AbstractAppTest {
         int expectedSendCount = XRuntime.getValue("simulator.sendCount", 0);
 
         System.out.println("Waiting for Client trades");
-        client.waitForTrades(1000000);
+        client.waitForTrades(10000);
 
         //Wait for the ems's transaction pipeline to ensure no duplicates:
-        waitForTransactionPipelineToEmpty(app.getEngine());
+        waitForTransactionPipelineToEmpty(app.getEngine(), 1000);
 
         assertEquals("Unexpected number of OMSNewOrderSingles", expectedSendCount, client.waitForTrades(0));
     }
