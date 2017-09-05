@@ -1,14 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>nvx-app-ad-bidding-engine</artifactId>
+    <artifactId>nvx-app-oms</artifactId>
     <packaging>jar</packaging>
-    <name>Ad Serving System</name>
+    <name>Trading OMS</name>
 
     <parent>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-apps-parent</artifactId>
-      <version>3.7.2</version>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-apps-parent</artifactId>
+        <version>3.7-SNAPSHOT</version>
     </parent>
     
     <licenses>
@@ -19,29 +18,76 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
+    
+    <properties>
+        <nvx.fix.version>0.9-M6</nvx.fix.version>
+    </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-fix</artifactId>
+            <version>${nvx.fix.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-native</artifactId>
-            <classifier>linux-x86-64</classifier>
+            <artifactId>nvx-jms</artifactId>
         </dependency>
-        
+
         <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-solace</artifactId>
-            <scope>compile</scope>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.13.0</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.neeve</groupId>
+                <artifactId>nvx-platform-maven-plugin</artifactId>
+                <version>${nvx.platform.version}</version>
+                <executions>
+                   <execution>
+                        <id>State</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>adm-generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${project.basedir}/src/main/models/com/neeve/oms/state/state.xml</modelFile>
+                            <encodingType>Xbuf</encodingType>
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>Messages</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>adm-generate</goal>
+                        </goals>
+                        <configuration>
+                            <modelFile>${project.basedir}/src/main/models/com/neeve/oms/messages/messages.xml</modelFile>
+                            <encodingType>Xbuf</encodingType>
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>Xar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>robin-xar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -57,52 +103,6 @@
                 </executions>
             </plugin>
             
-            <plugin>
-                <groupId>com.neeve</groupId>
-                <artifactId>nvx-platform-maven-plugin</artifactId>
-                <version>${nvx.platform.version}</version>
-                <executions>
-                    <execution>
-                        <id>Commons</id>
-                        <goals>
-                            <goal>adm-generate</goal>
-                        </goals>
-                        <configuration>
-                            <modelFile>${project.basedir}/src/main/models/com/neeve/ads/common/common.xml</modelFile>
-                            <encodingType>Xbuf</encodingType>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>State</id>
-                        <goals>
-                            <goal>adm-generate</goal>
-                        </goals>
-                        <configuration>
-                            <modelFile>${project.basedir}/src/main/models/com/neeve/ads/state/state.xml</modelFile>
-                            <encodingType>Xbuf</encodingType>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Messages</id>
-                        <goals>
-                            <goal>adm-generate</goal>
-                        </goals>
-                        <configuration>
-                            <modelFile>${project.basedir}/src/main/models/com/neeve/ads/messages/messages.xml</modelFile>
-                            <encodingType>Xbuf</encodingType>
-                        </configuration>
-                    </execution>
-                    
-                    <execution>
-                        <id>Xar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>robin-xar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>

@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>nvx-app-bookstore-marks</artifactId>
+    <artifactId>nvx-app-bookstore-carts</artifactId>
     <packaging>jar</packaging>
-    <name>Bookstore Application Marketing Service</name>
+    <name>Bookstore Application Cart Service</name>
    
     <organization>
         <name>Neeve Research, LLC</name>
@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-app-bookstore</artifactId>
-        <version>3.7.2</version>
+        <version>3.7-SNAPSHOT</version>
     </parent>
     
     <licenses>
@@ -23,7 +23,7 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -31,47 +31,47 @@
                 <artifactId>nvx-platform-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>Marketing Entities</id>
+                        <id>Cart Entities</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>adm-generate</goal>
                         </goals>
                         <configuration>
-                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/entities/entities.xml</modelFile>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/cart/service/entities/entities.xml</modelFile>
                             <encodingType>Json</encodingType>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>Marketing Messages</id>
+                        <id>Cart Messages</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>adm-generate</goal>
                         </goals>
                         <configuration>
-                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/messages/messages.xml</modelFile>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/cart/service/messages/messages.xml</modelFile>
                             <encodingType>Json</encodingType>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>Marketing State</id>
+                        <id>Cart State</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>adm-generate</goal>
                         </goals>
                         <configuration>
-                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/repository/model.xml</modelFile>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/cart/service/repository/model.xml</modelFile>
                             <encodingType>Json</encodingType>
                         </configuration>
                     </execution>
                     
                     <execution>
-                        <id>Marketing Service</id>
+                        <id>Cart Service</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>eagle-generate</goal>
                         </goals>
                         <configuration>
-                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/marketing/service/service.xml</modelFile>
+                            <modelFile>${basedir}/src/main/models/com/neeve/bookstore/cart/service/service.xml</modelFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -98,12 +98,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-bookstore-carts</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>
