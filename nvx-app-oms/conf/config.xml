@@ -39,6 +39,10 @@
         </oms>
 
     </env>
+    
+    <busProviders>
+        <provider name="local" providerClass="com.neeve.oms.driver.local.LocalProvider"/>
+    </busProviders>
 
     <buses>
         <bus name="oms" descriptor="${oms.bus.oms.descriptor::local://.}">
