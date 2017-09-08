@@ -5,7 +5,7 @@
  */
 package com.neeve.tick2trade;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -71,18 +71,23 @@ public class AbstractAppTest extends UnitTest {
         return (Client)server.getApplication("client");
     }
 
-    final protected void waitForTransactionPipelineToEmpty(final AepEngine engine) throws Exception {
-        int i;
-        for (i = 0; i < 100; i++) {
+    final protected void waitForTransactionPipelineToEmpty(final AepEngine engine, long timeout) throws Exception {
+        timeout = System.currentTimeMillis() + timeout;
+        while (true) {
             final long numCommitsPending = (engine.getStats().getNumCommitsStarted() - engine.getStats().getNumCommitsCompleted());
             if (numCommitsPending == 0l) {
                 break;
             }
             else {
-                System.out.println("Waiting for transaction pipeline to empty remaining: " + numCommitsPending);
-                Thread.sleep(100l);
+                if (timeout < System.currentTimeMillis()) {
+                    System.out.println("Waiting for transaction pipeline to empty, remaining: " + numCommitsPending);
+                    Thread.sleep(1000l);
+                }
+                else {
+                    fail("Timed out waiting for transaction pipeline to empty, remaining: " + numCommitsPending);
+                }
             }
         }
-        assertTrue(i < 100);
+
     }
 }

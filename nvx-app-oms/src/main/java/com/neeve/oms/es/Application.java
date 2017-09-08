@@ -4,13 +4,10 @@ import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.cli.annotations.Configured;
-import com.neeve.config.ConfigRepositoryFactory;
 import com.neeve.lang.XLongLinkedHashMap;
 import com.neeve.server.app.annotations.AppInitializer;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppHAPolicy;
-import com.neeve.sma.MessagingProviderDescriptor;
-import com.neeve.xbuf.XbufDesyncPolicy;
 
 import com.neeve.oms.messages.NewOrderMessage;
 import com.neeve.oms.messages.OrderEvent;
@@ -27,16 +24,6 @@ final public class Application {
     private AepMessageSender _messageSender;
     private OrderPool _orderPool;
     private XLongLinkedHashMap<Order> _orders;
-
-    static {
-        try {
-            MessagingProviderDescriptor.create("local", "com.neeve.oms.driver.local.LocalProvider").save(ConfigRepositoryFactory.getInstance().getLocalRepository());
-        }
-        catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-        NewOrderMessage.setDesyncPolicy(XbufDesyncPolicy.FrameFields);
-    }
 
     public Application() {
         _orders = new XLongLinkedHashMap<Order>(_orderPreallocateCount);
