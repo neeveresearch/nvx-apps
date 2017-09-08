@@ -2,7 +2,7 @@
 
 **See how a 100% Pure Jave application with no infrastructure bleed can be built on top of Hornet and The [X Platform](http://www.neeveresearch.com/introduction) to serve up trades in the 10s of microseconds.**
 
-Want to get started? See the **[Getting Started Page](https://github.com/neeveresearch/nvx-apps/wiki/Getting Started with Tick To Trade)**
+Want to get started? See the **[Getting Started Page](https://github.com/neeveresearch/nvx-apps/wiki/Getting%20Started%20with%20Tick%20To%20Trade)**
 
 The Tick To Trade app is intended to highlight the speed, simplicity, flexibility and reliability of X Platform applications ... the EMS and SOR implementations here are deliberately simple so as not to obscure the mechanics of Hornet and the X Platform with the business logic. 
 
