@@ -8,7 +8,6 @@ package com.neeve.tick2trade;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -18,7 +17,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.neeve.aep.AepEngine;
-import com.neeve.server.embedded.EmbeddedServer;
 import com.neeve.server.embedded.EmbeddedXVM;
 import com.neeve.test.UnitTest;
 import com.neeve.tick2trade.driver.Client;
@@ -28,7 +26,6 @@ import com.neeve.tick2trade.driver.Market;
  * Base class with some helper methods for creating embedded vms.
  */
 public class AbstractAppTest extends UnitTest {
-    private static final String desktopConf = "conf/profiles/desktop/application.conf";
     private URL confidDDL;
     private Properties profileProps;
 
@@ -41,32 +38,32 @@ public class AbstractAppTest extends UnitTest {
     public void beforeTestcase() throws FileNotFoundException, IOException {
         confidDDL = new File(getProjectBaseDirectory(), "conf/config.xml").toURI().toURL();
         profileProps = new Properties();
-        profileProps.load(new FileInputStream(new File(getProjectBaseDirectory(), desktopConf)));
+        profileProps.setProperty("nv.ddl.profiles", "desktop");
     }
 
     @Before
     public void afterTestcase() {}
 
     public App startEmsPrimary() throws Throwable {
-        EmbeddedXVM server = EmbeddedServer.create(confidDDL, "ems1", profileProps);
+        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "ems1", profileProps);
         server.start();
         return (App)server.getApplication("ems");
     }
 
     public App startEmsBackup() throws Throwable {
-        EmbeddedXVM server = EmbeddedServer.create(confidDDL, "ems2", profileProps);
+        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "ems2", profileProps);
         server.start();
         return (App)server.getApplication("ems");
     }
 
     public Market startMarket() throws Throwable {
-        EmbeddedXVM server = EmbeddedServer.create(confidDDL, "market", profileProps);
+        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "market", profileProps);
         server.start();
         return (Market)server.getApplication("market");
     }
 
     public Client startClient() throws Throwable {
-        EmbeddedXVM server = EmbeddedServer.create(confidDDL, "client", profileProps);
+        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "client", profileProps);
         server.start();
         return (Client)server.getApplication("client");
     }
