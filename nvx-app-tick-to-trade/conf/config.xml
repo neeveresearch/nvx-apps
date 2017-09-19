@@ -154,9 +154,9 @@
     </app>
   </apps>
 
-  <servers>
+  <xvms>
     <templates>
-      <server name="server-template">
+      <xvm name="xvm-template">
         <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
         <heartbeats enabled="true" interval="5">
           <collectIndividualThreadStats>true</collectIndividualThreadStats>
@@ -169,11 +169,15 @@
             <traceThreadStats>false</traceThreadStats>
             <traceUserStats>true</traceUserStats>
           </tracing>
+          <logging>
+          </logging>
+          <publishing>
+          </publishing>
         </heartbeats>
-      </server>
+      </xvm>
     </templates>
 
-    <server name="ems1" template="server-template">
+    <xvm name="ems1" template="xvm-template">
       <apps>
         <app name="ems" autoStart="true" />
       </apps>
@@ -186,9 +190,9 @@
           <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true" />
         </ioThreads>
       </multiThreading>
-    </server>
+    </xvm>
 
-    <server name="ems2" template="server-template">
+    <xvm name="ems2" template="xvm-template">
       <apps>
         <app name="ems" autoStart="true" />
       </apps>
@@ -201,9 +205,9 @@
           <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true" />
         </ioThreads>
       </multiThreading>
-    </server>
+    </xvm>
 
-    <server name="market" template="server-template">
+    <xvm name="market" template="xvm-template">
       <env>
         <nv.time.useepochoffset>false</nv.time.useepochoffset>
       </env>
@@ -219,9 +223,9 @@
           <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true" />
         </ioThreads>
       </multiThreading>
-    </server>
+    </xvm>
 
-    <server name="client" template="server-template">
+    <xvm name="client" template="xvm-template">
       <env>
         <nv.time.useepochoffset>false</nv.time.useepochoffset>
       </env>
@@ -237,15 +241,14 @@
           <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true" />
         </ioThreads>
       </multiThreading>
-    </server>
-  </servers>
+    </xvm>
+  </xvms>
 
   <profiles>
     <profile name="neeve-lab">
       <activation>
         <properties>
           <lumino.agent.env>neeve-lab</lumino.agent.env>
-          <lumino.agent.id>8001-develop</lumino.agent.id>
         </properties>
       </activation>
       
@@ -254,10 +257,10 @@
           <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
         </nv>
         
-        <ACTIVEMQ_HOST>tcp://192.168.1.8:61616</ACTIVEMQ_HOST>
+        <ACTIVEMQ_HOST>192.168.1.8</ACTIVEMQ_HOST>
         <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
 
-        <SOLACE_HOST>solace://192.168.1.9</SOLACE_HOST>
+        <SOLACE_HOST>192.168.1.9</SOLACE_HOST>
         <SOLACE_PORT>55555</SOLACE_PORT>
 
         <CLIENT_ACCEPTOR>tcp://192.168.1.12:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</CLIENT_ACCEPTOR>
@@ -265,31 +268,36 @@
         <EMS1_ACCEPTOR>tcp://192.168.1.13:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS1_ACCEPTOR>
         <EMS2_ACCEPTOR>tcp://192.168.1.14:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS2_ACCEPTOR>
         
-        <simulator.ems.orderPreallocateCount>2097152</simulator.ems.orderPreallocateCount>
+        <simulator.ems.orderPreallocateCount>1000000</simulator.ems.orderPreallocateCount>
+        
+        
       </env>
       
-      <servers>
-        <server name="ems1">
-          <!-- 
-          <deployment>
+      <xvms>
+        <xvm name="ems1">
+          <provisioning>
+            <host>192.168.1.13</host>
+            <installRoot>/root/work/lumino</installRoot>
+            <dataRoot>rdat</dataRoot>
+            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
-              <vmArgs>
-                <vmArg>-Xms8g </vmArg>
-                <vmArg>-Xmx8g</vmArg>
-                <vmArg>-XX:NewSize=1536m</vmArg>
-                <vmArg>-XX:MaxNewSize=1536m</vmArg>
-                <vmArg>-XX:SurvivorRatio=6</vmArg>
-                <vmArg>-XX:+UseParNewGC</vmArg>
-                <vmArg>-XX:ParallelGCThreads=12</vmArg>
-                <vmArg>-XX:MaxTenuringThreshold=2</vmArg>
-                <vmArg>-Xnoclassgc</vmArg>
-                <vmArg>-XX:+PrintGCDetails</vmArg>
-                <vmArg>-XX:+PrintGCTimeStamps</vmArg>
-                <vmArg>-XX:+PrintTenuringDistribution</vmArg>
-              </vmArgs>
+              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+              <jvmParams>
+                -Xms8g
+                -Xmx8
+                -XX:NewSize=1536m
+                -XX:MaxNewSize=1536m
+                -XX:SurvivorRatio=6
+                -XX:+UseParNewGC
+                -XX:ParallelGCThreads=1
+                -XX:MaxTenuringThreshold=2
+                -Xnoclassgc
+                -XX:+PrintGCDetails
+                -XX:+PrintGCTimeStamps
+                -XX:+PrintTenuringDistribution
+              </jvmParams>
             </jvm>
-          </deployment>
-           -->
+          </provisioning>
           
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
@@ -308,29 +316,33 @@
             <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
             <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
           </env>
-        </server>
+        </xvm>
 
-        <server name="ems2">
-          <!-- 
-          <deployment>
+        <xvm name="ems2">
+          <provisioning>
+            <host>192.168.1.14</host>
             <jvm>
-              <vmArgs>
-                <vmArg>-Xms1572m </vmArg>
-                <vmArg>-Xmx1572m</vmArg>
-                <vmArg>-XX:NewSize=1024m</vmArg>
-                <vmArg>-XX:MaxNewSize=1024m</vmArg>
-                <vmArg>-XX:SurvivorRatio=3</vmArg>
-                <vmArg>-XX:+UseParNewGC</vmArg>
-                <vmArg>-XX:ParallelGCThreads=3</vmArg>
-                <vmArg>-Xnoclassgc</vmArg>
-                <vmArg>-XX:MaxTenuringThreshold=5</vmArg>
-                <vmArg>-XX:+PrintGCDetails</vmArg>
-                <vmArg>-XX:+PrintGCTimeStamps</vmArg>
-                <vmArg>-XX:+PrintTenuringDistribution</vmArg>
-              </vmArgs>
+              <installRoot>/root/work/lumino</installRoot>
+              <dataRoot>rdat</dataRoot>
+              <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
+              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+              <jvmParams>
+                -Xms8g
+                -Xmx8
+                -XX:NewSize=1536m
+                -XX:MaxNewSize=1536m
+                -XX:SurvivorRatio=6
+                -XX:+UseParNewGC
+                -XX:ParallelGCThreads=1
+                -XX:MaxTenuringThreshold=2
+                -Xnoclassgc
+                -XX:+PrintGCDetails
+                -XX:+PrintGCTimeStamps
+                -XX:+PrintTenuringDistribution
+              </jvmParams>
             </jvm>
-          </deployment>
-           -->
+          </provisioning>
+          
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
             <EMS_REPLICATION_INTERFACE>192.168.2.14</EMS_REPLICATION_INTERFACE>
@@ -348,29 +360,32 @@
             <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
             <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
           </env>
-        </server>
+        </xvm>
         
-        <server name="market">
-          <!-- 
-          <deployment>
+        <xvm name="market">
+          <provisioning>
+            <host>192.168.1.12</host>
+            <installRoot>/root/work/lumino</installRoot>
+            <dataRoot>rdat</dataRoot>
+            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
-              <vmArgs>
-                <vmArg>-Xms1572m </vmArg>
-                <vmArg>-Xmx1572m</vmArg>
-                <vmArg>-XX:NewSize=1024m</vmArg>
-                <vmArg>-XX:MaxNewSize=1024m</vmArg>
-                <vmArg>-XX:SurvivorRatio=32</vmArg>
-                <vmArg>-XX:+UseParNewGC</vmArg>
-                <vmArg>-XX:ParallelGCThreads=3</vmArg>
-                <vmArg>-Xnoclassgc</vmArg>
-                <vmArg>-XX:MaxTenuringThreshold=5</vmArg>
-                <vmArg>-XX:+PrintGCDetails</vmArg>
-                <vmArg>-XX:+PrintGCTimeStamps</vmArg>
-                <vmArg>-XX:+PrintTenuringDistribution</vmArg>
-              </vmArgs>
+              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+              <jvmParams>
+                -Xms1572m
+                -Xmx1572m
+                -XX:NewSize=1024m
+                -XX:MaxNewSize=1024m
+                -XX:SurvivorRatio=32
+                -XX:+UseParNewGC
+                -XX:ParallelGCThreads=3
+                -Xnoclassgc
+                -XX:MaxTenuringThreshold=5
+                -XX:+PrintGCDetails
+                -XX:+PrintGCTimeStamps
+                -XX:+PrintTenuringDistribution
+              </jvmParams>
             </jvm>
-          </deployment>
-           -->
+          </provisioning>
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
             <!-- CPU Affinitization -->
@@ -380,29 +395,31 @@
             <MARKET_MARKETDETACHEDSENDCPUAFFMASK>[4]</MARKET_MARKETDETACHEDSENDCPUAFFMASK>
             <MARKET_BUSREADER_CPUAFFMASK>[5]</MARKET_BUSREADER_CPUAFFMASK>
           </env>
-        </server>
+        </xvm>
 
-        <server name="client">
-          <!-- 
-          <deployment>
+        <xvm name="client">
+          <provisioning>
+            <host>192.168.1.12</host>
+            <installRoot>/root/work/lumino</installRoot>
+            <dataRoot>rdat</dataRoot>
+            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
-              <vmArgs>
-                <vmArg>-Xms1572m </vmArg>
-                <vmArg>-Xmx1572m</vmArg>
-                <vmArg>-XX:NewSize=1024m</vmArg>
-                <vmArg>-XX:MaxNewSize=1024m</vmArg>
-                <vmArg>-XX:SurvivorRatio=32</vmArg>
-                <vmArg>-XX:+UseParNewGC</vmArg>
-                <vmArg>-XX:ParallelGCThreads=3</vmArg>
-                <vmArg>-Xnoclassgc</vmArg>
-                <vmArg>-XX:MaxTenuringThreshold=5</vmArg>
-                <vmArg>-XX:+PrintGCDetails</vmArg>
-                <vmArg>-XX:+PrintGCTimeStamps</vmArg>
-                <vmArg>-XX:+PrintTenuringDistribution</vmArg>
-              </vmArgs>
+              <jvmParams>
+                -Xms1572m
+                -Xmx1572m
+                -XX:NewSize=1024m
+                -XX:MaxNewSize=1024m
+                -XX:SurvivorRatio=32
+                -XX:+UseParNewGC
+                -XX:ParallelGCThreads=3
+                -Xnoclassgc
+                -XX:MaxTenuringThreshold=5
+                -XX:+PrintGCDetails
+                -XX:+PrintGCTimeStamps
+                -XX:+PrintTenuringDistribution
+              </jvmParams>
             </jvm>
-          </deployment>
-           -->
+          </provisioning>
            
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
@@ -413,9 +430,9 @@
             <CLIENT_IOTHRCPUAFFMASK>[13]</CLIENT_IOTHRCPUAFFMASK>
             <EMS_BUSREADER_CPUAFFMASK>[14]</EMS_BUSREADER_CPUAFFMASK>
           </env>
-        </server>
+        </xvm>
         
-      </servers>
+      </xvms>
     </profile>
 
     <profile name="autosend">
@@ -450,24 +467,26 @@
     </profile>
 
     <profile name="flight-recorder">
-      <servers>
+      <xvms>
         <templates>
-          <server name="server-template">
-            <!-- 
-            <deployment>
+          <xvm name="xvm-template">
+            <provisioning>
               <jvm>
-                <vmArgs>
-                  <vmArg>-XX:+UnlockCommercialFeatures</vmArg>
-                  <vmArg>-XX:+FlightRecorder</vmArg>
-                  <vmArg>-XX:StartFlightRecording=name=MyRecording,settings=profile</vmArg>
-                  <vmArg>-XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${nv.ddl.targetxvm::server}-recording.jfr</vmArg>
-                </vmArgs>
+                <jvmParamSets>
+                  <jvmParamSet name="flight-recorder">
+                    <jvmParams>
+                      -XX:+UnlockCommercialFeatures
+                      -XX:+FlightRecorder
+                      -XX:StartFlightRecording=name=MyRecording,settings=profile
+                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${nv.ddl.targetxvm::server}-recording.jfr
+                    </jvmParams>
+                  </jvmParamSet>
+                </jvmParamSets>
               </jvm>
-          </deployment>
-           -->
-          </server>
+            </provisioning>
+          </xvm>
         </templates>
-      </servers>
+      </xvms>
       
     </profile>
 
@@ -481,7 +500,6 @@
             <eagerread>true</eagerread>
             <maxreadspintime>true</maxreadspintime>
             <threadaffinity>1</threadaffinity>
-            <!-- TODO -->
             <cpuaffinitymask>${EMS_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
           </properties>
         </bus>
@@ -493,49 +511,48 @@
             <eagerread>true</eagerread>
             <maxreadspintime>true</maxreadspintime>
             <threadaffinity>1</threadaffinity>
-            <!-- TODO -->
             <cpuaffinitymask>${MARKET_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
           </properties>
         </bus>
       </buses>
 
-      <servers>
-        <server name="ems1">
+      <xvms>
+        <xvm name="ems1">
           <multiThreading enabled="true">
             <ioThreads>
               <ioThread id="0" affinity="0" enabled="true" />
               <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true" />
             </ioThreads>
           </multiThreading>
-        </server>
+        </xvm>
 
-        <server name="ems2">
+        <xvm name="ems2">
           <multiThreading enabled="true">
             <ioThreads>
               <ioThread id="0" affinity="0" enabled="true" />
               <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true" />
             </ioThreads>
           </multiThreading>
-        </server>
+        </xvm>
 
-        <server name="market">
+        <xvm name="market">
           <multiThreading enabled="true">
             <ioThreads>
               <ioThread id="0" affinity="0" enabled="true" />
               <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true" />
             </ioThreads>
           </multiThreading>
-        </server>
+        </xvm>
 
-        <server name="client">
+        <xvm name="client">
           <multiThreading enabled="true">
             <ioThreads>
               <ioThread id="0" affinity="0" enabled="true" />
               <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true" />
             </ioThreads>
           </multiThreading>
-        </server>
-      </servers>
+        </xvm>
+      </xvms>
     </profile>
 
     <profile name="activemq">
@@ -568,11 +585,13 @@
           <properties>
             <topic_starts_with_channel>false</topic_starts_with_channel>
             <use_default_queue_name>true</use_default_queue_name>
-            <vpn_name>default</vpn_name>
-            <username>test</username>
-            <use_jni>true</use_jni>
-            <FLOW_FORWARDING_MODE>2</FLOW_FORWARDING_MODE>
+            <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
+            <SESSION_USERNAME>test</SESSION_USERNAME>
+            <usejni>true</usejni>
+            <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
+            <publish_window_size>255</publish_window_size>
             <consumer_cpu_affinity_mask>${EMS_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
+            <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
           </properties>
         </bus>
         <bus name="market">
@@ -582,11 +601,13 @@
           <properties>
             <topic_starts_with_channel>false</topic_starts_with_channel>
             <use_default_queue_name>true</use_default_queue_name>
-            <vpn_name>default</vpn_name>
-            <username>test</username>
-            <use_jni>true</use_jni>
-            <FLOW_FORWARDING_MODE>2</FLOW_FORWARDING_MODE>
-            <consumer_cpu_affinity_mask>${EMS_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
+            <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
+            <SESSION_USERNAME>test</SESSION_USERNAME>
+            <usejni>true</usejni>
+            <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
+            <publish_window_size>255</publish_window_size>
+            <consumer_cpu_affinity_mask>${MARKET_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
+            <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
           </properties>
         </bus>
       </buses>
