@@ -14,6 +14,7 @@ public class TestFlow extends AbstractTest {
     public void testFlow() throws Throwable {
         // configure
         Properties env = new Properties();
+        env.put("lumino.agent.env", "neeve-lab");
         env.put("driver.interactive", "false");
         env.put("nv.conservecpu", "true");
         env.put("CCFD_BUS_DESCRIPTOR", "loopback://ccfd");

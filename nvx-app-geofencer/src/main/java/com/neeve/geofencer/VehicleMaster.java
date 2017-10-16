@@ -66,7 +66,6 @@ final public class VehicleMaster {
 
     @EventHandler
     final public void onUpdateVehicle(final UpdateVehicleMessage message, final Repository repository) throws Exception {
-        //        System.out.println("PROCESSOR: " + message.toJsonString());
         validate(message);
 
         // update state
@@ -90,7 +89,6 @@ final public class VehicleMaster {
 
     @EventHandler
     final public void onGetVehicles(final GetVehiclesMessage message, final Repository repository) throws Exception {
-        //        System.out.println("PROCESSOR: " + message.toJsonString());
         validate(message);
 
         for (Vehicle vehicle : repository.getVehicles().values()) {

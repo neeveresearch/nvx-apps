@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+    <systemDetails>
+      <displayName>Fraud Detection System (3.8)</displayName>
+    </systemDetails>
     <env>
         <nv>
             <!-- optimize for latency -->
@@ -25,26 +29,26 @@
 
     <buses>
         <bus name="ccfd"
-            descriptor="${CCFD_BUS_DESCRIPTOR::${SERVICE_BUS_CONNECTION_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2}}">
+            descriptor="${CCFD_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2}">
             <channels>
                 <channel name="authreq" id="1">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <qos>Guaranteed</qos>
                     <key>${cardMasterShardId}</key>
                 </channel>
                 <channel name="authreq2" id="2">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <qos>Guaranteed</qos>
                     <key>${merchantMasterShardId}</key>
                 </channel>
                 <channel name="authreq3" id="3">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <qos>Guaranteed</qos>
                     <key>${cardholderMasterShardId}</key>
                 </channel>
                 <channel name="authreq4" id="4">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <qos>Guaranteed</qos>
                     <key>${fraudanalyzerShardId}</key>
                 </channel>
                 <channel name="authresp" id="5">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <qos>Guaranteed</qos>
                 </channel>
             </channels>
         </bus>
@@ -317,13 +321,12 @@
             </messaging>
             <storage enabled="false"/>
         </app>
-        
     </apps>
 
-    <servers>
-        <templates>
-          <server name="server-template">       
-              <autoStopOnLastAppStop>true</autoStopOnLastAppStop>   
+    <xvms>
+      <templates>
+        <xvm name="xvm-template">
+           <autoStopOnLastAppStop>true</autoStopOnLastAppStop>   
               <heartbeats enabled="true" interval="5">
                   <collectIndividualThreadStats>true</collectIndividualThreadStats>
                   <includeMessageTypeStats>false</includeMessageTypeStats>
@@ -336,100 +339,390 @@
                       <traceUserStats>true</traceUserStats>
                   </tracing>
               </heartbeats>
-          </server>
+          </xvm>
         </templates>
-        <server name="cardholdermaster-1-1" template="server-template" displayName="Cardholder Master 1p">
+        <xvm name="cardholdermaster-1-1" displayName="Cardholder Master 1p" template="xvm-template">
             <apps>
                 <app name="cardholdermaster-1" autoStart="true" />
             </apps>
-        </server>
-        <server name="cardholdermaster-1-2" template="server-template" displayName="Cardholder Master 1s">
+        </xvm>
+        <xvm name="cardholdermaster-1-2" displayName="Cardholder Master 1s" template="xvm-template">
             <apps>
                 <app name="cardholdermaster-1" autoStart="true" />
             </apps>       
-        </server>
-        <server name="cardholdermaster-2-1" template="server-template" displayName="Cardholder Master 2p">
+        </xvm>
+        <xvm name="cardholdermaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
             <apps>
                 <app name="cardholdermaster-2" autoStart="true" />
             </apps>       
-        </server>
-        <server name="cardholdermaster-2-2" template="server-template" displayName="Cardholder Master 2s">
+        </xvm>
+        <xvm name="cardholdermaster-2-2" displayName="Cardholder Master 2s" template="xvm-template" >
             <apps>
                 <app name="cardholdermaster-2" autoStart="true" />
             </apps>       
-        </server>
+        </xvm>
     
-        <server name="cardmaster-1-1" template="server-template" displayName="Card Master 1p">
+        <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
             <apps>
                 <app name="cardmaster-1" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
 
-        <server name="cardmaster-1-2" template="server-template" displayName="Card Master 1s">
+        <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
             <apps>
                 <app name="cardmaster-1" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
         
-        <server name="cardmaster-2-1" template="server-template" displayName="Cardholder Master 2p">
+        <xvm name="cardmaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
 
-        <server name="cardmaster-2-2" template="server-template" displayName="Cardholder Master 2s">
+        <xvm name="cardmaster-2-2" displayName="Cardholder Master 2s" template="xvm-template">
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
 
-        <server name="fraudanalyzer-1-1" template="server-template" displayName="Fraud Analyzer 1p">
+        <xvm name="fraudanalyzer-1-1" displayName="Fraud Analyzer 1p" template="xvm-template">
             <apps>
                 <app name="fraudanalyzer-1" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="fraudanalyzer-1-2" template="server-template" displayName="Fraud Analyzer 1s">
+        </xvm>
+        <xvm name="fraudanalyzer-1-2" displayName="Fraud Analyzer 1s" template="xvm-template">
             <apps>
                 <app name="fraudanalyzer-1" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="fraudanalyzer-2-1" template="server-template" displayName="Fraud Analyzer 2p">
+        </xvm>
+        <xvm name="fraudanalyzer-2-1" displayName="Fraud Analyzer 2p" template="xvm-template">
             <apps>
                 <app name="fraudanalyzer-2" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="fraudanalyzer-2-2" template="server-template" displayName="Fraud Analyzer 2s">
+        </xvm>
+        <xvm name="fraudanalyzer-2-2" displayName="Fraud Analyzer 2s" template="xvm-template">
             <apps>
                 <app name="fraudanalyzer-2" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
         
-        <server name="merchantmaster-1-1" template="server-template" displayName="Merchant Master 1p">
+        <xvm name="merchantmaster-1-1" displayName="Merchant Master 1p" template="xvm-template">
             <apps>
                 <app name="merchantmaster-1" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="merchantmaster-1-2" template="server-template" displayName="Merchant Master 1s">
+        </xvm>
+        <xvm name="merchantmaster-1-2" displayName="Merchant Master 1s" template="xvm-template">
             <apps>
                 <app name="merchantmaster-1" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="merchantmaster-2-1" template="server-template" displayName="Merchant Master 2p">
+        </xvm>
+        <xvm name="merchantmaster-2-1" displayName="Merchant Master 2p" template="xvm-template">
             <apps>
                 <app name="merchantmaster-2" autoStart="true"/>
             </apps>       
-        </server>
-        <server name="merchantmaster-2-2" template="server-template" displayName="Merchant Master 2s">
+        </xvm>
+        <xvm name="merchantmaster-2-2" displayName="Merchant Master 2s" template="xvm-template">
             <apps>
                 <app name="merchantmaster-2" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
         
-        <server name="perfdriver-1" template="server-template">
+        <xvm name="perfdriver-1" displayName="Perf Test Driver" template="xvm-template">
             <apps>
                 <app name="perfdriver" autoStart="true"/>
             </apps>       
-        </server>
+        </xvm>
+    </xvms>
+    
+    <profiles>
+      <profile name="neeve-lab">
+        <activation>
+          <properties>
+            <lumino.agent.env>neeve-lab</lumino.agent.env>
+          </properties>
+        </activation>
+        <xvms>
+          <templates>
+            <xvm name="xvm-template">       
+              <provisioning>
+                <jvm>
+                  <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                  <jvmParamSets>
+                    <jvmParamSet name="prefer-ipv4">
+                      <jvmParams>-Djava.net.preferIPv4Stack=true </jvmParams>
+                    </jvmParamSet>
+                    <jvmParamSet name="verbose-gc">
+                      <jvmParams>
+                      -XX:+PrintGCDetails 
+                      -XX:+PrintGCTimeStamps 
+                      -XX:+PrintTenuringDistribution 
+                      </jvmParams>
+                    </jvmParamSet>
+                    <jvmParamSet name="flight-recorder">
+                      <jvmParams>
+                      -XX:+UnlockCommercialFeatures 
+                      -XX:+FlightRecorder 
+                      -XX:StartFlightRecording=name=CardholderMaster11Recording,settings=profile 
+                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${targetXvm::flight}-recording.jfr
+                      </jvmParams>
+                    </jvmParamSet>
+                  </jvmParamSets>
+                </jvm>
+              </provisioning> 
+            </xvm>
+          </templates>
+          
+         <xvm name="cardholdermaster-1-1" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms20g -Xmx20g -XX:NewSize=4m  -XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2 
+                </jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
         
-    </servers>
+        <xvm name="cardholdermaster-1-2" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms20g -Xmx20g -XX:NewSize=4m  -XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2 
+                </jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+        <xvm name="cardholdermaster-2-1" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms20g -Xmx20g -XX:NewSize=4m  -XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2 
+                </jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+        <xvm name="cardholdermaster-2-2" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms20g -Xmx20g -XX:NewSize=4m  -XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2 
+                </jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+    
+        <xvm name="cardmaster-1-1" template="xvm-template">
+            <env>
+                <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning> 
+        </xvm>
+
+        <xvm name="cardmaster-1-2" template="xvm-template">
+            <env>
+                <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning> 
+        </xvm>
+        
+        <xvm name="cardmaster-2-1" template="xvm-template">
+            <env>
+                <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning> 
+        </xvm>
+
+        <xvm name="cardmaster-2-2" template="xvm-template">
+            <env>
+                <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning> 
+        </xvm>
+
+        <xvm name="fraudanalyzer-1-1" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_STORE_ADDRESS>192.168.2.13</FRAUDANALYZER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>     
+        </xvm>
+        <xvm name="fraudanalyzer-1-2" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_STORE_ADDRESS>192.168.2.14</FRAUDANALYZER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>     
+        </xvm>
+        <xvm name="fraudanalyzer-2-1" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_STORE_ADDRESS>192.168.2.14</FRAUDANALYZER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>      
+        </xvm>
+        <xvm name="fraudanalyzer-2-2" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_STORE_ADDRESS>192.168.2.13</FRAUDANALYZER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>     
+        </xvm>
+        
+        <xvm name="merchantmaster-1-1" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>    
+        </xvm>
+        <xvm name="merchantmaster-1-2" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_STORE_ADDRESS>192.168.2.14</MERCHANTMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>    
+        </xvm>
+        <xvm name="merchantmaster-2-1" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_STORE_ADDRESS>192.168.2.14</MERCHANTMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.14</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>         
+        </xvm>
+        <xvm name="merchantmaster-2-2" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
+            </env>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>    
+        </xvm>
+        
+        <xvm name="perfdriver-1" template="xvm-template">
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>
+                  -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                </jvmParams>
+              </jvm>
+            </provisioning>      
+        </xvm>
+        </xvms>
+      </profile>
+      
+      <profile name="solace-messaging">
+        <activation>
+          <properties>
+            <ccfd-bus-provider>solace</ccfd-bus-provider>
+          </properties>
+        </activation>
+        <env>
+          <CCFD_BUS_DESCRIPTOR>solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+        </env>
+      </profile>
+      
+      <profile name="kafka-messaging">
+        <activation>
+          <properties>
+            <ccfd-bus-provider>kafka</ccfd-bus-provider>
+          </properties>
+        </activation>
+        <env>
+          <CCFD_BUS_DESCRIPTOR>kafka://192.168.1.7:9092</CCFD_BUS_DESCRIPTOR>
+        </env>
+      </profile>
+      
+    </profiles>
 </model>

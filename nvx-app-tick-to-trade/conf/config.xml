@@ -22,7 +22,7 @@
       <link.network.stampiots>true</link.network.stampiots>
       <aep.trace>config</aep.trace>
     </nv>
-      
+
     <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
     <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
 
@@ -169,10 +169,6 @@
             <traceThreadStats>false</traceThreadStats>
             <traceUserStats>true</traceUserStats>
           </tracing>
-          <logging>
-          </logging>
-          <publishing>
-          </publishing>
         </heartbeats>
       </xvm>
     </templates>
@@ -251,12 +247,12 @@
           <lumino.agent.env>neeve-lab</lumino.agent.env>
         </properties>
       </activation>
-      
+
       <env>
         <nv>
           <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
         </nv>
-        
+
         <ACTIVEMQ_HOST>192.168.1.8</ACTIVEMQ_HOST>
         <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
 
@@ -267,18 +263,18 @@
         <MARKET_ACCEPTOR>tcp://192.168.1.12:12000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</MARKET_ACCEPTOR>
         <EMS1_ACCEPTOR>tcp://192.168.1.13:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS1_ACCEPTOR>
         <EMS2_ACCEPTOR>tcp://192.168.1.14:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS2_ACCEPTOR>
-        
+
         <simulator.ems.orderPreallocateCount>1000000</simulator.ems.orderPreallocateCount>
-        
-        
+
+
       </env>
-      
+
       <xvms>
         <xvm name="ems1">
           <provisioning>
             <host>192.168.1.13</host>
-            <installRoot>/root/work/lumino</installRoot>
-            <dataRoot>rdat</dataRoot>
+            <rootDirectory>/root/work/lumino</rootDirectory>
+            <dataDirectory>rdat</dataDirectory>
             <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
@@ -298,12 +294,12 @@
               </jvmParams>
             </jvm>
           </provisioning>
-          
+
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
             <EMS_REPLICATION_INTERFACE>192.168.2.13</EMS_REPLICATION_INTERFACE>
             <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
-            
+
             <!-- CPU AFFINITIZATION -->
             <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
             <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
@@ -321,10 +317,10 @@
         <xvm name="ems2">
           <provisioning>
             <host>192.168.1.14</host>
+            <rootDirectory>/root/work/lumino</rootDirectory>
+            <dataDirectory>rdat</dataDirectory>
+            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
-              <installRoot>/root/work/lumino</installRoot>
-              <dataRoot>rdat</dataRoot>
-              <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
               <jvmParams>
                 -Xms8g
@@ -342,13 +338,13 @@
               </jvmParams>
             </jvm>
           </provisioning>
-          
+
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
             <EMS_REPLICATION_INTERFACE>192.168.2.14</EMS_REPLICATION_INTERFACE>
             <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
-            
-            <!-- CPU Affinitization-->
+
+            <!-- CPU Affinitization -->
             <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
             <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
             <EMS_STORE_LINK_READER_CPUAFFMASK>[3]</EMS_STORE_LINK_READER_CPUAFFMASK>
@@ -361,12 +357,12 @@
             <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
           </env>
         </xvm>
-        
+
         <xvm name="market">
           <provisioning>
             <host>192.168.1.12</host>
-            <installRoot>/root/work/lumino</installRoot>
-            <dataRoot>rdat</dataRoot>
+            <rootDirectory>/root/work/lumino</rootDirectory>
+            <dataDirectory>rdat</dataDirectory>
             <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
@@ -400,8 +396,8 @@
         <xvm name="client">
           <provisioning>
             <host>192.168.1.12</host>
-            <installRoot>/root/work/lumino</installRoot>
-            <dataRoot>rdat</dataRoot>
+            <rootDirectory>/root/work/lumino</rootDirectory>
+            <dataDirectory>rdat</dataDirectory>
             <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <jvmParams>
@@ -420,7 +416,7 @@
               </jvmParams>
             </jvm>
           </provisioning>
-           
+
           <env>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
             <!-- CPU Affinitization -->
@@ -431,7 +427,7 @@
             <EMS_BUSREADER_CPUAFFMASK>[14]</EMS_BUSREADER_CPUAFFMASK>
           </env>
         </xvm>
-        
+
       </xvms>
     </profile>
 
@@ -449,6 +445,8 @@
       <env>
         <nv>
           <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
+          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+          <nv.native.suppressextraction>true</nv.native.suppressextraction>
         </nv>
 
         <!-- performance tuning parameters: -->
@@ -487,10 +485,14 @@
           </xvm>
         </templates>
       </xvms>
-      
     </profile>
 
     <profile name="direct">
+      <activation>
+        <properties>
+          <tick-to-trade-bus-provider>direct</tick-to-trade-bus-provider>
+        </properties>
+      </activation>
       <buses>
         <bus name="ems">
           <provider>direct</provider>
@@ -556,6 +558,11 @@
     </profile>
 
     <profile name="activemq">
+      <activation>
+        <properties>
+          <tick-to-trade-bus-provider>activemq</tick-to-trade-bus-provider>
+        </properties>
+      </activation>
       <buses>
         <bus name="ems">
           <provider>activemq</provider>
@@ -577,6 +584,11 @@
     </profile>
 
     <profile name="solace">
+      <activation>
+        <properties>
+          <tick-to-trade-bus-provider>solace</tick-to-trade-bus-provider>
+        </properties>
+      </activation>
       <buses>
         <bus name="ems">
           <provider>solace</provider>

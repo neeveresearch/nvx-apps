@@ -28,7 +28,25 @@
         
         <dependency>
             <groupId>com.neeve</groupId>
+            <artifactId>nvx-native</artifactId>
+            <classifier>linux-x86-64</classifier>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-kafka</artifactId>
+            <version>1.1-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.2.0</version>
         </dependency>
     </dependencies>
 

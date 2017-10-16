@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd-all</artifactId>
     <packaging>jar</packaging>
-    <name>Fraud Detection All</name>
+    <name>Fraud Detection System</name>
     <description>Module that packages entire Fraud Detection system into a single deployment unit.</description>
 
     <parent>
@@ -59,6 +59,12 @@
             <groupId>com.neeve</groupId>
             <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>com.neeve</groupId>
+          <artifactId>nvx-kafka</artifactId>
+          <version>1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
