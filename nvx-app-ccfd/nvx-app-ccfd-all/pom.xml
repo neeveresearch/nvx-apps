@@ -66,6 +66,12 @@
           <artifactId>nvx-kafka</artifactId>
           <version>1.1-SNAPSHOT</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.2.0</version>
+        </dependency>
 
         <dependency>
             <groupId>com.neeve</groupId>
