@@ -10,7 +10,7 @@
       <aep>
         <trace>config</trace>
       </aep>
-      
+
       <!-- turn on global latency stats for underlying engines ... -->
       <msg.latency.stats>true</msg.latency.stats>
       <ods.latency.stats>true</ods.latency.stats>
@@ -25,20 +25,22 @@
     <sender.singleSimulation>false</sender.singleSimulation>
     <route.numSegments>3200</route.numSegments>
     <sender.numThreads>10</sender.numThreads>
-    
+
     <geofencer.qos>Guaranteed</geofencer.qos>
     <geofencer.enablecpuaffinitymasks>false</geofencer.enablecpuaffinitymasks>
   </env>
 
   <buses>
-    <bus name="vehicle-event-processor" descriptor="${vehicleevent.bus.descriptor::direct://vehicle-event-processor&amp;cpuaffinitymask=${VEHICLE_EVENT_PROCESSOR_BUS_CPUAFFMASK::0}}">
+    <bus name="vehicle-event-processor"
+      descriptor="${vehicleevent.bus.descriptor::direct://vehicle-event-processor&amp;cpuaffinitymask=${VEHICLE_EVENT_PROCESSOR_BUS_CPUAFFMASK::0}}">
       <channels>
         <channel name="processor-events" id="1">
           <qos>${geofencer.qos::Guaranteed}</qos>
         </channel>
       </channels>
     </bus>
-    <bus name="vehicle-master" descriptor="${vehiclemaster.bus.descriptor::direct://vehicle-master&amp;cpuaffinitymask=${VEHICLE_MASTER_BUS_CPUAFFMASK::0}}">
+    <bus name="vehicle-master"
+      descriptor="${vehiclemaster.bus.descriptor::direct://vehicle-master&amp;cpuaffinitymask=${VEHICLE_MASTER_BUS_CPUAFFMASK::0}}">
       <channels>
         <channel name="master-requests" id="1">
           <qos>${geofencer.qos::Guaranteed}</qos>
@@ -48,7 +50,8 @@
         </channel>
       </channels>
     </bus>
-    <bus name="alerts" descriptor="${vehiclealerts.bus.descriptor::direct://vehicle-alert-receiver&amp;cpuaffinitymask=${VEHICLE_ALERTS_BUS_CPUAFFMASK::0}}">
+    <bus name="alerts"
+      descriptor="${vehiclealerts.bus.descriptor::direct://vehicle-alert-receiver&amp;cpuaffinitymask=${VEHICLE_ALERTS_BUS_CPUAFFMASK::0}}">
       <channels>
         <channel name="alerts" id="1">
           <qos>${geofencer.qos::Guaranteed}</qos>
@@ -62,14 +65,14 @@
       <app name="app-template">
         <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
         <captureMessageTypeStats>true</captureMessageTypeStats>
-    
+
         <inboundEventMultiplexing>
           <queueDrainerCpuAffinityMask>${INPUT_MULTIPLEXER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
         </inboundEventMultiplexing>
       </app>
     </templates>
-    
-    
+
+
     <app name="vehicle-master" mainClass="com.neeve.geofencer.VehicleMaster" template="app-template">
       <messaging>
         <factories>
@@ -298,17 +301,31 @@
         </templates>
 
         <xvm name="vehicle-event-sender" template="xvm-template">
+          <env>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[1]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[2]</INPUT_MULTIPLEXER_CPUAFFMASK>
+          </env>
           <provisioning>
             <host>192.168.1.12</host>
           </provisioning>
         </xvm>
-        
+
         <xvm name="vehicle-alert-receiver" template="xvm-template">
+          <env>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[10]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[12]</INPUT_MULTIPLEXER_CPUAFFMASK>
+          </env>
           <provisioning>
             <host>192.168.1.12</host>
           </provisioning>
         </xvm>
-        
+
         <xvm name="vehicle-event-processor-1" template="xvm-template">
           <env>
             <STORE_IFADDRESS>192.168.2.13</STORE_IFADDRESS>
@@ -325,7 +342,7 @@
             <host>192.168.1.13</host>
           </provisioning>
         </xvm>
-        
+
         <xvm name="vehicle-event-processor-2" template="xvm-template">
           <env>
             <STORE_IFADDRESS>192.168.2.14</STORE_IFADDRESS>
@@ -337,13 +354,13 @@
             <STORE_READER_CPUAFFMASK>[12]</STORE_READER_CPUAFFMASK>
             <STORE_SENDER_CPUAFFMASK>[13]</STORE_SENDER_CPUAFFMASK>
             <STORE_DISPATCHER_CPUAFFMASK>[14]</STORE_DISPATCHER_CPUAFFMASK>
-                        <BLACKBIRD1_IOTHRCPUAFFMASK></BLACKBIRD1_IOTHRCPUAFFMASK>
+            <BLACKBIRD1_IOTHRCPUAFFMASK></BLACKBIRD1_IOTHRCPUAFFMASK>
           </env>
           <provisioning>
             <host>192.168.1.14</host>
           </provisioning>
         </xvm>
-        
+
         <xvm name="vehicle-master-1" template="xvm-template">
           <env>
             <STORE_IFADDRESS>192.168.2.14</STORE_IFADDRESS>
