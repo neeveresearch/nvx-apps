@@ -1,132 +1,177 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>nvx-app-ccfd-all</artifactId>
-    <packaging>jar</packaging>
-    <name>Fraud Detection System</name>
-    <description>Module that packages entire Fraud Detection system into a single deployment unit.</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>nvx-app-ccfd-all</artifactId>
+  <packaging>jar</packaging>
+  <name>Fraud Detection System</name>
+  <description>Module that packages entire Fraud Detection system into a single deployment unit.</description>
 
-    <parent>
+  <parent>
+    <groupId>com.neeve</groupId>
+    <artifactId>nvx-app-ccfd</artifactId>
+    <version>3.8-SNAPSHOT</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-roe</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-util</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-cardholdermaster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-cardmaster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-fraudanalyzer</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-merchantmaster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-app-ccfd-perfdriver</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-talon-all</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-kafka</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>0.10.2.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-jms</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-solace</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-client</artifactId>
+      <version>5.13.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-native</artifactId>
+      <classifier>linux-x86-64</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>com.neeve</groupId>
-        <artifactId>nvx-app-ccfd</artifactId>
-        <version>3.8-SNAPSHOT</version>
-    </parent>
+        <artifactId>nvx-platform-maven-plugin</artifactId>
+        <version>${nvx.platform.version}</version>
+        <executions>
+          <execution>
+            <id>Xar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>robin-xar</goal>
+            </goals>
+            <configuration>
+              <resourceDirectory>${project.build.directory}/resources</resourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-roe</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-cardholdermaster</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-cardmaster</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-fraudanalyzer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-merchantmaster</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-perfdriver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>com.neeve</groupId>
-          <artifactId>nvx-kafka</artifactId>
-          <version>1.1-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>0.10.2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-jms</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-solace</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-            <version>5.13.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-native</artifactId>
-            <classifier>linux-x86-64</classifier>
-        </dependency>
-    </dependencies>
-
-    <build>
+  <profiles>
+    <profile>
+      <id>zing-enable</id>
+      <build>
         <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.5</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.neeve</groupId>
-                <artifactId>nvx-platform-maven-plugin</artifactId>
-                <version>${nvx.platform.version}</version>
-                <executions>
-                    <execution>
-                        <id>Xar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>robin-xar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+          <plugin>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-license-zing-mojo</artifactId>
+            <version>1.0.3</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generate-license</goal>
+                </goals>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <customerName>Neeve</customerName>
+                  <outputDirectory>${project.build.directory}/resources/license/zing</outputDirectory>
+                  <jarsDirectory>${project.build.directory}/dependency</jarsDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </build>
+      </build>
+
+      <pluginRepositories>
+        <pluginRepository>
+          <id>neeve-internal-release</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <url>https://nexus.neeveresearch.com/nexus/content/repositories/internal-releases/</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
 </project>

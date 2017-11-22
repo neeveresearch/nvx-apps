@@ -2,9 +2,16 @@ package com.neeve.ccfd.all;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.util.Properties;
 
 import org.junit.Test;
+
+import com.neeve.ddl.DdlConfigConstants;
+import com.neeve.ddl.DdlPropertyParser;
+import com.neeve.ddl.DdlXMLParser;
+import com.neeve.ddl.jaxb.Model;
+import com.neeve.util.UtlTailoring.PropertySource;
 
 /**
  * Test end to end message flow. 
@@ -56,5 +63,23 @@ public class TestFlow extends AbstractTest {
         // validate
         assertEquals("Wrong number of authorizations requested", 1000, driverApp.getAuthorizationRequestCount());
         assertEquals("Wrong number of authorizations performed", 1000, driverApp.getAuthorizationResponseCount());
+    }
+
+    @Test
+    public void testDdlResolution() throws Exception {
+        final Properties props = new Properties();
+        props.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "neeve-lab");
+        props.put("ccfd.useZing", "true");
+        props.put(DdlConfigConstants.DDL_TARGETXVM_PROPNAME, "perfdriver-1");
+
+        Model model = DdlXMLParser.parse(new File(getProjectBaseDirectory(), "/conf/config.xml"), new PropertySource() {
+
+            @Override
+            public String getValue(String key, String defaultValue) {
+                return props.getProperty(key, defaultValue);
+            }
+        });
+
+        DdlXMLParser.toXml(model, System.out);
     }
 }

@@ -59,7 +59,6 @@ public class TestDataGenerator {
      *  
      * @param transaction transaction which to fill with random values
      */
-    //TODO this will take time. Can we improve it by streaming pre-generated set from file?
     public void generateRandomFields(final boolean isFraud, final int[] fraudIndicators, final TransformedPaymentTransactionDTO transaction) {
 
         // We could do this with reflection, but this will reduce garbage creation
