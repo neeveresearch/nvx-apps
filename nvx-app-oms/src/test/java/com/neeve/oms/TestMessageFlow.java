@@ -11,6 +11,8 @@ import java.util.Properties;
 
 import org.junit.Test;
 
+import com.neeve.ddl.DdlConfigConstants;
+import com.neeve.oms.driver.local.LocalDriver;
 import com.neeve.oms.driver.remote.Driver;
 import com.neeve.oms.es.Application;
 
@@ -22,20 +24,13 @@ public class TestMessageFlow extends AbstractTest {
     @Test
     public void testMessageFlow() throws Throwable {
         Properties env = new Properties();
-        env.put("oms.driver.autoStart", "false");
-        env.put("oms.orderPreallocateCount", "1000");
-        // disable thread affinities:
-        env.put("nv.enablecpuaffinitymasks", "false");
-        // use local in process discovery
-        env.put("nv.discovery.descriptor", "loopback://discovery");
-        // use in process loopback bus for messaging:
-        env.put("oms.bus.oms.descriptor", "loopback://oms-bus");
+        env.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "test");
 
         // start oms:
-        startApp(Application.class, "oms", "oms1.local", env);
+        startApp(Application.class, "oms", "oms1", env);
 
         // start driver:
-        Driver driverApp = startApp(Driver.class, "driver", "driver.neeve", env);
+        Driver driverApp = startApp(Driver.class, "driver", "driver", env);
 
         // sleep to let all connections be established.
         Thread.sleep(5000);
@@ -59,5 +54,35 @@ public class TestMessageFlow extends AbstractTest {
 
         assertEquals("Wrong number of orders sent", newOrderCount, driverApp.getSentCount());
         assertEquals("Wrong number of orders received", newOrderCount, driverApp.getReceivedCount());
+    }
+
+    @Test
+    public void testLocalDriverFlow() throws Throwable {
+        Properties env = new Properties();
+        env.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "neeve-lab,test");
+
+        // start oms:
+        final Application application = startApp(Application.class, "oms", "oms1", env);
+        final LocalDriver localDriver = application.getLocalDriver();
+
+        int newOrderCount = 1000;
+        System.out.println("Sending in " + newOrderCount + " New Orders...");
+        localDriver.start(newOrderCount, 1000, true);
+        // poll for ad response received
+        while (localDriver.getSentCount() < newOrderCount) {
+            Thread.sleep(200);
+        }
+        System.out.println("...New Orders Sent ... Waiting for responses");
+
+        while (localDriver.getReceivedCount() < newOrderCount) {
+            Thread.sleep(200);
+        }
+        System.out.println("Responses received ... validating final counts.");
+
+        // sleep to check for any extra messages
+        Thread.sleep(1000);
+
+        assertEquals("Wrong number of orders sent", newOrderCount, localDriver.getSentCount());
+        assertEquals("Wrong number of orders received", newOrderCount, localDriver.getReceivedCount());
     }
 }

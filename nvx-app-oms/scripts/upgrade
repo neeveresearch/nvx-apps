@@ -1,0 +1,6 @@
+##DISPLAYNAME Upgrades XVMs
+##DESCRIPTION This can be run to apply updated configuration and binaries when a new version has been uploaded
+
+assume provision has run
+configure all xvms
+deploy to all xvms

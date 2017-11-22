@@ -4,7 +4,6 @@
         <nv>
             <!-- Optimize for latency -->
             <optimizefor>latency</optimizefor>
-            <conservecpu>true</conservecpu>
 
             <!-- Switch on CPU affinitization -->
             <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
@@ -20,9 +19,9 @@
             <ods.latency.stats>false</ods.latency.stats>
             <stats.latencymanager.samplesize>102400</stats.latencymanager.samplesize>
 
-            <server>
+            <xvm>
                 <autostop.onlastappstop>false</autostop.onlastappstop>
-            </server>
+            </xvm>
         </nv>
 
         <oms>
@@ -58,7 +57,7 @@
     </buses>
 
     <apps>
-        <app name="oms" mainClass="com.neeve.oms.es.Application">
+        <app name="oms" mainClass="com.neeve.oms.es.Application" displayName="Oms App">
             <messaging>
                 <factories>
                     <factory name="com.neeve.oms.messages.MessageFactory"/>
@@ -109,10 +108,10 @@
             </outboundMessageLogging>
             <replicateInParallel>true</replicateInParallel>
             <setSupportMetadata>false</setSupportMetadata>
-            <captureTransactionLatencyStats>false</captureTransactionLatencyStats>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
         </app>
 
-        <app name="driver" mainClass="com.neeve.oms.driver.remote.Driver">
+        <app name="driver" mainClass="com.neeve.oms.driver.remote.Driver" displayName="Driver App">
             <messaging>
                 <factories>
                     <factory name="com.neeve.oms.messages.MessageFactory"/>
@@ -134,33 +133,10 @@
         </app>
     </apps>
 
-    <servers>
-        <server name="oms1.local" displayName="Primary OMS VM (Local)">
-            <apps>
-                <app name="oms" autoStart="${oms.autostart::true}"/>
-            </apps>
-            <heartbeats enabled="false"/>
-        </server>
-        <server name="oms2.local" displayName="Secondary OMS VM (Local)">
-            <apps>
-                <app name="oms" autoStart="${oms.autostart::true}"/>
-            </apps>
-            <heartbeats enabled="false"/>
-        </server>
-        <server name="driver.local" displayName="Driver VM (Local)">
-            <apps>
-                <app name="driver" autoStart="true"/>
-            </apps>
-            <heartbeats enabled="false"/>
-        </server>
-        <server name="oms1.neeve" displayName="Primary OMS VM (Neeve Lab)">
-            <acceptors>
-                <acceptor descriptor="tcp://192.168.2.13:12000" enabled="true"/>
-            </acceptors>
-            <apps>
-                <app name="oms" autoStart="${oms.autostart::false}"/>
-            </apps>
-            <heartbeats enabled="false" interval="5">
+    <xvms>
+        <templates>
+          <xvm name="xvm-template">
+            <heartbeats enabled="${oms.heartbeats.enabled::false}" interval="30">
                 <tracing enabled="true">
                     <traceAppStats>false</traceAppStats>
                     <traceAdminClientStats>false</traceAdminClientStats>
@@ -170,32 +146,185 @@
                     <traceUserStats>false</traceUserStats>
                 </tracing>
             </heartbeats>
-        </server>
-        <server name="oms2.neeve" displayName="Secondary OMS VM (Neeve Lab)">
-            <acceptors>
-                <acceptor descriptor="tcp://192.168.2.12:12000" enabled="true"/>
-            </acceptors>
+          </xvm>
+        </templates>
+        <xvm name="oms1" displayName="Primary OMS VM" template="xvm-template">
             <apps>
-                <app name="oms" autoStart="${oms.autostart::false}"/>
+                <app name="oms" autoStart="${oms.autostart::true}"/>
             </apps>
-            <heartbeats enabled="false" interval="5">
-                <tracing enabled="false">
-                    <traceAppStats>false</traceAppStats>
-                    <traceAdminClientStats>false</traceAdminClientStats>
-                    <tracePoolStats>false</tracePoolStats>
-                    <traceSysStats>false</traceSysStats>
-                    <traceThreadStats>false</traceThreadStats>
-                    <traceUserStats>false</traceUserStats>
-                </tracing>
-            </heartbeats>
-        </server>
-        <server name="driver.neeve" displayName="Driver VM (Neeve Lab)">
+        </xvm>
+        <xvm name="oms2" displayName="Secondary OMS VM" template="xvm-template">
+            <apps>
+                <app name="oms" autoStart="${oms.autostart::true}"/>
+            </apps>
+        </xvm>
+        <xvm name="driver" displayName="Driver VM" template="xvm-template">
             <apps>
                 <app name="driver" autoStart="true"/>
             </apps>
-            <heartbeats enabled="true" interval="5">
-                <tracing enabled="false"/>
-            </heartbeats>
-        </server>
-    </servers>
+        </xvm>
+    </xvms>
+    
+    <profiles>
+      <profile name="neeve-lab">
+      <activation>
+        <properties>
+          <lumino.agent.env>neeve-lab</lumino.agent.env>
+        </properties>
+      </activation>
+      
+      <env>
+        <oms.driver.printLatencyStats>false</oms.driver.printLatencyStats>
+        <oms.driver.summarizeLatencyStats>false</oms.driver.summarizeLatencyStats>
+      </env>
+      
+      <xvms>
+        <templates>
+          <xvm name="xvm-template">
+            <provisioning>
+              <jvm>
+                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                <jvmParamSets>
+                  <jvmParamSet name="prefer-ipv4">
+                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
+                  </jvmParamSet>
+                </jvmParamSets>
+              </jvm>
+            </provisioning>
+            <heartbeats enabled="true" interval="5"/>
+          </xvm>
+        </templates>
+        <xvm name="oms1">
+            <env>
+              <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
+              <oms.orderPreallocateCount>5000000</oms.orderPreallocateCount>
+              <oms.clustering.eventmultiplexer.cpuaffinitymask>[2]</oms.clustering.eventmultiplexer.cpuaffinitymask>
+              <oms.clustering.replication.detachedsender.cpuaffinitymask>[3]</oms.clustering.replication.detachedsender.cpuaffinitymask>
+              <oms.clustering.replication.localifaddr>192.168.2.14</oms.clustering.replication.localifaddr>
+              <oms.clustering.replication.localport>12000</oms.clustering.replication.localport>
+              <oms.clustering.replication.linkparams>maxreadspintime=1000</oms.clustering.replication.linkparams>
+              <oms.clustering.replication.linkreader.cpuffinitymask>[4]</oms.clustering.replication.linkreader.cpuffinitymask>
+              <oms.clustering.replication.detachedpersist.cpuaffinitymask>[5]</oms.clustering.replication.detachedpersist.cpuaffinitymask>
+              <oms.clustering.bus.events.detachedsender.cpuaffinitymask>[6]</oms.clustering.bus.events.detachedsender.cpuaffinitymask>
+              <oms.driver.sendCount>5000000</oms.driver.sendCount>
+              <oms.driver.sendRate>1000</oms.driver.sendRate>
+              <oms.driver.sendAffinity>[1]</oms.driver.sendAffinity>
+            </env>
+            <acceptors>
+                <acceptor descriptor="tcp://192.168.2.13:11000" enabled="true"/>
+            </acceptors>
+            <provisioning>
+              <host>192.168.1.13</host>
+              <jvm>
+                <jvmParams>-Xms64g -Xmx64g</jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+        <xvm name="oms2">
+            <acceptors>
+                <acceptor descriptor="tcp://192.168.2.14:11000" enabled="true"/>
+            </acceptors>
+            <env>
+              <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
+              <oms.orderPreallocateCount>5000000</oms.orderPreallocateCount>
+              <oms.clustering.eventmultiplexer.cpuaffinitymask>[2]</oms.clustering.eventmultiplexer.cpuaffinitymask>
+              <oms.clustering.replication.detachedsender.cpuaffinitymask>[3]</oms.clustering.replication.detachedsender.cpuaffinitymask>
+              <oms.clustering.replication.localifaddr>192.168.2.14</oms.clustering.replication.localifaddr>
+              <oms.clustering.replication.localport>12000</oms.clustering.replication.localport>
+              <oms.clustering.replication.linkparams>maxreadspintime=1000</oms.clustering.replication.linkparams>
+              <oms.clustering.replication.linkreader.cpuffinitymask>[4]</oms.clustering.replication.linkreader.cpuffinitymask>
+              <oms.clustering.replication.detachedpersist.cpuaffinitymask>[5]</oms.clustering.replication.detachedpersist.cpuaffinitymask>
+              <oms.clustering.bus.events.detachedsender.cpuaffinitymask>[6]</oms.clustering.bus.events.detachedsender.cpuaffinitymask>
+              <oms.driver.sendCount>5000000</oms.driver.sendCount>
+              <oms.driver.sendRate>1000</oms.driver.sendRate>
+              <oms.driver.sendAffinity>[1]</oms.driver.sendAffinity>
+            </env>
+            <provisioning>
+              <host>192.168.1.12</host>
+              <jvm>
+                <jvmParams>-Xms64g -Xmx64g</jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+        <xvm name="driver">
+            <env>
+              <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
+              <oms.driver.sendThreadAffinity>[1]</oms.driver.sendThreadAffinity>
+              <oms.driver.eventmultiplexer.cpuaffinitymask>[2]</oms.driver.eventmultiplexer.cpuaffinitymask>
+              <oms.driver.autoStart>false</oms.driver.autoStart>
+            </env>
+            <provisioning>
+              <host>192.168.1.12</host>
+              <jvm>
+                <jvmParams>-Xms4g -Xmx4g</jvmParams>
+              </jvm>
+            </provisioning>
+        </xvm>
+      </xvms>
+    </profile>
+    
+    <profile name="test">
+      <activation>
+        <properties>
+          <oms.bus.provider>direct</oms.bus.provider>
+        </properties>
+      </activation>
+      <env>
+        <nv>
+            <conservecpu>true</conservecpu>
+            <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
+            <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+        </nv>
+        <oms>
+          <bus.oms.descriptor>loopback://oms</bus.oms.descriptor>
+          <driver.autoStart>false</driver.autoStart>
+          <orderPreallocateCount>1000</orderPreallocateCount>
+        </oms>
+      </env>
+    </profile> 
+    
+    <profile name="direct">
+      <activation>
+        <properties>
+          <oms.bus.provider>direct</oms.bus.provider>
+        </properties>
+      </activation>
+      <env>
+        <oms.bus.oms.descriptor>direct://oms</oms.bus.oms.descriptor>
+      </env>
+    </profile>      
+    
+    <profile name="solace">
+      <activation>
+        <properties>
+          <oms.bus.provider>solace</oms.bus.provider>
+        </properties>
+      </activation>
+      <env>
+        <oms.bus.oms.descriptor>solace://192.168.1.222:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;usejni=false&amp;SESSION_USERNAME=test</oms.bus.oms.descriptor>
+      </env>
+    </profile>
+    
+    <profile name="activemq">
+      <activation>
+        <properties>
+          <oms.bus.provider>activemq</oms.bus.provider>
+        </properties>
+      </activation>
+      <env>
+        <oms.bus.oms.descriptor>activemq://tcp://192.168.1.8:61616</oms.bus.oms.descriptor>
+      </env>
+    </profile>
+        
+    <profile name="tibems">
+      <activation>
+        <properties>
+          <oms.bus.provider>activemq</oms.bus.provider>
+        </properties>
+      </activation>
+      <env>
+        <oms.bus.oms.descriptor>jms://192.168.1.7:7222</oms.bus.oms.descriptor>
+      </env>
+    </profile>
+  </profiles>
 </model>

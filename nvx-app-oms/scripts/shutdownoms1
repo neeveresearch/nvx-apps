@@ -1,9 +1,0 @@
-// assume launched
-assume launchoms1 has run
-
-// shutdown the oms1 instance
-stop the oms app in the oms1.${oms.env::local} xvm
-
-// shutdown the xvms
-shutdown
-

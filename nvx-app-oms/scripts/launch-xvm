@@ -1,0 +1,8 @@
+assume provision has run
+
+##DISPLAYNAME Launch XVM ...
+##DESCRIPTION Launches an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="driver,oms1,oms2", description="The name of the XVM to launch"] 
+
+// launch the processor cluster
+launch the ${xvmName::driver} xvm

@@ -11,8 +11,8 @@ import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.stats.IStats.Counter;
+import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
-import com.neeve.stats.Stats;
 import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlTime;
 
@@ -41,12 +41,11 @@ public class Driver {
     @AppStat
     final private Counter receivedCount = StatsFactory.createCounterStat("NumReceived");
     @AppStat(name = "c2m")
-    final private Stats.LatencyManager c2m = new Stats.LatencyManager("c2m");
+    final private Latencies c2m = StatsFactory.createLatencyStat("c2m");
     private volatile AepMessageSender messageSender;
     private AtomicBoolean running = new AtomicBoolean(false);
     private long sendTs;
     private AtomicBoolean receivedResponse = new AtomicBoolean(false);
-    private int complete;
 
     final private IRogMessage createNewOrderMessage(final boolean useFix) {
         if (useFix) {
@@ -68,12 +67,6 @@ public class Driver {
         receivedCount.increment();
         final long latency = receiveTs - sendTs;
         c2m.add(latency);
-        if (++complete % 10000 == 0) {
-            c2m.compute();
-            StringBuilder sb = new StringBuilder();
-            c2m.get(sb);
-            System.out.print(sb.toString());
-        }
     }
 
     @AppInjectionPoint

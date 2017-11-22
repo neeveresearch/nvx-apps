@@ -1,0 +1,15 @@
+##DISPLAYNAME Shut down all XVMs
+##DESCRIPTION Shuts down all of the XVMS (assuming they are all running)
+
+assume launch-all has run
+
+// shutdown the driver
+stop the driver app in the driver xvm
+
+// shutdown the oms cluster
+stop the oms app in the oms2 xvm
+stop the oms app in the oms1 xvm
+
+// shutdown the xvms
+shutdown
+
