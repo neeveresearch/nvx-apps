@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 
 import java.util.Properties;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.neeve.ddl.DdlConfigConstants;
@@ -57,9 +58,10 @@ public class TestMessageFlow extends AbstractTest {
     }
 
     @Test
+    @Ignore
     public void testLocalDriverFlow() throws Throwable {
         Properties env = new Properties();
-        env.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "neeve-lab,test");
+        env.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "test,local");
 
         // start oms:
         final Application application = startApp(Application.class, "oms", "oms1", env);

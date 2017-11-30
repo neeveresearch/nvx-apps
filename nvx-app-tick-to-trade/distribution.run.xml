@@ -23,6 +23,14 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/resources</directory>
+            <outputDirectory>resources</outputDirectory>
+            <lineEnding>unix</lineEnding>
+            <includes>
+                <include>**</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/target</directory>
             <outputDirectory>libs</outputDirectory>
             <includes>

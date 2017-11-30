@@ -44,14 +44,6 @@
         </dependency>
       </dependencies>
     </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
     
     <build>
         <plugins>
@@ -88,6 +80,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                  <argLine>-Xmx2g</argLine>
+                </configuration>
                 <version>2.20</version>
             </plugin>
         </plugins>
@@ -103,6 +98,11 @@
                       <allowSnapshots>true</allowSnapshots>
                       <allowRangeMatching>true</allowRangeMatching>
                       <allowDowngrade>true</allowDowngrade>
+                      <allowIncrementalUpdates>true</allowIncrementalUpdates>
+                      <allowMinorUpdates>true</allowMinorUpdates>
+                      <allowMajorUpdates>true</allowMajorUpdates>
+                      <forceVersion>true</forceVersion>
+                      <excludeProperties>jersey.version,jetty.version</excludeProperties>
                         <properties>
                             <property>
                                 <name>nvx.platform.version</name>

@@ -32,7 +32,7 @@
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
 

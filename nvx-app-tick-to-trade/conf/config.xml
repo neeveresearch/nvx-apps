@@ -21,6 +21,7 @@
       <ods.latency.stats>true</ods.latency.stats>
       <link.network.stampiots>true</link.network.stampiots>
       <aep.trace>config</aep.trace>
+      <server.controller.trace>config</server.controller.trace>
     </nv>
 
     <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
@@ -82,6 +83,7 @@
           <localPort>${EMS_REPLICATION_PORT::0}</localPort>
           <linkParams>nativeio=true,eagerread=true,maxreadspintime=1000000</linkParams>
           <linkReaderCpuAffinityMask>${EMS_STORE_LINK_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
+          <memberElectionPriority>${EMS_MEMBER_ELECTION_PRIORITY::255}</memberElectionPriority>
           <detachedSend enabled="${EMS_STORE_DETACHEDSEND_ENABLED::false}">
             <queueDepth>${EMS_STORE_DETACHEDSEND_QUEUEDEPTH::1024}</queueDepth>
             <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
@@ -160,7 +162,8 @@
         <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
         <heartbeats enabled="true" interval="5">
           <collectIndividualThreadStats>true</collectIndividualThreadStats>
-          <includeMessageTypeStats>false</includeMessageTypeStats>
+          <includeMessageTypeStats>true</includeMessageTypeStats>
+          <inactiveMessageTypeStatsInclusionFrequency>0</inactiveMessageTypeStatsInclusionFrequency>
           <tracing enabled="true">
             <traceAdminClientStats>false</traceAdminClientStats>
             <traceAppStats>false</traceAppStats>
@@ -174,6 +177,9 @@
     </templates>
 
     <xvm name="ems1" template="xvm-template">
+      <env>
+        <EMS_MEMBER_ELECTION_PRIORITY>1</EMS_MEMBER_ELECTION_PRIORITY>
+      </env>
       <apps>
         <app name="ems" autoStart="true" />
       </apps>
@@ -189,6 +195,9 @@
     </xvm>
 
     <xvm name="ems2" template="xvm-template">
+      <env>
+        <EMS_MEMBER_ELECTION_PRIORITY>2</EMS_MEMBER_ELECTION_PRIORITY>
+      </env>
       <apps>
         <app name="ems" autoStart="true" />
       </apps>
@@ -266,21 +275,17 @@
 
         <simulator.ems.orderPreallocateCount>1000000</simulator.ems.orderPreallocateCount>
 
-
       </env>
 
       <xvms>
         <xvm name="ems1">
           <provisioning>
             <host>192.168.1.13</host>
-            <rootDirectory>/root/work/lumino</rootDirectory>
-            <dataDirectory>rdat</dataDirectory>
-            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
               <jvmParams>
                 -Xms8g
-                -Xmx8
+                -Xmx8g
                 -XX:NewSize=1536m
                 -XX:MaxNewSize=1536m
                 -XX:SurvivorRatio=6
@@ -317,14 +322,11 @@
         <xvm name="ems2">
           <provisioning>
             <host>192.168.1.14</host>
-            <rootDirectory>/root/work/lumino</rootDirectory>
-            <dataDirectory>rdat</dataDirectory>
-            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
               <jvmParams>
                 -Xms8g
-                -Xmx8
+                -Xmx8g
                 -XX:NewSize=1536m
                 -XX:MaxNewSize=1536m
                 -XX:SurvivorRatio=6
@@ -361,9 +363,6 @@
         <xvm name="market">
           <provisioning>
             <host>192.168.1.12</host>
-            <rootDirectory>/root/work/lumino</rootDirectory>
-            <dataDirectory>rdat</dataDirectory>
-            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <javaHome>/usr/java/jdk1.8.0_60</javaHome>
               <jvmParams>
@@ -396,9 +395,6 @@
         <xvm name="client">
           <provisioning>
             <host>192.168.1.12</host>
-            <rootDirectory>/root/work/lumino</rootDirectory>
-            <dataDirectory>rdat</dataDirectory>
-            <qualifyPathsWithSystem>true</qualifyPathsWithSystem>
             <jvm>
               <jvmParams>
                 -Xms1572m
@@ -421,7 +417,7 @@
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
             <!-- CPU Affinitization -->
             <nv.defaultcpuaffinitymask>[10]</nv.defaultcpuaffinitymask>
-            <simulator.client.sendAffinity>=[11]</simulator.client.sendAffinity>
+            <simulator.client.sendAffinity>[11]</simulator.client.sendAffinity>
             <CLIENT_INPUTMUTIPLEXERCPUAFFMASK>[12]</CLIENT_INPUTMUTIPLEXERCPUAFFMASK>
             <CLIENT_IOTHRCPUAFFMASK>[13]</CLIENT_IOTHRCPUAFFMASK>
             <EMS_BUSREADER_CPUAFFMASK>[14]</EMS_BUSREADER_CPUAFFMASK>
@@ -488,6 +484,10 @@
     </profile>
 
     <profile name="direct">
+      <!-- Direct Binding does not yet fully support Guaranteed -->
+      <env>
+        <simulator.qos>BestEffort</simulator.qos>
+      </env>
       <activation>
         <properties>
           <tick-to-trade-bus-provider>direct</tick-to-trade-bus-provider>

@@ -64,14 +64,12 @@ src/main/java/com/neeve/tick2trade
 src/main/resources/com/neeve/tick2trade/messages
 * **messages.xml**: Models the messages used to generate classes (see [ADM Modeling](https://docs.neeveresearch.com/display/KB/ADM+Message+Modeling))
 
-conf/services
+resources/services
 * Maps message types to message channels (topics)
 
-conf/xplatform.xml
+conf/config.xml
 * Single XML document describing the application deployment topology and configuration See [Configuration](https://docs.neeveresearch.com/display/KB/X+Platform+Configuration)
-
-conf/profiles
-* Augments the platform configuration for various deployment topologies. 
+* Includes profile similar to those found in maven pom that can be used to localize the appliction to different environments. 
 
 bin
 * contains scripts used to launch applications. 

@@ -27,9 +27,10 @@ public class LocalDriver {
     @EventHandler
     public void onBusCreation(AepMessagingStartedEvent event) {
         for (AepBusManager manager : ((AepEngine)event.getSource()).getBusManagers()) {
-            if (manager.getBusBinding() instanceof LocalMessageBusBinding)
+            if (manager.getBusBinding() instanceof LocalMessageBusBinding) {
                 bus = (LocalMessageBusBinding)manager.getBusBinding();
-            bus.setW2WLatencyManager(localW2W);
+                bus.setW2WLatencyManager(localW2W);
+            }
         }
     }
 

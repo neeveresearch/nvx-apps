@@ -11,23 +11,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.neeve.aep.AepEngine;
 import com.neeve.server.embedded.EmbeddedXVM;
 import com.neeve.test.UnitTest;
-import com.neeve.tick2trade.driver.Client;
-import com.neeve.tick2trade.driver.Market;
 
 /**
  * Base class with some helper methods for creating embedded vms.
  */
-public class AbstractAppTest extends UnitTest {
+public class AbstractTest extends UnitTest {
+    protected final HashSet<EmbeddedXVM> xvms = new HashSet<EmbeddedXVM>();
     private URL confidDDL;
-    private Properties profileProps;
+    protected Properties profileProps;
 
     @BeforeClass
     public static void unitTestIntialize() throws IOException {
@@ -41,31 +42,19 @@ public class AbstractAppTest extends UnitTest {
         profileProps.setProperty("nv.ddl.profiles", "desktop");
     }
 
-    @Before
-    public void afterTestcase() {}
-
-    public App startEmsPrimary() throws Throwable {
-        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "ems1", profileProps);
-        server.start();
-        return (App)server.getApplication("ems");
+    @After
+    public void afterTestCase() throws IOException {
+        for (EmbeddedXVM xvm : xvms) {
+            xvm.shutdown(true);
+        }
     }
 
-    public App startEmsBackup() throws Throwable {
-        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "ems2", profileProps);
+    @SuppressWarnings("unchecked")
+    public <T> T startApp(Class<T> appClass, String appName, String xvmName) throws Throwable {
+        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, xvmName, profileProps);
+        xvms.add(server);
         server.start();
-        return (App)server.getApplication("ems");
-    }
-
-    public Market startMarket() throws Throwable {
-        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "market", profileProps);
-        server.start();
-        return (Market)server.getApplication("market");
-    }
-
-    public Client startClient() throws Throwable {
-        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, "client", profileProps);
-        server.start();
-        return (Client)server.getApplication("client");
+        return (T)server.getApplication(appName);
     }
 
     final protected void waitForTransactionPipelineToEmpty(final AepEngine engine, long timeout) throws Exception {

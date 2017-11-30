@@ -23,7 +23,7 @@
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
         
@@ -129,9 +129,14 @@
             </plugin>
         </plugins>
     </build>
-    
+
     <profiles>
       <profile>
+        <!--
+          This profile is currently for use by Neeve personnel.
+          Please contact Neeve sales if you are interested in using
+          Zing with the X Platform .
+        -->
         <id>zing-enable</id>
         <build>
           <plugins>
