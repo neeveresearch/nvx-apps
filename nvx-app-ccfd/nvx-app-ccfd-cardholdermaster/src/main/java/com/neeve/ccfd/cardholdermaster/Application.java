@@ -46,7 +46,7 @@ public class Application {
     @Configured(property = "fraudanalyzer.numShards")
     private int fraudanalyzerNumShards;
 
-    private boolean simulateSoftwareFraudCheck(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
+    private boolean checkForFraud(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
         long ts = System.nanoTime();
 
         boolean invalid = false;
@@ -57,7 +57,14 @@ public class Application {
                 @SuppressWarnings("unused")
                 IPaymentTransaction transaction = transactions.next();
 
-                // TODO: Implement check based on transaction history here. 
+                // TODO: Here is where business specific fraud check 
+                // logic would be inserted. For now we are just iterating
+                // all of the transactions, and simulating the cost of 
+                // business logic by spinning for 100us below.
+                //
+                // It is also possible that rather than raw iteration,
+                // one might use the platform's SQL query semantics to 
+                // query the transactions in memory. 
             }
             invalid = false;
         }
@@ -119,7 +126,7 @@ public class Application {
          * the entire transaction history and add a busy spin to simulate actual detection
          * logic cpu usage:  
          ****/
-        if (!simulateSoftwareFraudCheck(cardholder, authRequest)) {
+        if (!checkForFraud(cardholder, authRequest)) {
             FraudAnalysisRequestMessage outboundMessage = FraudAnalysisRequestMessage.create();
             outboundMessage.setRequestIdFrom(authRequest.getRequestIdUnsafe());
             outboundMessage.setFlowStartTs(authRequest.getFlowStartTs());
