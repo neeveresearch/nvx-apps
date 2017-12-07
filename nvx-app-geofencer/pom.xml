@@ -7,7 +7,7 @@
     <parent>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-apps-parent</artifactId>
-        <version>3.7.5</version>
+        <version>3.7.6</version>
     </parent>
     
     <licenses>
@@ -60,7 +60,7 @@
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/geofencer/entities/entities.xml</modelFile>
-                            <encodingType>Json</encodingType>
+                            <encodingType>Protobuf</encodingType>
                             <namespace>com.neeve.geofencer.entities</namespace>
                         </configuration>
                     </execution>
@@ -73,7 +73,7 @@
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/geofencer/messages/messages.xml</modelFile>
-                            <encodingType>Json</encodingType>
+                            <encodingType>Protobuf</encodingType>
                             <namespace>com.neeve.geofencer.messages</namespace>
                         </configuration>
                     </execution>
@@ -86,7 +86,7 @@
                         </goals>
                         <configuration>
                             <modelFile>${project.basedir}/src/main/models/com/neeve/geofencer/state/state.xml</modelFile>
-                            <encodingType>Json</encodingType>
+                            <encodingType>Protobuf</encodingType>
                             <namespace>com.neeve.geofencer.state</namespace>
                         </configuration>
                     </execution>
@@ -99,7 +99,7 @@
                         </goals>
                         <configuration>
                             <modelFile>${basedir}/src/main/models/com/neeve/geofencer/vehiclemaster/messages/messages.xml</modelFile>
-                            <encodingType>Json</encodingType>
+                            <encodingType>Protobuf</encodingType>
                             <namespace>com.neeve.geofencer.vehiclemaster.messages</namespace>
                         </configuration>
                     </execution>
@@ -112,7 +112,7 @@
                         </goals>
                         <configuration>
                             <modelFile>${project.basedir}/src/main/models/com/neeve/geofencer/vehiclemaster/state/state.xml</modelFile>
-                            <encodingType>Json</encodingType>
+                            <encodingType>Protobuf</encodingType>
                             <namespace>com.neeve.geofencer.vehiclemaster.state</namespace>
                         </configuration>
                     </execution>
