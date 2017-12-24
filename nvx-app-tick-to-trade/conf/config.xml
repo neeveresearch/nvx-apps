@@ -500,7 +500,7 @@
           <properties>
             <nativio>true</nativio>
             <eagerread>true</eagerread>
-            <maxreadspintime>true</maxreadspintime>
+            <maxreadspintime>1000000</maxreadspintime>
             <threadaffinity>1</threadaffinity>
             <cpuaffinitymask>${EMS_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
           </properties>
@@ -511,7 +511,7 @@
           <properties>
             <nativio>true</nativio>
             <eagerread>true</eagerread>
-            <maxreadspintime>true</maxreadspintime>
+            <maxreadspintime>1000000</maxreadspintime>
             <threadaffinity>1</threadaffinity>
             <cpuaffinitymask>${MARKET_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
           </properties>

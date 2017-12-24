@@ -35,10 +35,21 @@
             <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-native</artifactId>
+            <classifier>linux-x86-64</classifier>
+        </dependency>
 
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-jms</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-solace</artifactId>
         </dependency>
 
         <dependency>

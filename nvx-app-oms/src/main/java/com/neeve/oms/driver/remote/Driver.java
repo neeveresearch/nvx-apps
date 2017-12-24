@@ -6,6 +6,7 @@ import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
+import com.neeve.cli.annotations.Option;
 import com.neeve.rog.IRogMessage;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
@@ -84,14 +85,16 @@ public class Driver {
         onReceive();
     }
 
-    @Command(name = "start")
-    final public void start(final int count, final int rate, final boolean useFix) {
+    @Command(name = "sendOrders", displayName = "Send Orders", description = "Starts sending new orders via the local driver.")
+    final public void start(@Option(longForm = "count", shortForm = 'c', displayName = "Order Count", defaultValue = "50000", description = "The number of orders to send") final int sendCount,
+                            @Option(longForm = "rate", shortForm = 'r', displayName = "Order Rate", defaultValue = "1000", description = "The rate at which to send orders") final int sendRate,
+                            @Option(longForm = "useFix", shortForm = 'f', displayName = "Use FIX", defaultValue = "false", description = "Enables sending in FIX encoding") final boolean useFix) {
         if (running.compareAndSet(false, true)) {
             new Thread() {
                 @Override
                 final public void run() {
                     try {
-                        UtlGovernor.run(count, rate, new Runnable() {
+                        UtlGovernor.run(sendCount, sendRate, new Runnable() {
                             @Override
                             public void run() {
                                 if (!running.get()) {
@@ -134,7 +137,7 @@ public class Driver {
         return receivedCount.getCount();
     }
 
-    @Command(name = "stop")
+    @Command(name = "stopSending", displayName = "Stop Sender", description = "Stops sending of trades.")
     final public void stop() throws Exception {
         running.set(false);
     }
