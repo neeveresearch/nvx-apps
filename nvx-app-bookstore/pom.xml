@@ -26,7 +26,7 @@
 
     <properties>
         <nvx.encoding>Protobuf</nvx.encoding>
-        <jetty.version>9.4.7.RC0</jetty.version>
+        <jetty.version>9.4.7.v20170914</jetty.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
 
