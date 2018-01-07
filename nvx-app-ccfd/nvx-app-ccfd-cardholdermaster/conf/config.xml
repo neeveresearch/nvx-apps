@@ -45,6 +45,19 @@
         </channel>
         <channel name="authresp" id="5">
           <qos>${CCFD_QOS::Guaranteed}</qos>
+          <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+        </channel>
+        <channel name="card-events" id="6">
+          <qos>${CCFD_QOS::Guaranteed}</qos>
+          <key>${cardMasterShardId}</key>
+        </channel>
+        <channel name="cardholder-events" id="7">
+          <qos>${CCFD_QOS::Guaranteed}</qos>
+          <key>${cardholderMasterShardId}</key>
+        </channel>
+        <channel name="merchant-events" id="8">
+          <qos>${CCFD_QOS::Guaranteed}</qos>
+          <key>${merchantMasterShardId}</key>
         </channel>
       </channels>
     </bus>
@@ -61,6 +74,7 @@
           <bus name="ccfd">
             <channels>
               <channel name="authreq3" join="false" />
+              <channel name="cardholder-events" join="false" />
             </channels>
           </bus>
         </buses>
@@ -81,6 +95,9 @@
               </channel>
               <channel name="authreq4" join="false" />
               <channel name="authresp" join="false" />
+              <channel name="cardholder-events" join="true">
+                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
+              </channel>
             </channels>
           </bus>
         </buses>
@@ -257,17 +274,5 @@
         <CCFD_BUS_DESCRIPTOR>solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
       </env>
     </profile>
-    
-    <profile name="kafka-messaging">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>kafka</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-        <CCFD_BUS_DESCRIPTOR>kafka://192.168.1.7:9092</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    
   </profiles>
 </model>

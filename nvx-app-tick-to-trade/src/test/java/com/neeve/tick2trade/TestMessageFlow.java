@@ -22,7 +22,7 @@ public class TestMessageFlow extends AbstractTest {
     @Test
     public void testMessageFlow() throws Throwable {
         Market market = startApp(Market.class, "market", "market");
-        App app = startApp(App.class, "ems", "ems1");
+        startApp(App.class, "ems", "ems1");
         market.getEngine().waitForMessagingToStart();
         Thread.sleep(10000);
         Client client = startApp(Client.class, "client", "client");
@@ -32,8 +32,8 @@ public class TestMessageFlow extends AbstractTest {
         System.out.println("Waiting for Client trades");
         client.waitForTrades(30);
 
-        //Wait for the ems's transaction pipeline to ensure no duplicates:
-        waitForTransactionPipelineToEmpty(app.getEngine(), 1000);
+        //Sleep to catch any additional messages. 
+        Thread.sleep(1000);
 
         assertEquals("Unexpected number of OMSNewOrderSingles", expectedSendCount, client.waitForTrades(0));
     }

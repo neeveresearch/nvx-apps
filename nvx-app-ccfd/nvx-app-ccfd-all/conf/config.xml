@@ -17,9 +17,8 @@
             <ods.latency.stats>true</ods.latency.stats>
             <latencymanager.samplesize>10240</latencymanager.samplesize>
         </nv>
-        <!-- Configure the test drivers -->
-
         
+        <!-- Configure the test drivers -->
         <driver.sendRate>1000</driver.sendRate>
         <driver.sendCount>1000</driver.sendCount>
         
@@ -34,23 +33,36 @@
             descriptor="${CCFD_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2}">
             <channels>
                 <channel name="authreq" id="1">
-                    <qos>Guaranteed</qos>
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
                     <key>${cardMasterShardId}</key>
                 </channel>
                 <channel name="authreq2" id="2">
-                    <qos>Guaranteed</qos>
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
                     <key>${merchantMasterShardId}</key>
                 </channel>
                 <channel name="authreq3" id="3">
-                    <qos>Guaranteed</qos>
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
                     <key>${cardholderMasterShardId}</key>
                 </channel>
                 <channel name="authreq4" id="4">
-                    <qos>Guaranteed</qos>
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
                     <key>${fraudanalyzerShardId}</key>
                 </channel>
                 <channel name="authresp" id="5">
-                    <qos>Guaranteed</qos>
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+                </channel>
+                <channel name="card-events" id="6">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${cardMasterShardId}</key>
+                </channel>
+                <channel name="cardholder-events" id="7">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${cardholderMasterShardId}</key>
+                </channel>
+                <channel name="merchant-events" id="8">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>${merchantMasterShardId}</key>
                 </channel>
             </channels>
         </bus>
@@ -74,6 +86,9 @@
                         </channel>
                         <channel name="authreq4" join="false" />
                         <channel name="authresp" join="false" />
+                        <channel name="cardholder-events" join="true">
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -108,6 +123,9 @@
                         </channel>
                         <channel name="authreq4" join="false" />
                         <channel name="authresp" join="false" />
+                        <channel name="cardholder-events" join="true">
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::1}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -140,6 +158,9 @@
                             <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
                         </channel>
                         <channel name="authreq2" join="false"/>
+                        <channel name="card-events" join="true">
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -171,6 +192,9 @@
                             <filter>cardMasterShardId=${CARDMASTER_SHARDID::1}</filter>
                         </channel>
                         <channel name="authreq2" join="false"/>
+                        <channel name="card-events" join="true">
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::1}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -264,6 +288,9 @@
                           <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
                         </channel>
                         <channel name="authreq3" join="false"/>
+                        <channel name="merchant-events" join="true">
+                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -295,6 +322,9 @@
                           <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::1}</filter>
                         </channel>
                         <channel name="authreq3" join="false"/>
+                        <channel name="merchant-events" join="true">
+                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::1}</filter>
+                        </channel>
                     </channels>
                 </bus>
             </messaging>
@@ -326,6 +356,9 @@
                         <channel name="authreq2" join="false"/>
                         <channel name="authreq3" join="false"/>
                         <channel name="authresp" join="true"/>
+                        <channel name="card-events" join="false"/>
+                        <channel name="cardholder-events" join="false"/>
+                        <channel name="merchant-events" join="false"/>
                     </channels>
                 </bus>
             </messaging>
@@ -346,7 +379,7 @@
                       <tracePoolStats>false</tracePoolStats>
                       <traceSysStats>false</traceSysStats>
                       <traceThreadStats>false</traceThreadStats>
-                      <traceUserStats>true</traceUserStats>
+                      <traceUserStats>false</traceUserStats>
                   </tracing>
               </heartbeats>
           </xvm>
@@ -436,6 +469,9 @@
         </xvm>
         
         <xvm name="perfdriver-1" displayName="Perf Test Driver" template="xvm-template">
+            <env>
+                <nv.time.useepochoffset>false</nv.time.useepochoffset>
+            </env>
             <apps>
                 <app name="perfdriver" autoStart="true"/>
             </apps>       
@@ -631,7 +667,7 @@
         
         <xvm name="perfdriver-1" template="xvm-template">
             <provisioning>
-              <host>192.168.1.14</host>
+              <host>192.168.1.12</host>
             </provisioning>      
         </xvm>
         </xvms>
@@ -680,18 +716,6 @@
         <env>
           <CCFD_BUS_DESCRIPTOR>solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
         </env>
-      </profile>
-      
-      <profile name="kafka-messaging">
-        <activation>
-          <properties>
-            <ccfd-bus-provider>kafka</ccfd-bus-provider>
-          </properties>
-        </activation>
-        <env>
-          <CCFD_BUS_DESCRIPTOR>kafka://192.168.1.7:9092</CCFD_BUS_DESCRIPTOR>
-        </env>
-      </profile>
-      
+      </profile>      
     </profiles>
 </model>

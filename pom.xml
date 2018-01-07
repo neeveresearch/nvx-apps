@@ -21,7 +21,7 @@
     </licenses>
 
     <properties>
-        <nvx.platform.version>3.8-SNAPSHOT</nvx.platform.version>
+        <nvx.platform.version>3.8-M7</nvx.platform.version>
     </properties>
 
     <modules>

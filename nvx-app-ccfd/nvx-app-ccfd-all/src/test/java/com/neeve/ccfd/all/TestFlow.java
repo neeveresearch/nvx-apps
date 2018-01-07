@@ -2,16 +2,9 @@ package com.neeve.ccfd.all;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.util.Properties;
 
 import org.junit.Test;
-
-import com.neeve.ddl.DdlConfigConstants;
-import com.neeve.ddl.DdlPropertyParser;
-import com.neeve.ddl.DdlXMLParser;
-import com.neeve.ddl.jaxb.Model;
-import com.neeve.util.UtlTailoring.PropertySource;
 
 /**
  * Test end to end message flow. 
@@ -47,14 +40,15 @@ public class TestFlow extends AbstractTest {
         startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-2", "cardmaster-2-1", "nvx-app-ccfd-all", env);
 
         // sleep to let all connections be established.
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         // start the driver
         com.neeve.ccfd.perfdriver.Application driverApp = startApp(com.neeve.ccfd.perfdriver.Application.class, "perfdriver", "perfdriver-1", "nvx-app-ccfd-perfdriver", env);
 
-        // poll for authorization response received
-        while (driverApp.getAuthorizationResponseCount() < 1000) {
-            Thread.sleep(1000);
+        // wait
+        long timeout = System.currentTimeMillis() + 60000;
+        while (driverApp.getAuthorizationResponseCount() < 1000 && System.currentTimeMillis() < timeout) {
+            Thread.sleep(500);
         }
 
         // sleep to check for any extra messages
@@ -63,23 +57,5 @@ public class TestFlow extends AbstractTest {
         // validate
         assertEquals("Wrong number of authorizations requested", 1000, driverApp.getAuthorizationRequestCount());
         assertEquals("Wrong number of authorizations performed", 1000, driverApp.getAuthorizationResponseCount());
-    }
-
-    @Test
-    public void testDdlResolution() throws Exception {
-        final Properties props = new Properties();
-        props.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "neeve-lab");
-        props.put("ccfd.useZing", "true");
-        props.put(DdlConfigConstants.DDL_TARGETXVM_PROPNAME, "perfdriver-1");
-
-        Model model = DdlXMLParser.parse(new File(getProjectBaseDirectory(), "/conf/config.xml"), new PropertySource() {
-
-            @Override
-            public String getValue(String key, String defaultValue) {
-                return props.getProperty(key, defaultValue);
-            }
-        });
-
-        DdlXMLParser.toXml(model, System.out);
     }
 }

@@ -51,7 +51,7 @@ public class SendDriver {
             newCardMessage.setRequestId(TestDataGenerator.generateId());
             newCardMessage.setCardNumber(cardNumber);
             newCardMessage.setCardHolderId(TestDataGenerator.generateId());
-            messageSender.sendMessage("authreq", newCardMessage, UtlCommon.getShardKey(cardNumber, cardMasterNumShards));
+            messageSender.sendMessage("card-events", newCardMessage, UtlCommon.getShardKey(cardNumber, cardMasterNumShards));
         }
     }
 
