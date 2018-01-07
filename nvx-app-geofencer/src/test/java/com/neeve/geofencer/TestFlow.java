@@ -27,7 +27,7 @@ public class TestFlow {
         env.put("NVROOT", testBedRoot.getCanonicalPath().toString());
         env.put("nv.optimizefor", "latency");
         env.put("nv.conservecpu", "true");
-        env.put("nv.server.stats.enable", "false");
+        env.put("x.xvms.templates.xvm-template.heartbeats.enabled", "false");
         env.put("route.numSegments", "1000");
         env.put("sender.numEventsPerSegment", "2000");
         env.put("sender.singleSimulation", "true");
@@ -35,26 +35,26 @@ public class TestFlow {
         // Use loopback for in process discovery:
         env.put("nv.discovery.descriptor", "loopback://discovery&initWaitTime=0");
 
-        // Disable clustering to speed up app startup:
+        // Disable clustering to speed up app startup (just functional testing here)
         env.put("x.apps.vehicle-master.clustering.enabled", "false");
         env.put("x.apps.vehicle-alert-receiver.clustering.enabled", "false");
         env.put("x.apps.vehicle-event-processor.clustering.enabled", "false");
 
-        //Start the vehicle master service
+        //Start the vehicle master service (standalone, persistent)
         EmbeddedXVM masterXVM = EmbeddedXVM.create(config, "vehicle-master-1", env);
         masterXVM.start();
 
-        //Start the receiver
+        //Start the alert receiver
         EmbeddedXVM receiverXVM = EmbeddedXVM.create(config, "vehicle-alert-receiver", env);
         receiverXVM.start();
         VehicleAlertReceiver receiver = (VehicleAlertReceiver)receiverXVM.getApplication("vehicle-alert-receiver");
 
-        //Start the processor1 service
+        //Start the primary event processor service (standalone, persistent)
         EmbeddedXVM processor1XVM = EmbeddedXVM.create(config, "vehicle-event-processor-1", env);
         processor1XVM.start();
         VehicleEventProcessor processor = (VehicleEventProcessor)processor1XVM.getApplication("vehicle-event-processor");
 
-        //Start the sender
+        //Start the vehicle event simulator:
         EmbeddedXVM senderXVM = EmbeddedXVM.create(config, "vehicle-event-sender", env);
         senderXVM.start();
         VehicleEventSender sender = (VehicleEventSender)senderXVM.getApplication("vehicle-event-sender");

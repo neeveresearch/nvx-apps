@@ -1,1 +1,5 @@
+##DISPLAYNAME Run Sender Command ...
+##DESCRIPTION Runs a sender command.
+##VAR COMMAND [displayName="Command String", type=String, description="The command line to run"] 
+
 instruct the vehicle-event-sender app in the vehicle-event-sender xvm to ${COMMAND::null}

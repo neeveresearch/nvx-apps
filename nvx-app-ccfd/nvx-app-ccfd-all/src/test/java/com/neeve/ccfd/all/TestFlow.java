@@ -14,6 +14,7 @@ public class TestFlow extends AbstractTest {
     public void testFlow() throws Throwable {
         // configure
         Properties env = new Properties();
+        env.put("lumino.agent.env", "neeve-lab");
         env.put("driver.interactive", "false");
         env.put("nv.conservecpu", "true");
         env.put("CCFD_BUS_DESCRIPTOR", "loopback://ccfd");
@@ -39,14 +40,15 @@ public class TestFlow extends AbstractTest {
         startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-2", "cardmaster-2-1", "nvx-app-ccfd-all", env);
 
         // sleep to let all connections be established.
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         // start the driver
         com.neeve.ccfd.perfdriver.Application driverApp = startApp(com.neeve.ccfd.perfdriver.Application.class, "perfdriver", "perfdriver-1", "nvx-app-ccfd-perfdriver", env);
 
-        // poll for authorization response received
-        while (driverApp.getAuthorizationResponseCount() < 1000) {
-            Thread.sleep(1000);
+        // wait
+        long timeout = System.currentTimeMillis() + 60000;
+        while (driverApp.getAuthorizationResponseCount() < 1000 && System.currentTimeMillis() < timeout) {
+            Thread.sleep(500);
         }
 
         // sleep to check for any extra messages

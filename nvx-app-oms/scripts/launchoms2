@@ -1,9 +1,0 @@
-// assume deployed
-assume deploy has run
-
-// launch the OMS2 instance
-launch the oms2.${oms.env::local} xvm
-start the oms app in the oms2.${oms.env::local} xvm
-wait until the oms app in the oms2.${oms.env::local} xvm is appstartdone
-validate the oms app in the oms2.${oms.env::local} xvm appstate is Started
-validate the oms app in the oms2.${oms.env::local} xvm role is Backup

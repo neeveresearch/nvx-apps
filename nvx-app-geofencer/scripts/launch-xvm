@@ -1,0 +1,8 @@
+##DISPLAYNAME Launch XVM ...
+##DESCRIPTION Launches an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="vehicle-event-sender,vehicle-event-processor-1,vehicle-event-processor-2,vehicle-alert-receiver,vehicle-master-1,vehicle-master-2", description="The name of the XVM to launch"] 
+
+assume provision has run
+
+// launch the processor cluster
+launch the ${xvmName::vehicle-event-sender} xvm

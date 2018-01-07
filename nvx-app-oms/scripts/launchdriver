@@ -1,5 +1,0 @@
-// assume deployed
-assume deploy has run
-
-// launch the driver (it will automatically start)
-launch the driver.${oms.env::local} xvm

@@ -1,4 +1,11 @@
-instruct the driver app in the driver.${oms.env::local} xvm to start with ${count::1000} ${rate::100} ${usefix::false}
+##DISPLAYNAME Start Sending
+##DESCRIPTION Instructs the driver to start sending new orders
+
+##VAR count [displayName="Order Count", type=int, defaultValue=1000, description="The number of orders to send"] 
+##VAR rate [displayName="Order Rate", type=int, defaultValue=100, description="The rate at which to send in orders"] 
+##VAR usefix [displayName="Use Fix", type=boolean, defaultValue=false, description="Whether to use fix encoding"] 
+
+instruct the driver app in the driver xvm to start with ${count::1000} ${rate::100} ${usefix::false}
 
 
 

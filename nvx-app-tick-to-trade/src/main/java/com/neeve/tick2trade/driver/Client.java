@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.Random;
 import java.util.Set;
 
+import javax.jms.IllegalStateException;
+
 import com.neeve.aep.AepBusManager;
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepEngine.HAPolicy;
@@ -14,6 +16,7 @@ import com.neeve.aep.event.AepChannelUpEvent;
 import com.neeve.ci.XRuntime;
 import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
+import com.neeve.cli.annotations.Option;
 import com.neeve.root.RootConfig;
 import com.neeve.server.app.annotations.AppHAPolicy;
 import com.neeve.server.app.annotations.AppMain;
@@ -32,6 +35,7 @@ import com.neeve.toa.spi.AbstractServiceDefinitionLocator;
 import com.neeve.toa.spi.ServiceDefinitionLocator;
 import com.neeve.trace.Tracer;
 import com.neeve.trace.Tracer.Level;
+import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlThread;
 import com.neeve.util.UtlThrowable;
 import com.neeve.util.UtlTime;
@@ -49,7 +53,7 @@ final public class Client extends TopicOrientedApplication {
 
         @Override
         public void locateServices(Set<URL> urls) throws Exception {
-            urls.add(new File(XRuntime.getRootDirectory(), "conf/services/emsService.xml").toURI().toURL());
+            urls.add(new File(XRuntime.getRootDirectory(), "resources/services/emsService.xml").toURI().toURL());
         }
     }
 
@@ -62,6 +66,7 @@ final public class Client extends TopicOrientedApplication {
     final private static Tracer tracer = RootConfig.ObjectConfig.createTracer(RootConfig.ObjectConfig.get("client"));
     private int orderId = 1;
     private MessageChannel ordersChannel;
+    private Thread senderThread = null;
 
     // stats
     @AppStat(name = "Client Orders Sent")
@@ -149,6 +154,77 @@ final public class Client extends TopicOrientedApplication {
         }
     }
 
+    /**
+     * Drives new order traffic to the EMS. 
+     * 
+     * @param sendCount The number of new orders to send.
+     * @param sendRate The rate at which to send in orders per second.
+     * @throws Exception If there is an error sending.
+     */
+    final private void sendOrders(final int sendCount, final int sendRate) throws Exception {
+        synchronized (this) {
+            if (senderThread != null) {
+                throw new IllegalStateException("Already sending!");
+            }
+            senderThread = Thread.currentThread();
+        }
+
+        int sent = 0;
+        try {
+            UtlThread.setCPUAffinityMask(senderAffinity);
+
+            tracer.log("[Client] ...sendCount=" + sendCount, Level.INFO);
+            tracer.log("[Client] ...sendRate=" + sendRate, Level.INFO);
+
+            // wait for the sending channel to come up:
+            synchronized (this) {
+                while (ordersChannel == null) {
+                    System.out.println("Waiting for orders channel to come up...");
+                    wait();
+                }
+            }
+
+            UtlThread.setCPUAffinityMask(senderAffinity);
+            // send NOS
+            tracer.log("[Client] Sending " + sendCount + " orders with target rate of " + sendRate + " per second...", Level.INFO);
+            final Random random = new java.util.Random(System.currentTimeMillis());
+            final UtlGovernor sendGoverner = new UtlGovernor(sendRate);
+
+            while (sent < sendCount && !Thread.currentThread().isInterrupted()) {
+                sendGoverner.blockToNext();
+                // create and populate a new order
+                EMSNewOrderSingle nos = EMSNewOrderSinglePopulator.populate(EMSNewOrderSingle.create(), orderId++, random);
+
+                // send and transact time
+                final long nowMS = System.currentTimeMillis();
+                nos.setTransactTimeAsTimestamp(nowMS);
+                nos.setSendingTimeAsTimestamp(nowMS);
+
+                // orderTs
+                final long now = UtlTime.now();
+                nos.setOrderTs(now);
+
+                // compliance id
+                nos.setComplianceIDFrom(now);
+
+                sendMessage(nos);
+                ordersSent++;
+                sent++;
+            }
+        }
+        catch (InterruptedException ie) {
+            tracer.log("[Client] Interrupted after sending " + sent + "/" + sendCount + " orders.", Level.INFO);
+        }
+        finally {
+            flush();
+            tracer.log("[Client] sent " + sent + " orders.", Level.INFO);
+            synchronized (this) {
+                senderThread = null;
+                notifyAll();
+            }
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // App Main                                                                  //
     //                                                                           //
@@ -157,56 +233,7 @@ final public class Client extends TopicOrientedApplication {
 
     @AppMain
     final public void appMain(String[] args) throws Exception {
-        UtlThread.setCPUAffinityMask(senderAffinity);
-
-        tracer.log("[Client] ...sendCount=" + sendCount, Level.INFO);
-        tracer.log("[Client] ...sendRate=" + sendRate, Level.INFO);
-
-        // wait for the sending channel to come up:
-        synchronized (this) {
-            while (ordersChannel == null) {
-                System.out.println("Waiting for orders channel to come up...");
-                wait();
-            }
-        }
-
-        try {
-            // send NOS
-            tracer.log("[Client] Sending " + sendCount + " orders with target rate of " + sendRate + " per second...", Level.INFO);
-            final Random random = new java.util.Random(System.currentTimeMillis());
-
-            int i = 0;
-            final long nanosPerMsg = sendRate > 0 ? (1000000000l / sendRate) : 0;
-            long next = System.nanoTime() + nanosPerMsg;
-            while (i < sendCount) {
-                if (System.nanoTime() >= next) {
-                    // create and populate a new order
-                    EMSNewOrderSingle nos = EMSNewOrderSinglePopulator.populate(EMSNewOrderSingle.create(), orderId++, random);
-
-                    // send and transact time
-                    final long nowMS = System.currentTimeMillis();
-                    nos.setTransactTimeAsTimestamp(nowMS);
-                    nos.setSendingTimeAsTimestamp(nowMS);
-
-                    // orderTs
-                    final long now = UtlTime.now();
-                    nos.setOrderTs(now);
-
-                    // compliance id
-                    nos.setComplianceIDFrom(now);
-
-                    sendMessage(nos);
-                    ordersSent++;
-                    next += nanosPerMsg;
-                    i++;
-                }
-            }
-            flush();
-            tracer.log("[Client] sent " + sendCount + " orders.", Level.INFO);
-        }
-        catch (Exception e) {
-            tracer.log("[Client] Error sending orders: " + e.getLocalizedMessage() + " - " + UtlThrowable.prepareStackTrace(e), Level.SEVERE);
-        }
+        sendOrders(sendCount, sendRate, false);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -215,6 +242,47 @@ final public class Client extends TopicOrientedApplication {
     // Command handlers can be invoked remotely via management tools such as     //
     // Robin or locally via unit tests.                                          //
     ///////////////////////////////////////////////////////////////////////////////
+
+    @Command(name = "sendOrders", displayName = "Send Orders", description = "Starts sending new orders via the local driver.")
+    final public void sendOrders(@Option(longForm = "count", shortForm = 'c', displayName = "Order Count", defaultValue = "50000", description = "The number of orders to send") final int sendCount,
+                                 @Option(longForm = "rate", shortForm = 'r', displayName = "Order Rate", defaultValue = "1000", description = "The rate at which to send orders") final int sendRate,
+                                 @Option(longForm = "async", shortForm = '1', displayName = "Async", defaultValue = "true", description = "True to send orders in a background thread") final boolean async) throws Exception {
+        stopSender();
+
+        if (async) {
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        sendOrders(sendCount, sendRate);
+                    }
+                    catch (Exception e) {
+                        tracer.log("[Client] error sending orders: " + e.getMessage() + " -- " + UtlThrowable.prepareStackTrace(e), Level.SEVERE);
+                    }
+                }
+
+            }, "Client Trade Sender");
+            thread.start();
+        }
+        else {
+            sendOrders(sendCount, sendRate);
+        }
+    }
+
+    @Command(name = "stopSending", displayName = "Stop Sender", description = "Stops sending of trades.")
+    final public void stopSender() throws Exception {
+        synchronized (this) {
+            if (senderThread != null) {
+                tracer.log("[Client] stopping current sender thread", Tracer.Level.INFO);
+                senderThread.interrupt();
+                wait(10000);
+                if (senderThread != null) {
+                    throw new Exception("Timed out waiting for sender thread to stop!");
+                }
+            }
+        }
+    }
 
     @Command(description = "Waits for trades and returns the number received.")
     final public long waitForTrades(@Argument(name = "seconds", position = 1, required = false, defaultValue = "30", description = "The number of seconds to wait.") long seconds) throws Exception {

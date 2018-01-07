@@ -1,0 +1,8 @@
+##DISPLAYNAME Shutdown XVM ...
+##DESCRIPTION Shuts down an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="market,ems1,ems2,client", description="The name of the XVM to shutdown"] 
+
+assume launch-xvm has run
+
+// shutdown the xvm
+shutdown the ${xvmName::client} xvm

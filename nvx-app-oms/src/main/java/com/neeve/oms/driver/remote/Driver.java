@@ -6,13 +6,14 @@ import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
+import com.neeve.cli.annotations.Option;
 import com.neeve.rog.IRogMessage;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.stats.IStats.Counter;
+import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
-import com.neeve.stats.Stats;
 import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlTime;
 
@@ -41,12 +42,11 @@ public class Driver {
     @AppStat
     final private Counter receivedCount = StatsFactory.createCounterStat("NumReceived");
     @AppStat(name = "c2m")
-    final private Stats.LatencyManager c2m = new Stats.LatencyManager("c2m");
+    final private Latencies c2m = StatsFactory.createLatencyStat("c2m");
     private volatile AepMessageSender messageSender;
     private AtomicBoolean running = new AtomicBoolean(false);
     private long sendTs;
     private AtomicBoolean receivedResponse = new AtomicBoolean(false);
-    private int complete;
 
     final private IRogMessage createNewOrderMessage(final boolean useFix) {
         if (useFix) {
@@ -68,12 +68,6 @@ public class Driver {
         receivedCount.increment();
         final long latency = receiveTs - sendTs;
         c2m.add(latency);
-        if (++complete % 10000 == 0) {
-            c2m.compute();
-            StringBuilder sb = new StringBuilder();
-            c2m.get(sb);
-            System.out.print(sb.toString());
-        }
     }
 
     @AppInjectionPoint
@@ -91,14 +85,16 @@ public class Driver {
         onReceive();
     }
 
-    @Command(name = "start")
-    final public void start(final int count, final int rate, final boolean useFix) {
+    @Command(name = "sendOrders", displayName = "Send Orders", description = "Starts sending new orders via the local driver.")
+    final public void start(@Option(longForm = "count", shortForm = 'c', displayName = "Order Count", defaultValue = "50000", description = "The number of orders to send") final int sendCount,
+                            @Option(longForm = "rate", shortForm = 'r', displayName = "Order Rate", defaultValue = "1000", description = "The rate at which to send orders") final int sendRate,
+                            @Option(longForm = "useFix", shortForm = 'f', displayName = "Use FIX", defaultValue = "false", description = "Enables sending in FIX encoding") final boolean useFix) {
         if (running.compareAndSet(false, true)) {
             new Thread() {
                 @Override
                 final public void run() {
                     try {
-                        UtlGovernor.run(count, rate, new Runnable() {
+                        UtlGovernor.run(sendCount, sendRate, new Runnable() {
                             @Override
                             public void run() {
                                 if (!running.get()) {
@@ -141,7 +137,7 @@ public class Driver {
         return receivedCount.getCount();
     }
 
-    @Command(name = "stop")
+    @Command(name = "stopSending", displayName = "Stop Sender", description = "Stops sending of trades.")
     final public void stop() throws Exception {
         running.set(false);
     }

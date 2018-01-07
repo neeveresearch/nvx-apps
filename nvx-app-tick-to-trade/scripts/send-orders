@@ -1,0 +1,9 @@
+##DISPLAYNAME Send ...
+##DESCRIPTION Instructs the client to send trades
+##VAR orderCount [displayName="Order Count", type=Int, description="The number of orders to send"] 
+##VAR orderRate [displayName="Order Rate", type=Int, description="The rate at which to send"] 
+
+assume provision has run
+
+// launch the processor cluster
+instruct the client app in the client xvm to sendOrders with --count ${orderCount::1000} --rate ${orderRate::100} --async

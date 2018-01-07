@@ -102,7 +102,7 @@ final public class VehicleEventProcessor {
     }
 
     @EventHandler
-    final public void onLocationEvent(final LocationEventMessage message, final Repository repository) throws Exception {
+    final public void onLocationEvent(final LocationEventMessage message, final Repository state) throws Exception {
         try {
             validate(message);
         }
@@ -111,32 +111,30 @@ final public class VehicleEventProcessor {
             return;
         }
 
-        // check if we have the vehicle route
+        // look up vehicle's route:
         final VehicleRoute route = _vehicleRoutes.get(message.getVehicleID());
         if (route == null) {
             droppedCount.increment();
             return;
         }
 
-        // update stats
-        processedCount.increment();
-
         // update state
-        final Vehicle vehicle = getOrCreateVehicle(repository, message.getVehicleID());
-        if (!updateVehicleLocationIfInRouteBoundary(vehicle, route, message.getLocation(), message.getSpeed())) {
-            sendRouteViolationAlert(vehicle, message.getLocation(), message.getSpeed());
-            alertCount.increment();
-        }
-    }
-
-    private Vehicle getOrCreateVehicle(Repository repository, final String vehicleId) {
-        Vehicle vehicle = repository.getVehicles().get(vehicleId);
+        Vehicle vehicle = state.getVehicles().get(message.getVehicleID());
         if (vehicle == null) {
             vehicle = Vehicle.create();
-            vehicle.setVehicleID(vehicleId);
-            repository.getVehicles().put(vehicleId, vehicle);
+            vehicle.setVehicleID(message.getVehicleID());
+            state.getVehicles().put(message.getVehicleID(), vehicle);
         }
-        return vehicle;
+
+        // check if vehicle is within its route bounds, and alert if not
+        if (!updateVehicleLocationIfInRouteBoundary(vehicle, route, message.getLocation(), message.getSpeed())) {
+            RouteViolationEvent alert = populateRoutViolationEvent(vehicle, message.getLocation(), message.getSpeed());
+            _messageSender.sendMessage("alerts", alert);
+            alertCount.increment();
+        }
+
+        // update stats
+        processedCount.increment();
     }
 
     private boolean updateVehicleLocationIfInRouteBoundary(final Vehicle vehicle,
@@ -154,14 +152,14 @@ final public class VehicleEventProcessor {
         return false;
     }
 
-    private void sendRouteViolationAlert(Vehicle vehicle, final GPSCoordinate location, final int speed) {
+    private RouteViolationEvent populateRoutViolationEvent(Vehicle vehicle, final GPSCoordinate location, final int speed) {
         final RouteViolationEvent event = RouteViolationEvent.create();
         event.setVehicleID(vehicle.getVehicleID());
         event.setLocation((GPSCoordinate)location.clone());
         event.setSpeed(speed);
         event.setLastLocation(vehicle.getLocation() != null ? (GPSCoordinate)vehicle.getLocation().clone() : null);
         event.setLastSpeed(vehicle.getSpeed());
-        _messageSender.sendMessage("alerts", event);
+        return event;
     }
 
     @Command

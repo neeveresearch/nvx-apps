@@ -1,0 +1,9 @@
+##DISPLAYNAME Launch All
+##DESCRIPTION Launches all XVMs in the system
+
+assume provision has run
+
+launch the market xvm
+launch the ems1 xvm
+launch the ems2 xvm
+launch the client xvm

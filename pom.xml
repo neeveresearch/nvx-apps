@@ -6,7 +6,7 @@
   <packaging>pom</packaging>
   <version>3.8-SNAPSHOT</version>
   <name>X Platform Apps Parent</name>
-
+   
   <organization>
     <name>Neeve Research, LLC</name>
     <url>http://www.neeveresearch.com</url>
@@ -45,14 +45,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-talon</artifactId>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
 
   <build>
     <plugins>

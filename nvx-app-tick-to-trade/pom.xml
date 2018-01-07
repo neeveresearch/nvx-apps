@@ -58,6 +58,7 @@
                             <goal>robin-xar</goal>
                         </goals>
                         <configuration>
+                          <resourceDirectory>${project.build.directory}/resources</resourceDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -75,10 +76,26 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${basedir}/target/testbed/conf</outputDirectory>
+                            <outputDirectory>${project.build.directory}/testbed</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/conf</directory>
+                                    <directory>${basedir}/resources</directory>
+                                    <targetPath>resources</targetPath>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>prepare-robin-xar-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/resources</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -106,6 +123,8 @@
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
+                        <configuration>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -137,7 +156,8 @@
         <!-- Talon -->
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
