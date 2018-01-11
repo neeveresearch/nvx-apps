@@ -37,6 +37,7 @@
             <plugin>
                 <groupId>com.neeve</groupId>
                 <artifactId>nvx-platform-maven-plugin</artifactId>
+                <version>${nvx.platform.version}</version>
                 <executions>
                     <execution>
                         <id>Messages</id>
