@@ -415,12 +415,12 @@
                 <app name="cardmaster-1" autoStart="true"/>
             </apps>       
         </xvm>        
-        <xvm name="cardmaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
+        <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
         </xvm>
-        <xvm name="cardmaster-2-2" displayName="Cardholder Master 2s" template="xvm-template">
+        <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
