@@ -2,48 +2,31 @@ package com.neeve.ccfd.cardholdermaster;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.net.URL;
 import java.util.Properties;
 
 import com.neeve.ccfd.cardholdermaster.driver.ReceiveDriver;
 import com.neeve.ccfd.cardholdermaster.driver.SendDriver;
 import org.junit.Test;
 
-import com.neeve.server.embedded.EmbeddedXVM;
-import com.neeve.util.UtlFile;
-
 /**
  * A test case that tests the application flow. 
  */
-public class TestFlow {
+public class TestFlow extends AbstractTest {
     @Test
     public void testFlow() throws Throwable {
         // configure
-        URL config = new File(System.getProperty("basedir"), "conf/config.xml").toURI().toURL();
-        File testBedRoot = new File(System.getProperty("basedir"), "target/testbed/TestFlow");
-        UtlFile.deleteDirectory(testBedRoot);
         Properties env = new Properties();
-        env.put("NVROOT", testBedRoot.getCanonicalPath().toString());
-        env.put("nv.conservecpu", "true");
-        env.put("nv.discovery.descriptor", "local://test&initWaitTime=0");
+        env.put("nv.ddl.profiles", "test");
         env.put("x.apps.cardholdermaster.storage.clustering.enabled", "false");
-        env.put("CCFD_BUS_DESCRIPTOR", "loopback://ccfd");
 
         // start the processor
-        EmbeddedXVM processor1XVM = EmbeddedXVM.create(config, "cardholdermaster-1", env);
-        processor1XVM.start();
-
+        startApp(Application.class, "cardholdermaster-1", "cardholdermaster-1", env);
         // start the receiver
-        EmbeddedXVM receiverXVM = EmbeddedXVM.create(config, "cardholdermaster-receive-driver", env);
-        receiverXVM.start();
-        ReceiveDriver receiver = (ReceiveDriver)receiverXVM.getApplication("cardholdermaster-receive-driver");
+        ReceiveDriver receiver = startApp(ReceiveDriver.class, "cardholdermaster-receive-driver", "cardholdermaster-receive-driver", env);
         Thread.sleep(1000);
 
         // start the sender
-        EmbeddedXVM senderXVM = EmbeddedXVM.create(config, "cardholdermaster-send-driver", env);
-        senderXVM.start();
-        SendDriver sender = (SendDriver)senderXVM.getApplication("cardholdermaster-send-driver");
+        SendDriver sender = startApp(SendDriver.class, "cardholdermaster-send-driver", "cardholdermaster-send-driver", env);
 
         // send
         long timeout = System.currentTimeMillis() + 60000;

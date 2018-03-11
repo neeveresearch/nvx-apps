@@ -16,6 +16,9 @@
     <driver.sendRate>1000</driver.sendRate>
     <driver.sendCount>1000</driver.sendCount>
 
+    <!-- Use XSQL State Queries for fraud checks? -->
+    <cardholdermaster.queryTransactions>true</cardholdermaster.queryTransactions>
+
     <cardmaster.numShards>1</cardmaster.numShards>
     <merchantmaster.numShards>1</merchantmaster.numShards>
     <cardholdermaster.numShards>1</cardholdermaster.numShards>
@@ -111,6 +114,7 @@
           <!-- detached persist is not supported for state replication -->
           <detachedPersist enabled="false" />
         </persistence>
+        <queryable>${cardholdermaster.queryTransactions::false}</queryable>
       </storage>
     </app>
 
@@ -174,6 +178,16 @@
   </xvms>
 
   <profiles>
+    <profile name="test">
+      <env>
+        <nv>
+            <conservecpu>true</conservecpu>
+            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+        </nv>
+        <driver.autoStart>true</driver.autoStart>
+          <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+      </env>
+    </profile>
     <profile name="neeve-lab">
       <xvms>
         <templates>

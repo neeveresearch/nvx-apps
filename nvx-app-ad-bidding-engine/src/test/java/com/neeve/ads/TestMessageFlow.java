@@ -21,12 +21,7 @@ public class TestMessageFlow extends AbstractTest {
     @Test
     public void testMessageFlow() throws Throwable {
         Properties env = new Properties();
-        env.put("driver.interactive", "false");
-        env.put("nv.conservecpu", "true");
-        // Use in process discovery 
-        env.put("nv.discovery.descriptor", "local://test&initWaitTime=0");
-        // Use loopback bus for in process testing
-        env.put("AD_BIDDING_BUS_DESCRIPTOR", "loopback://ad-bidding");
+        env.put("nv.ddl.profiles", "test");
 
         startApp(AdExchangeApplication.class, "ad-exchange", "ad-exchange-1", env);
         startApp(DMPApplication.class, "dmp", "dmp-1", env);
@@ -44,8 +39,9 @@ public class TestMessageFlow extends AbstractTest {
         driverApp.sendAdRequests(adSendCount, 100, false);
 
         // poll for ad response received
-        while (driverApp.getAdResponsesCount() < adSendCount) {
-            Thread.sleep(1000);
+        long timeout = System.currentTimeMillis() + 60000;
+        while (driverApp.getAdResponsesCount() < adSendCount && System.currentTimeMillis() < timeout) {
+            Thread.sleep(500);
         }
 
         // sleep to check for any extra messages

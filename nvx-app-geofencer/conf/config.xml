@@ -251,6 +251,15 @@
   </xvms>
 
   <profiles>
+    <profile name="test">
+      <env>
+        <nv>
+            <conservecpu>true</conservecpu>
+            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+        </nv>
+        <driver.autoStart>true</driver.autoStart>
+      </env>
+    </profile>
     <profile name="neeve-lab">
       <activation>
         <properties>

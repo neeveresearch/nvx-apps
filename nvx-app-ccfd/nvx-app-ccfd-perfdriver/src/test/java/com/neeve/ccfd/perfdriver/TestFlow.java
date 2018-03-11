@@ -14,10 +14,12 @@ public class TestFlow extends AbstractTest {
     public void testFlow() throws Throwable {
         // configure
         Properties env = new Properties();
-        env.put("driver.interactive", "false");
-        env.put("nv.conservecpu", "true");
-        env.put("nv.discovery.descriptor", "local://test&initWaitTime=0");
-        env.put("CCFD_BUS_DESCRIPTOR", "loopback://ccfd");
+        env.put("nv.ddl.profiles", "test");
+        // disable clustering to speed up app startup
+        env.put("x.apps.fraudanalyzer.storage.clustering.enabled", "false");
+        env.put("x.apps.cardholdermaster.storage.clustering.enabled", "false");
+        env.put("x.apps.merchantmaster.storage.clustering.enabled", "false");
+        env.put("x.apps.cardmaster.storage.clustering.enabled", "false");
 
         // start apps
         startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer", "fraudanalyzer-1", "nvx-app-ccfd-fraudanalyzer", env);

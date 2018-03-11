@@ -22,6 +22,9 @@
         <driver.sendRate>1000</driver.sendRate>
         <driver.sendCount>1000</driver.sendCount>
         
+        <!-- Use XSQL Query for fraud checks?  -->
+        <cardholdermaster.queryTransactions>false</cardholdermaster.queryTransactions>
+        
         <cardmaster.numShards>2</cardmaster.numShards>
         <merchantmaster.numShards>2</merchantmaster.numShards>
         <cardholdermaster.numShards>2</cardholdermaster.numShards>
@@ -102,9 +105,9 @@
                 </clustering>
                 <persistence enabled="true">
                     <!-- detached persist is not supported for state replication -->
-                    
                     <detachedPersist enabled="false"/>
                 </persistence>
+                 <queryable>${cardholdermaster.queryTransactions::false}</queryable>
             </storage>
             <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
         </app>
@@ -142,6 +145,7 @@
                     
                     <detachedPersist enabled="false"/>
                 </persistence>
+                <queryable>${cardholdermaster.queryTransactions::false}</queryable>
             </storage>
             <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
         </app>
@@ -373,7 +377,7 @@
               <heartbeats enabled="true" interval="5">
                   <collectIndividualThreadStats>true</collectIndividualThreadStats>
                   <includeMessageTypeStats>false</includeMessageTypeStats>
-                  <tracing enabled="true">
+                  <tracing enabled="false">
                       <traceAdminClientStats>false</traceAdminClientStats>
                       <traceAppStats>false</traceAppStats>
                       <tracePoolStats>false</tracePoolStats>
@@ -479,6 +483,17 @@
     </xvms>
     
     <profiles>
+      <profile name="test">
+        <env>
+          <nv>
+              <conservecpu>true</conservecpu>
+              <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+          </nv>
+          <driver.autoStart>true</driver.autoStart>
+          <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+        </env>
+      </profile>
+        
       <profile name="neeve-lab">
         <activation>
           <properties>
@@ -511,8 +526,8 @@
                        <jvmParams>
                       -XX:+UnlockCommercialFeatures 
                       -XX:+FlightRecorder 
-                      -XX:StartFlightRecording=name=${targetXvm::Flight}Recording,settings=profile 
-                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${targetXvm::flight}-recording.jfr
+                      -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile 
+                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
                        </jvmParams>
                     </jvmParamSet>
                   </jvmParamSets>
@@ -693,7 +708,7 @@
                   <jvmParamSets>
                     <jvmParamSet name="zing-license">
                        <jvmParams>
-                         -XX:ZingLicenseFile=%XVMRUNDIR%/resources/license/zing/license -XX:+JNIDetachThreadsIfNotDetached
+                         -XX:ZingLicenseFile=${XVMRUNDIR::~}/resources/license/zing/license -XX:+JNIDetachThreadsIfNotDetached
                        </jvmParams>
                     </jvmParamSet>
                     <jvmParamSet name="flight-recorder" order="0">

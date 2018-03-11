@@ -1,4 +1,4 @@
-package com.neeve.oms;
+package com.neeve.geofencer;
 
 import java.io.File;
 import java.io.IOException;

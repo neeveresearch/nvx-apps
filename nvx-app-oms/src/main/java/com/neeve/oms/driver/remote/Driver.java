@@ -86,9 +86,12 @@ public class Driver {
     }
 
     @Command(name = "sendOrders", displayName = "Send Orders", description = "Starts sending new orders via the local driver.")
-    final public void start(@Option(longForm = "count", shortForm = 'c', displayName = "Order Count", defaultValue = "50000", description = "The number of orders to send") final int sendCount,
-                            @Option(longForm = "rate", shortForm = 'r', displayName = "Order Rate", defaultValue = "1000", description = "The rate at which to send orders") final int sendRate,
-                            @Option(longForm = "useFix", shortForm = 'f', displayName = "Use FIX", defaultValue = "false", description = "Enables sending in FIX encoding") final boolean useFix) {
+    final public void start(@Option(longForm = "count", shortForm = 'c', displayName = "Order Count", defaultValue = "50000",
+                                    description = "The number of orders to send") final int sendCount,
+                            @Option(longForm = "rate", shortForm = 'r', displayName = "Order Rate", defaultValue = "1000",
+                                    description = "The rate at which to send orders") final int sendRate,
+                            @Option(longForm = "useFix", shortForm = 'f', displayName = "Use FIX", defaultValue = "false",
+                                    description = "Enables sending in FIX encoding") final boolean useFix) {
         if (running.compareAndSet(false, true)) {
             new Thread() {
                 @Override
