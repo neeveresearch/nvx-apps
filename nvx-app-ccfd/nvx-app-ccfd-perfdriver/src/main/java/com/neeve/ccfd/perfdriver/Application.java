@@ -111,6 +111,8 @@ public class Application {
     private final XLinkedList<String> existingCardNumbers = new XLinkedList<String>();
     private final XLinkedList<String> existingMerchantIds = new XLinkedList<String>();
     private final XLinkedList<String> existingMerchantStoreIds = new XLinkedList<String>();
+    @Configured(property = "driver.autoStart", defaultValue = "true")
+    private boolean autoStart;
     @Configured(property = "driver.sendCount")
     private int sendCount;
     @Configured(property = "driver.sendRate")
@@ -249,8 +251,10 @@ public class Application {
 
     @AppMain
     public void run(String[] args) {
-        seedMerchants(100, 100);
-        seedCardHolders(100, 100);
-        sendAuthorizationRequests(sendCount, sendRate, false);
+        if (autoStart) {
+            seedMerchants(100, 100);
+            seedCardHolders(100, 100);
+            sendAuthorizationRequests(sendCount, sendRate, false);
+        }
     }
 }

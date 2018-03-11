@@ -1,79 +1,81 @@
-/**
- * Copyright (c) 2015 Neeve Research & Consulting LLC. All Rights Reserved.
- * Confidential and proprietary information of Neeve Research & Consulting LLC.
- * CopyrightVersion 1.0
- */
 package com.neeve.tick2trade;
 
-import static org.junit.Assert.fail;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Properties;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
-import com.neeve.aep.AepEngine;
 import com.neeve.server.embedded.EmbeddedXVM;
-import com.neeve.test.UnitTest;
+import com.neeve.util.UtlFile;
 
-/**
- * Base class with some helper methods for creating embedded vms.
- */
-public class AbstractTest extends UnitTest {
-    protected final HashSet<EmbeddedXVM> xvms = new HashSet<EmbeddedXVM>();
-    private URL confidDDL;
-    protected Properties profileProps;
+public class AbstractTest {
+    @Rule
+    public TestName testcaseName = new TestName();
+
+    protected static final HashSet<EmbeddedXVM> xvms = new HashSet<EmbeddedXVM>();
 
     @BeforeClass
     public static void unitTestIntialize() throws IOException {
-        UnitTest.unitTestIntialize();
+        File testRoot = getTestbedRoot();
+        System.setProperty("NVROOT", testRoot.getCanonicalPath());
+
+        File rdat = new File(testRoot, "rdat");
+        if (rdat.exists()) {
+            UtlFile.deleteDirectory(rdat);
+        }
+
+        if (!testRoot.exists()) {
+            testRoot.mkdirs();
+        }
     }
 
-    @Before
-    public void beforeTestcase() throws FileNotFoundException, IOException {
-        confidDDL = new File(getProjectBaseDirectory(), "conf/config.xml").toURI().toURL();
-        profileProps = new Properties();
-        profileProps.setProperty("nv.ddl.profiles", "desktop");
+    protected static File getProjectBaseDirectory() {
+        final String basedir = System.getProperty("basedir");
+        if (basedir != null) {
+            return new File(basedir);
+        }
+        return new File(".");
     }
 
-    @After
-    public void afterTestCase() throws IOException {
+    protected static File getTestbedRoot() {
+        return new File(getProjectBaseDirectory(), "target/testbed");
+    }
+
+    @AfterClass
+    public static void cleanup() throws Throwable {
+        Throwable error = null;
         for (EmbeddedXVM xvm : xvms) {
-            xvm.shutdown(true);
+            try {
+                xvm.shutdown();
+            }
+            catch (Throwable thrown) {
+                if (error != null) {
+                    error = thrown;
+                }
+                thrown.printStackTrace();
+            }
+        }
+
+        System.clearProperty("NVROOT");
+
+        if (error != null) {
+            throw error;
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T startApp(Class<T> appClass, String appName, String xvmName) throws Throwable {
-        EmbeddedXVM server = EmbeddedXVM.create(confidDDL, xvmName, profileProps);
-        xvms.add(server);
-        server.start();
-        return (T)server.getApplication(appName);
-    }
-
-    final protected void waitForTransactionPipelineToEmpty(final AepEngine engine, long timeout) throws Exception {
-        timeout = System.currentTimeMillis() + timeout;
-        while (true) {
-            final long numCommitsPending = (engine.getStats().getNumCommitsStarted() - engine.getStats().getNumCommitsCompleted());
-            if (numCommitsPending == 0l) {
-                break;
-            }
-            else {
-                if (timeout < System.currentTimeMillis()) {
-                    System.out.println("Waiting for transaction pipeline to empty, remaining: " + numCommitsPending);
-                    Thread.sleep(1000l);
-                }
-                else {
-                    fail("Timed out waiting for transaction pipeline to empty, remaining: " + numCommitsPending);
-                }
-            }
-        }
-
+    public <T> T startApp(Class<T> appClass, String appName, String xvmName, Properties env) throws Throwable {
+        URL ddlConfig = new File(getProjectBaseDirectory(), "/conf/config.xml").toURI().toURL();
+        env.setProperty("x.env.nv.data.directory", "rdat/" + xvmName);
+        EmbeddedXVM xvm = EmbeddedXVM.create(ddlConfig, xvmName, env);
+        xvms.add(xvm);
+        xvm.start();
+        return (T)xvm.getApplication(appName);
     }
 }

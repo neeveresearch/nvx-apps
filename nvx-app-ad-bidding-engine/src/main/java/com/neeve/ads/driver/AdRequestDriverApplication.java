@@ -125,8 +125,8 @@ public class AdRequestDriverApplication {
     private int sendRate;
     @Configured(property = "driver.sendCpuAffinityMask", defaultValue = "0")
     private String sendCpuAffinityMask;
-    @Configured(property = "driver.interactive", defaultValue = "true")
-    private boolean interactive;
+    @Configured(property = "driver.autoStart", defaultValue = "true")
+    private boolean autoStart;
 
     @AppStat
     private final Counter adRequestCount = StatsFactory.createCounterStat("ClientAdRequest Sent Count");

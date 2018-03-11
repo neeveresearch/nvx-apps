@@ -25,7 +25,7 @@ public class TestMessageFlow extends AbstractTest {
     @Test
     public void testMessageFlow() throws Throwable {
         Properties env = new Properties();
-        env.put(DdlConfigConstants.DDL_PROFILES_PROPNAME, "test");
+        env.put("nv.ddl.profiles", "test");
 
         // start oms:
         startApp(Application.class, "oms", "oms1", env);

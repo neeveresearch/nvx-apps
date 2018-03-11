@@ -14,11 +14,7 @@ public class TestFlow extends AbstractTest {
     public void testFlow() throws Throwable {
         // configure
         Properties env = new Properties();
-        env.put("lumino.agent.env", "neeve-lab");
-        env.put("driver.interactive", "false");
-        env.put("nv.conservecpu", "true");
-        env.put("CCFD_BUS_DESCRIPTOR", "loopback://ccfd");
-        env.put("nv.discovery.descriptor", "local://test&initWaitTime=0");
+        env.put("nv.ddl.profiles", "test");
         // disable clustering to speed up app startup
         env.put("x.apps.fraudanalyzer-1.storage.clustering.enabled", "false");
         env.put("x.apps.fraudanalyzer-2.storage.clustering.enabled", "false");
@@ -30,20 +26,20 @@ public class TestFlow extends AbstractTest {
         env.put("x.apps.cardmaster-2.storage.clustering.enabled", "false");
 
         // start apps
-        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-1", "fraudanalyzer-1-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-2", "fraudanalyzer-2-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-1", "cardholdermaster-1-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-2", "cardholdermaster-2-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-1", "merchantmaster-1-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-2", "merchantmaster-2-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-1", "cardmaster-1-1", "nvx-app-ccfd-all", env);
-        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-2", "cardmaster-2-1", "nvx-app-ccfd-all", env);
+        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-1", "fraudanalyzer-1-1", env);
+        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-2", "fraudanalyzer-2-1", env);
+        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-1", "cardholdermaster-1-1", env);
+        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-2", "cardholdermaster-2-1", env);
+        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-1", "merchantmaster-1-1", env);
+        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-2", "merchantmaster-2-1", env);
+        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-1", "cardmaster-1-1", env);
+        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-2", "cardmaster-2-1", env);
 
         // sleep to let all connections be established.
         Thread.sleep(1000);
 
         // start the driver
-        com.neeve.ccfd.perfdriver.Application driverApp = startApp(com.neeve.ccfd.perfdriver.Application.class, "perfdriver", "perfdriver-1", "nvx-app-ccfd-perfdriver", env);
+        com.neeve.ccfd.perfdriver.Application driverApp = startApp(com.neeve.ccfd.perfdriver.Application.class, "perfdriver", "perfdriver-1", env);
 
         // wait
         long timeout = System.currentTimeMillis() + 60000;

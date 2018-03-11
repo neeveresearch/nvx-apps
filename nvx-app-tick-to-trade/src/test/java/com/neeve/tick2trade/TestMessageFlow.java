@@ -9,6 +9,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import java.util.Properties;
+
 import com.neeve.ci.XRuntime;
 import com.neeve.tick2trade.driver.Client;
 import com.neeve.tick2trade.driver.Market;
@@ -21,11 +23,15 @@ public class TestMessageFlow extends AbstractTest {
 
     @Test
     public void testMessageFlow() throws Throwable {
-        Market market = startApp(Market.class, "market", "market");
-        startApp(App.class, "ems", "ems1");
+
+        Properties env = new Properties();
+        env.put("nv.ddl.profiles", "test");
+
+        Market market = startApp(Market.class, "market", "market", env);
+        startApp(App.class, "ems", "ems1", env);
         market.getEngine().waitForMessagingToStart();
         Thread.sleep(10000);
-        Client client = startApp(Client.class, "client", "client");
+        Client client = startApp(Client.class, "client", "client", env);
 
         int expectedSendCount = XRuntime.getValue("simulator.sendCount", 0);
 

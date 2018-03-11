@@ -250,6 +250,29 @@
   </xvms>
 
   <profiles>
+    <profile name="test">
+      <env>
+        <nv>
+          <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
+          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+          <nv.native.suppressextraction>true</nv.native.suppressextraction>
+        </nv>
+
+        <!-- performance tuning parameters: -->
+        <nv>
+          <conservecpu>true</conservecpu>
+          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+        </nv>
+
+        <!-- preallocation & pooling -->
+        <simulator>
+          <ems.orderPreallocateCount>1000</ems.orderPreallocateCount>
+          <sendCount>1000</sendCount>
+          <sendRate>1000</sendRate>
+        </simulator>
+      </env>
+    </profile>
+    
     <profile name="neeve-lab">
       <activation>
         <properties>

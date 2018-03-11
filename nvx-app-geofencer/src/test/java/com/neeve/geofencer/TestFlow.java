@@ -1,63 +1,49 @@
 package com.neeve.geofencer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.net.URL;
 import java.util.Properties;
 
 import org.junit.Test;
 
-import com.neeve.server.embedded.EmbeddedXVM;
-import com.neeve.util.UtlFile;
-
 /**
  * A test case that tests the application flow.
  */
-public class TestFlow {
+public class TestFlow extends AbstractTest {
 
     @Test
     public void testFlow() throws Throwable {
 
-        URL config = new File(System.getProperty("basedir"), "conf/config.xml").toURI().toURL();
-        File testBedRoot = new File(System.getProperty("basedir"), "target/testbed/TestFlow");
-        UtlFile.deleteDirectory(testBedRoot);
-
         Properties env = new Properties();
-        env.put("NVROOT", testBedRoot.getCanonicalPath().toString());
-        env.put("nv.optimizefor", "latency");
-        env.put("nv.conservecpu", "true");
-        env.put("x.xvms.templates.xvm-template.heartbeats.enabled", "false");
-        env.put("route.numSegments", "1000");
-        env.put("sender.numEventsPerSegment", "2000");
-        env.put("sender.singleSimulation", "true");
+        env.put("nv.ddl.profiles", "test");
+        env.put("x.env.nv.optimizefor", "latency");
 
-        // Use loopback for in process discovery:
-        env.put("nv.discovery.descriptor", "loopback://discovery&initWaitTime=0");
+        // Configure driver:
+        env.put("x.env.route.numSegments", "1000");
+        env.put("x.env.sender.numEventsPerSegment", "2000");
+        env.put("x.env.sender.singleSimulation", "true");
 
         // Disable clustering to speed up app startup (just functional testing here)
         env.put("x.apps.vehicle-master.clustering.enabled", "false");
         env.put("x.apps.vehicle-alert-receiver.clustering.enabled", "false");
         env.put("x.apps.vehicle-event-processor.clustering.enabled", "false");
 
+        // Disable heartbeats
+        //env.put("x.xvms.templates.xvm-template.heartbeats.enabled", "false");
+
         //Start the vehicle master service (standalone, persistent)
-        EmbeddedXVM masterXVM = EmbeddedXVM.create(config, "vehicle-master-1", env);
-        masterXVM.start();
+        startApp(VehicleMaster.class, "vehicle-master", "vehicle-master-1", env);
 
         //Start the alert receiver
-        EmbeddedXVM receiverXVM = EmbeddedXVM.create(config, "vehicle-alert-receiver", env);
-        receiverXVM.start();
-        VehicleAlertReceiver receiver = (VehicleAlertReceiver)receiverXVM.getApplication("vehicle-alert-receiver");
+        VehicleAlertReceiver receiver = startApp(VehicleAlertReceiver.class, "vehicle-alert-receiver", "vehicle-alert-receiver", env);
 
         //Start the primary event processor service (standalone, persistent)
-        EmbeddedXVM processor1XVM = EmbeddedXVM.create(config, "vehicle-event-processor-1", env);
-        processor1XVM.start();
-        VehicleEventProcessor processor = (VehicleEventProcessor)processor1XVM.getApplication("vehicle-event-processor");
+        VehicleEventProcessor processor = startApp(VehicleEventProcessor.class, "vehicle-event-processor", "vehicle-event-processor-1", env);
 
         //Start the vehicle event simulator:
-        EmbeddedXVM senderXVM = EmbeddedXVM.create(config, "vehicle-event-sender", env);
-        senderXVM.start();
-        VehicleEventSender sender = (VehicleEventSender)senderXVM.getApplication("vehicle-event-sender");
+        VehicleEventSender sender = startApp(VehicleEventSender.class, "vehicle-event-sender", "vehicle-event-sender", env);
+
+        Thread.sleep(2000);
 
         long timeout = System.currentTimeMillis() + 60000;
         while (processor.getProcessedCount() + processor.getDroppedCount() < 2000 && System.currentTimeMillis() < timeout) {

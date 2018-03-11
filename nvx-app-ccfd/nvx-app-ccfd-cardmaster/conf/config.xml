@@ -168,6 +168,16 @@
   </xvms>
 
   <profiles>
+    <profile name="test">
+      <env>
+        <nv>
+            <conservecpu>true</conservecpu>
+            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+        </nv>
+        <driver.autoStart>true</driver.autoStart>
+        <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+      </env>
+    </profile>
     <profile name="neeve-lab">
       <xvms>
         <templates>
