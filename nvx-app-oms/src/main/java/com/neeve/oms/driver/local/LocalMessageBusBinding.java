@@ -20,19 +20,33 @@ import com.neeve.oms.messages.NewOrderMessage;
 import com.neeve.fix.*;
 
 final public class LocalMessageBusBinding extends MessageBusBindingBase implements Runnable {
-    final private boolean useFix = XRuntime.getValue("oms.driver.useFix", false);
+
     final private int sender = hashCode();
-    final private LatencyManager latencyManager = new LatencyManager("w2w", 1000000);
-    private int sendCount;
-    private int sendRate;
-    private long sendAffinity;
+
+    private LatencyManager latencyManager;
+    private volatile Thread sendThread;
+    private int sendCount = XRuntime.getValue("oms.driver.sendCount", 10000);
+    private int sendRate = XRuntime.getValue("oms.driver.sendRate", 1000);
+    private boolean useFix = XRuntime.getValue("oms.driver.useFix", false);
+    private int latencySampleSize = XRuntime.getValue("oms.driver.latencySampleSize", 1024 * 1024);
+    private boolean printLatencyStats = XRuntime.getValue("oms.driver.printLatencyStats", true);
+    private boolean summarizeLatencyStats = XRuntime.getValue("oms.driver.summarizeLatencyStats", true);
+    private long sendAffinity = UtlThread.parseAffinityMask(XRuntime.getValue("oms.driver.sendAffinity", "0"));
     private int warmupCount;
     private int totalReceived;
+    private int totalSent;
 
     LocalMessageBusBinding(final String userName,
                            final MessageBusDescriptor descriptor,
                            final IEventHandler eventHandler) throws SmaException {
         super(null, userName, descriptor, eventHandler);
+    }
+
+    /**
+     * @param w2w Sets the w2w latency manager. 
+     */
+    public void setW2WLatencyManager(LatencyManager w2w) {
+        latencyManager = w2w;
     }
 
     final private MessageView createNewOrderMessage() {
@@ -53,13 +67,16 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
             final long preWireTs = System.nanoTime();
             view.setPreWireTs(preWireTs);
             latencyManager.add(view.getPreWireTs() - view.getPostWireTs());
-            if (totalReceived % 1000 == 0) {
+            if (totalReceived % 10000 == 0) {
                 latencyManager.compute();
                 StringBuilder sb = new StringBuilder();
                 latencyManager.get(sb);
-                tracer.log(sb.toString(), Tracer.Level.INFO);
+                if (printLatencyStats) {
+                    tracer.log(sb.toString(), Tracer.Level.INFO);
+                }
             }
-            if (totalReceived == 1000000) {
+            if (summarizeLatencyStats && totalReceived == latencyManager.size()) {
+
                 tracer.log("Writing latencies...", Tracer.Level.INFO);
                 try {
                     final java.io.FileWriter writer = new java.io.FileWriter("latencies.csv");
@@ -92,14 +109,20 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                 finally {
                     tracer.log("Done", Tracer.Level.INFO);
                 }
-                System.exit(0);
             }
         }
     }
 
     @Override
     final protected void doOpen() throws SmaException {
-        new Thread(this).start();
+        synchronized (this) {
+            if (XRuntime.getValue("oms.driver.autoStart", false)) {
+                startSender(sendCount, sendRate, useFix);
+            }
+            else {
+                tracer.log("*** Opened Local Binding with autoStart=false", Tracer.Level.INFO);
+            }
+        }
     }
 
     @Override
@@ -145,24 +168,42 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
     @Override
     final protected void doClose() throws SmaException {}
 
+    /**
+     * Starts the sender if not already running. 
+     * 
+     * @param sendCount The number to send. 
+     * @param sendRate The rate at which to send. 
+     * @param useFix The rate at which to send. 
+     */
+    final public void startSender(final int sendCount, final int sendRate, final boolean useFix) {
+        this.sendCount = sendCount;
+        this.sendRate = sendRate;
+        this.useFix = useFix;
+        sendThread = new Thread(this, "Local Driver Send Thread");
+        sendThread.start();
+    }
+
     @Override
     final public void run() {
         try {
-            sendCount = XRuntime.getValue("oms.driver.sendCount", 10000);
-            sendRate = XRuntime.getValue("oms.driver.sendRate", 1000);
-            sendAffinity = UtlThread.parseAffinityMask(XRuntime.getValue("oms.driver.sendAffinity", "0"));
             warmupCount = Math.min(50000, (sendCount / 3));
             tracer.log("*** Send Rate=" + sendRate, Tracer.Level.INFO);
             tracer.log("*** Send Count=" + sendCount, Tracer.Level.INFO);
             tracer.log("*** Send Affinity =" + sendAffinity, Tracer.Level.INFO);
+            tracer.log("*** Trace Stats =" + printLatencyStats, Tracer.Level.INFO);
+            tracer.log("*** Summarize Stats =" + summarizeLatencyStats, Tracer.Level.INFO);
             tracer.log("*** Use FIX =" + useFix, Tracer.Level.INFO);
             UtlThread.setCPUAffinityMask(sendAffinity);
             Thread.sleep(10000);
             final LocalMessageChannel channel = (LocalMessageChannel)getMessageChannel("requests");
+            if (latencyManager == null) {
+                latencyManager = new LatencyManager("local-w2w", latencySampleSize);
+            }
             UtlGovernor.run(sendCount, sendRate, new Runnable() {
                 @Override
                 final public void run() {
                     try {
+                        ++totalSent;
                         final MessageView view = createNewOrderMessage();
                         final PktPacket packet = view.serializeToPacket();
                         final short vfid = view.getVfid();
@@ -194,5 +235,13 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
         catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+    public int getTotalSent() {
+        return totalSent;
+    }
+
+    public int getTotalReceived() {
+        return totalReceived;
     }
 }

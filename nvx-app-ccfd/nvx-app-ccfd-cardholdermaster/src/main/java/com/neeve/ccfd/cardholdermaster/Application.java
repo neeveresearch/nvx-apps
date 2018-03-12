@@ -10,14 +10,16 @@ import com.neeve.ccfd.cardholdermaster.state.CardHolder;
 import com.neeve.ccfd.cardholdermaster.state.IPaymentTransaction;
 import com.neeve.ccfd.cardholdermaster.state.PaymentTransaction;
 import com.neeve.ccfd.cardholdermaster.state.Repository;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
-import com.neeve.ccfd.messages.AuthorizationResponseMessage;
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.messages.NewCardHolderMessage;
 import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.util.TestDataGenerator;
 import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.cli.annotations.Configured;
+import com.neeve.ods.IStoreQueryEngine;
+import com.neeve.ods.IStoreQueryResultSet;
 import com.neeve.server.app.annotations.AppHAPolicy;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppStat;
@@ -33,6 +35,7 @@ public class Application {
 
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
     private AepMessageSender _messageSender;
+    private IStoreQueryEngine queryEngine;
 
     @AppStat
     private final Counter authorizationRequestCount = StatsFactory.createCounterStat("Authorization Request Received Count");
@@ -43,22 +46,50 @@ public class Application {
     @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
+    @AppStat(name = "Txn Query Enabled")
+    @Configured(property = "cardholdermaster.queryTransactions", defaultValue = "false")
+    private boolean queryTransactions;
+
     @Configured(property = "fraudanalyzer.numShards")
     private int fraudanalyzerNumShards;
 
-    private boolean simulateSoftwareFraudCheck(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
+    @Configured(property = "cardholdermaster.numShards")
+    private int cardholderMasterNumShards;
+
+    @Configured(property = "cardmaster.numShards")
+    private int cardMasterNumShards;
+
+    private boolean isTransactionFraudulent(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
         long ts = System.nanoTime();
 
         boolean invalid = false;
 
         if (cardholder != null) {
-            final Iterator<PaymentTransaction> transactions = cardholder.getHistory().iterator();
-            while (transactions.hasNext()) {
-                @SuppressWarnings("unused")
-                IPaymentTransaction transaction = transactions.next();
+            if (!queryTransactions) {
+                final Iterator<PaymentTransaction> transactions = cardholder.getHistory().iterator();
+                while (transactions.hasNext()) {
+                    @SuppressWarnings("unused")
+                    IPaymentTransaction transaction = transactions.next();
 
-                // TODO: Implement check based on transaction history here. 
+                    // TODO: Here is where business specific fraud check 
+                    // logic would be inserted. For now we are just iterating
+                    // all of the transactions, and simulating the cost of 
+                    // business logic by spinning for 100us below.
+                    //
+                }
             }
+            else {
+                // It is also possible that rather than raw iteration,
+                // one might use the platform's SQL query semantics to 
+                // query the transactions in memory. 
+                //
+                final IStoreQueryResultSet results = queryEngine.execute("SELECT PaymentTransaction FROM store where PaymentTransaction.cardNumber = '" + authRequest.getNewTransaction().getCardNumber() + "'");
+                while (results.next()) {
+                    @SuppressWarnings("unused")
+                    IPaymentTransaction transaction = (IPaymentTransaction)results.getStoreObject();
+                }
+            }
+
             invalid = false;
         }
         else {
@@ -84,6 +115,13 @@ public class Application {
     @AppInjectionPoint
     final public void setMessageSender(AepMessageSender messageSender) {
         _messageSender = messageSender;
+    }
+
+    @AppInjectionPoint
+    final public void setEngine(AepEngine engine) {
+        if (queryTransactions) {
+            this.queryEngine = engine.getStore().getQueryEngine();
+        }
     }
 
     @EventHandler
@@ -119,7 +157,7 @@ public class Application {
          * the entire transaction history and add a busy spin to simulate actual detection
          * logic cpu usage:  
          ****/
-        if (!simulateSoftwareFraudCheck(cardholder, authRequest)) {
+        if (!isTransactionFraudulent(cardholder, authRequest)) {
             FraudAnalysisRequestMessage outboundMessage = FraudAnalysisRequestMessage.create();
             outboundMessage.setRequestIdFrom(authRequest.getRequestIdUnsafe());
             outboundMessage.setFlowStartTs(authRequest.getFlowStartTs());
@@ -136,12 +174,15 @@ public class Application {
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
         else {
-            AuthorizationResponseMessage authorizationResponseMessage = AuthorizationResponseMessage.create();
+            AuthorizationDeclinedMessage authorizationResponseMessage = AuthorizationDeclinedMessage.create();
             authorizationResponseMessage.setFlowStartTs(authRequest.getFlowStartTs());
             authorizationResponseMessage.setRequestIdFrom(authRequest.getRequestIdUnsafe());
-            authorizationResponseMessage.setDecision(false);
             authorizationResponseMessage.setDecisionScore(0);
-            _messageSender.sendMessage("authresp", authorizationResponseMessage);
+            authorizationResponseMessage.setCardHolderIdFrom(authRequest.getCardHolderIdUnsafe());
+            authorizationResponseMessage.setNewTransaction(authRequest.getNewTransaction().copy());
+            _messageSender.sendMessage("authresp", authorizationResponseMessage,
+                                       UtlCommon.getShardKey(authRequest.getCardHolderId(), cardholderMasterNumShards) + "/" +
+                                               UtlCommon.getShardKey(authRequest.getNewTransaction().getCardNumber(), cardMasterNumShards));
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
     }

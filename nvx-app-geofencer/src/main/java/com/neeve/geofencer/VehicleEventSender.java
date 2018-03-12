@@ -182,7 +182,7 @@ final public class VehicleEventSender {
         return sentCount.getCount();
     }
 
-    @Command(name = "stop")
+    @Command(name = "stop", displayName = "Stop Simulation")
     public final void doStop() {
         System.out.println("Stopping trip simulators...");
         for (TripSimulator simulator : simulators) {
@@ -190,7 +190,7 @@ final public class VehicleEventSender {
         }
     }
 
-    @Command(name = "start")
+    @Command(name = "start", displayName = "Run Simulation")
     public final void doStart() {
         System.out.println("Starting trip simulators...");
         for (TripSimulator simulator : simulators) {
@@ -198,7 +198,7 @@ final public class VehicleEventSender {
         }
     }
 
-    @Command(name = "addnewvehicle")
+    @Command(name = "addnewvehicle", displayName = "Add New Vehicle")
     public final void doAddNewVehicle() {
         System.out.println("Adding new vehicle...");
         TripSimulator simulator = new TripSimulator();

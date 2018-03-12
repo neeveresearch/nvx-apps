@@ -7,7 +7,7 @@
     <parent>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-apps-parent</artifactId>
-        <version>3.7.6</version>
+      <version>3.8.1</version>
     </parent>
     
     <licenses>
@@ -22,13 +22,31 @@
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
         
         <dependency>
             <groupId>com.neeve</groupId>
+            <artifactId>nvx-native</artifactId>
+            <classifier>linux-x86-64</classifier>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.neeve</groupId>
+            <artifactId>nvx-kafka</artifactId>
+            <version>1.1-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.2.0</version>
         </dependency>
     </dependencies>
 
@@ -51,6 +69,7 @@
             <plugin>
                 <groupId>com.neeve</groupId>
                 <artifactId>nvx-platform-maven-plugin</artifactId>
+                <version>${nvx.platform.version}</version>
                 <executions>
                     <execution>
                         <id>Entities</id>

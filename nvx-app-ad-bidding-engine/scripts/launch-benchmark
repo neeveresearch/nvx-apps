@@ -1,0 +1,31 @@
+##DISPLAYNAME Launch Benchmark
+##DESCRIPTION Launches a benchmark run (from scratch).
+
+##VAR numWarmupAdRequests [displayName="Warmup Ad Send Count", type=int, defaultValue=10000, description="The number of 'warmup' ad requests to send"] 
+##VAR warmupAdRequestRate [displayName="Warmup Ad Request Rate", type=int, defaultValue=2000, description="The rate at which to send in of 'warmup' ad requests"] 
+##VAR numCampaigns [displayName="Number of Campaigns", type=int, defaultValue=100, description="The number of campaigns to create"] 
+##VAR numVisitors [displayName="Number of Visitors", type=int, defaultValue=100, description="The number of visitors to register"] 
+##VAR numAdRequests [displayName="Ad Requests Send Count", type=int, defaultValue=100000, description="The number of ad requests to send"] 
+##VAR adRequestRate [displayName="Ad Request Rate", type=int, defaultValue=1000, description="The rate at which to send in ad requests"] 
+
+provision all xvms
+configure all xvms
+deploy to all xvms
+
+// clear out old data
+instruct the driver app in the driver-1 xvm to clearVisitors
+instruct the driver app in the driver-1 xvm to clearCampaigns
+
+// Seed new data and run
+instruct the driver app in the driver-1 xvm to addCampaigns with --count ${numCampaigns::1000} --rate 1000
+instruct the driver app in the driver-1 xvm to addVisitors with --count ${numVisitors::10} --rate 1000
+
+// Send in warmup requests
+instruct the driver app in the driver-1 xvm to sendAdRequests with --count ${numWarmupAdRequests::10000} --rate ${warmupAdRequestRate::2000} --async
+wait until the driver app in the driver-1 xvm getAdResponsesCount is ${numWarmupAdRequests::10000}
+
+// A little intermission to make it easier to separate out warmup: 
+sleep for 5s
+
+// Run add requests
+instruct the driver app in the driver-1 xvm to sendAdRequests with --count ${numAdRequests::100000} --rate ${adRequestRate::1000} --async

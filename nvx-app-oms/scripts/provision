@@ -1,3 +1,5 @@
-provision the driver.${oms.env::local} xvm
-provision the oms1.${oms.env::local} xvm
-provision the oms2.${oms.env::local} xvm
+##DISPLAYNAME Provision All XVMs
+##DESCRIPTION Wipes current XVM installations and provisions clean images.
+provision all xvms
+configure all xvms
+deploy to all xvms

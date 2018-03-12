@@ -1,0 +1,8 @@
+assume launch-all has run
+
+##DISPLAYNAME Kill XVM ...
+##DESCRIPTION Launches an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="driver,oms1,oms2", description="The name of the XVM to kill"] 
+
+// launch the processor cluster
+instruct the admin app in the ${xvmName::driver} xvm to kill with null

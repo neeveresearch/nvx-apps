@@ -14,6 +14,9 @@ import com.neeve.ccfd.messages.TransformedPaymentTransactionDTO;
  */
 public class TestDataGenerator {
 
+    private static final String CARD_NUMBER_BANK_ID = "123";
+    private static final int CARD_NUMBER_LENGTH = 16;
+    private static final Random random = new Random();
     //    private static final String[] COUNTRY_CODES = { "US" };
     //    private static final String[] ZIP_CODES = { "85001", "99501" };
     public static final String DEFAULT_COUNTRY_CODE = "US";
@@ -51,6 +54,76 @@ public class TestDataGenerator {
     }
 
     /**
+     * Generates a random card number.
+     * 
+     * Adapted from:
+     * https://www.journaldev.com/1449/credit-card-check-digit-generator-java-program
+     * 
+     */
+    public static final String generateCardNumber() {
+        // The number of random digits that we need to generate is equal to the
+        // total length of the card number minus the start digits given by the
+        // user, minus the check digit at the end.
+        int randomNumberLength = CARD_NUMBER_LENGTH - (CARD_NUMBER_BANK_ID.length() + 1);
+
+        StringBuilder builder = new StringBuilder(CARD_NUMBER_BANK_ID);
+        for (int i = 0; i < randomNumberLength; i++) {
+            int digit = random.nextInt(10);
+            builder.append(digit);
+        }
+
+        // Do the Luhn algorithm to generate the check digit.
+        int checkDigit = getCheckDigit(builder.toString());
+        builder.append(checkDigit);
+
+        return builder.toString();
+    }
+
+    /**
+     * Generates the check digit required to make the given credit card number
+     * valid (i.e. pass the Luhn check)
+     *
+     * @param number
+     *            The credit card number for which to generate the check digit.
+     * @return The check digit required to make the given credit card number
+     *         valid.
+     */
+    private static int getCheckDigit(String number) {
+
+        // Get the sum of all the digits, however we need to replace the value
+        // of the first digit, and every other digit, with the same digit
+        // multiplied by 2. If this multiplication yields a number greater
+        // than 9, then add the two digits together to get a single digit
+        // number.
+        //
+        // The digits we need to replace will be those in an even position for
+        // card numbers whose length is an even number, or those is an odd
+        // position for card numbers whose length is an odd number. This is
+        // because the Luhn algorithm reverses the card number, and doubles
+        // every other number starting from the second number from the last
+        // position.
+        int sum = 0;
+        for (int i = 0; i < number.length(); i++) {
+
+            // Get the digit at the current position.
+            int digit = Integer.parseInt(number.substring(i, (i + 1)));
+
+            if ((i % 2) == 0) {
+                digit = digit * 2;
+                if (digit > 9) {
+                    digit = (digit / 10) + (digit % 10);
+                }
+            }
+            sum += digit;
+        }
+
+        // The check digit is the number required to make the sum a multiple of
+        // 10.
+        int mod = sum % 10;
+        return ((mod == 0) ? 0 : 10 - mod);
+    }
+
+    /**
      * Generate random fields for data set. 
      *  
      * @param isFraud If true - generate fraudulent transaction. 
@@ -59,7 +132,6 @@ public class TestDataGenerator {
      *  
      * @param transaction transaction which to fill with random values
      */
-    //TODO this will take time. Can we improve it by streaming pre-generated set from file?
     public void generateRandomFields(final boolean isFraud, final int[] fraudIndicators, final TransformedPaymentTransactionDTO transaction) {
 
         // We could do this with reflection, but this will reduce garbage creation

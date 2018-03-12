@@ -1,7 +1,8 @@
 package com.neeve.ccfd.fraudanalyzer.driver;
 
 import com.neeve.aep.annotations.EventHandler;
-import com.neeve.ccfd.messages.AuthorizationResponseMessage;
+import com.neeve.ccfd.messages.AuthorizationApprovedMessage;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.cli.annotations.Command;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.stats.IStats.Counter;
@@ -20,7 +21,15 @@ public class ReceiveDriver {
     private volatile Latencies receiveLatencies = StatsFactory.createLatencyStat("ReceiveDriver Event Latency");
 
     @EventHandler
-    public final void handleAuthorizationResponse(AuthorizationResponseMessage message) {
+    public final void handleAuthorizationApproved(AuthorizationApprovedMessage message) {
+        receivedCount.increment();
+        if (message.getFlowStartTs() > 0) {
+            receiveLatencies.add(UtlTime.now() - message.getFlowStartTs());
+        }
+    }
+
+    @EventHandler
+    public final void handleAuthorizationDeclined(AuthorizationDeclinedMessage message) {
         receivedCount.increment();
         if (message.getFlowStartTs() > 0) {
             receiveLatencies.add(UtlTime.now() - message.getFlowStartTs());

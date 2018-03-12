@@ -1,4 +1,4 @@
-instruct the driver app in the driver.${oms.env::local} xvm to stop
+##DISPLAYNAME Stop Sending
+##DESCRIPTION Instructs the driver to stop sending new orders
 
-
-
+instruct the driver app in the driver xvm to stop

@@ -1,0 +1,20 @@
+##DISPLAYNAME Launch all XVMs
+##DESCRIPTION Launches all of the XVMS (assuming they are all shutdown)
+
+// assume provisioned
+assume provision has run
+
+// launch the OMS cluster
+launch the oms1 xvm
+start the oms app in the oms1 xvm
+wait until the oms app in the oms1 xvm is appstartdone
+validate the oms app in the oms1 xvm appstate is Started
+validate the oms app in the oms1 xvm role is Primary
+launch the oms2 xvm
+start the oms app in the oms2 xvm
+wait until the oms app in the oms2 xvm is appstartdone
+validate the oms app in the oms2 xvm appstate is Started
+validate the oms app in the oms2 xvm role is Backup
+
+// launch the driver (it will automatically start)
+launch the driver xvm

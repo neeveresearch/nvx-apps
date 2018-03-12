@@ -19,9 +19,9 @@ import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
 import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlTime;
-
+import com.neeve.ccfd.messages.AuthorizationApprovedMessage;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
-import com.neeve.ccfd.messages.AuthorizationResponseMessage;
 import com.neeve.ccfd.messages.NewCardHolderMessage;
 import com.neeve.ccfd.messages.NewCardMessage;
 import com.neeve.ccfd.messages.NewMerchantMessage;
@@ -111,6 +111,8 @@ public class Application {
     private final XLinkedList<String> existingCardNumbers = new XLinkedList<String>();
     private final XLinkedList<String> existingMerchantIds = new XLinkedList<String>();
     private final XLinkedList<String> existingMerchantStoreIds = new XLinkedList<String>();
+    @Configured(property = "driver.autoStart", defaultValue = "true")
+    private boolean autoStart;
     @Configured(property = "driver.sendCount")
     private int sendCount;
     @Configured(property = "driver.sendRate")
@@ -168,10 +170,10 @@ public class Application {
                         newCardMessage.setRequestId(TestDataGenerator.generateId());
                         newCardMessage.setCardNumber(cardNumber);
                         newCardMessage.setCardHolderId(newCardHolderMessage.getCardHolderId());
-                        _messageSender.sendMessage("authreq", newCardMessage, UtlCommon.getShardKey(newCardMessage.getCardNumber(), cardMasterNumShards));
+                        _messageSender.sendMessage("card-events", newCardMessage, UtlCommon.getShardKey(newCardMessage.getCardNumber(), cardMasterNumShards));
                         newCardRequestCount.increment();
                     }
-                    _messageSender.sendMessage("authreq3", newCardHolderMessage, UtlCommon.getShardKey(newCardHolderMessage.getCardHolderId(), cardholderMasterNumShards));
+                    _messageSender.sendMessage("cardholder-events", newCardHolderMessage, UtlCommon.getShardKey(newCardHolderMessage.getCardHolderId(), cardholderMasterNumShards));
                     newCardHolderRequestCount.increment();
                 }
                 catch (Exception e) {
@@ -196,7 +198,7 @@ public class Application {
                     NewMerchantMessage newMerchantMessage = dataGenerator.generateNewMerchantMessage(1);
                     existingMerchantIds.add(newMerchantMessage.getMerchantId());
                     existingMerchantStoreIds.add(newMerchantMessage.getStoresIterator().next().getStoreId());
-                    _messageSender.sendMessage("authreq2", newMerchantMessage, UtlCommon.getShardKey(newMerchantMessage.getMerchantId(), merchantMasterNumShards));
+                    _messageSender.sendMessage("merchant-events", newMerchantMessage, UtlCommon.getShardKey(newMerchantMessage.getMerchantId(), merchantMasterNumShards));
                     newMerchantRequestCount.increment();
                 }
                 catch (Exception e) {
@@ -236,15 +238,23 @@ public class Application {
     }
 
     @EventHandler
-    final public void onAuthorizationResponseMessage(AuthorizationResponseMessage message) {
+    final public void onAuthorizationApproved(AuthorizationApprovedMessage message) {
+        authorizationResponseCount.increment();
+        authorizationServeLatencies.add(UtlTime.now() - message.getFlowStartTs());
+    }
+
+    @EventHandler
+    final public void onAuthorizationDeclined(AuthorizationDeclinedMessage message) {
         authorizationResponseCount.increment();
         authorizationServeLatencies.add(UtlTime.now() - message.getFlowStartTs());
     }
 
     @AppMain
     public void run(String[] args) {
-        seedMerchants(100, 100);
-        seedCardHolders(100, 100);
-        sendAuthorizationRequests(sendCount, sendRate, false);
+        if (autoStart) {
+            seedMerchants(100, 100);
+            seedCardHolders(100, 100);
+            sendAuthorizationRequests(sendCount, sendRate, false);
+        }
     }
 }

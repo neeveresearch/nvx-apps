@@ -1,206 +1,448 @@
 <?xml version="1.0"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <env>
+
+  <env>
+    <nv>
+      <!-- optimize for latency -->
+      <optimizefor>throughput</optimizefor>
+
+      <!-- trace engine config settings ... -->
+      <aep>
+        <trace>config</trace>
+      </aep>
+
+      <!-- turn on global latency stats for underlying engines ... -->
+      <msg.latency.stats>true</msg.latency.stats>
+      <ods.latency.stats>true</ods.latency.stats>
+      <latencymanager.samplesize>102400</latencymanager.samplesize>
+    </nv>
+
+    <!-- Configure the test drivers -->
+    <processor.channel>processor-events</processor.channel>
+    <master.channel>master-requests</master.channel>
+    <sender.sendRate>1000</sender.sendRate>
+    <sender.numEventsPerSegment>1000000</sender.numEventsPerSegment>
+    <sender.singleSimulation>false</sender.singleSimulation>
+    <route.numSegments>3200</route.numSegments>
+    <sender.numThreads>10</sender.numThreads>
+
+    <geofencer.qos>Guaranteed</geofencer.qos>
+    <geofencer.enablecpuaffinitymasks>false</geofencer.enablecpuaffinitymasks>
+  </env>
+
+  <buses>
+    <bus name="vehicle-event-processor"
+      descriptor="${vehicleevent.bus.descriptor::direct://vehicle-event-processor&amp;cpuaffinitymask=${VEHICLE_EVENT_PROCESSOR_BUS_CPUAFFMASK::0}}">
+      <channels>
+        <channel name="processor-events" id="1">
+          <qos>${geofencer.qos::Guaranteed}</qos>
+        </channel>
+      </channels>
+    </bus>
+    <bus name="vehicle-master"
+      descriptor="${vehiclemaster.bus.descriptor::direct://vehicle-master&amp;cpuaffinitymask=${VEHICLE_MASTER_BUS_CPUAFFMASK::0}}">
+      <channels>
+        <channel name="master-requests" id="1">
+          <qos>${geofencer.qos::Guaranteed}</qos>
+        </channel>
+        <channel name="master-events" id="2">
+          <qos>${geofencer.qos::Guaranteed}</qos>
+        </channel>
+      </channels>
+    </bus>
+    <bus name="alerts"
+      descriptor="${vehiclealerts.bus.descriptor::direct://vehicle-alert-receiver&amp;cpuaffinitymask=${VEHICLE_ALERTS_BUS_CPUAFFMASK::0}}">
+      <channels>
+        <channel name="alerts" id="1">
+          <qos>${geofencer.qos::Guaranteed}</qos>
+        </channel>
+      </channels>
+    </bus>
+  </buses>
+
+  <apps>
+    <templates>
+      <app name="app-template">
+        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+        <captureMessageTypeStats>true</captureMessageTypeStats>
+
+        <inboundEventMultiplexing>
+          <queueDrainerCpuAffinityMask>${INPUT_MULTIPLEXER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+        </inboundEventMultiplexing>
+      </app>
+    </templates>
+
+
+    <app name="vehicle-master" mainClass="com.neeve.geofencer.VehicleMaster" template="app-template">
+      <messaging>
+        <factories>
+          <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory" />
+        </factories>
+        <bus name="vehicle-master">
+          <channels>
+            <channel name="master-requests" join="true" />
+            <channel name="master-events" join="false" />
+          </channels>
+        </bus>
+      </messaging>
+      <storage>
+        <factories>
+          <factory name="com.neeve.geofencer.vehiclemaster.state.StateFactory" />
+        </factories>
+        <persistenceQuorum>1</persistenceQuorum>
+        <persistence enabled="true">
+          <detachedPersist enabled="false" />
+          <autoRepair>true</autoRepair>
+          <flushUsingMappedMemory>true</flushUsingMappedMemory>
+        </persistence>
+        <clustering enabled="true">
+          <localIfAddr>${STORE_IFADDRESS::0.0.0.0}</localIfAddr>
+          <linkReaderCpuAffinityMask>${STORE_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
+          <detachedSend enabled="true">
+            <queueDrainerCpuAffinityMask>${STORE_SENDER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+          </detachedSend>
+          <detachedDispatch enabled="true">
+            <queueDrainerCpuAffinityMask>${STORE_DISPATCHER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+          </detachedDispatch>
+        </clustering>
+      </storage>
+    </app>
+
+    <app name="vehicle-event-processor" mainClass="com.neeve.geofencer.VehicleEventProcessor" template="app-template">
+      <messaging>
+        <factories>
+          <factory name="com.neeve.geofencer.messages.MessageFactory" />
+          <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory" />
+        </factories>
+        <bus name="vehicle-event-processor">
+          <channels>
+            <channel name="processor-events" join="true" />
+          </channels>
+        </bus>
+        <bus name="alerts">
+          <channels>
+            <channel name="alerts" join="false" />
+          </channels>
+        </bus>
+        <bus name="vehicle-master">
+          <channels>
+            <channel name="master-requests" join="false" />
+            <channel name="master-events" join="true" />
+          </channels>
+        </bus>
+      </messaging>
+      <storage>
+        <factories>
+          <factory name="com.neeve.geofencer.state.StateFactory" />
+        </factories>
+        <persistenceQuorum>1</persistenceQuorum>
+        <persistence enabled="true">
+          <detachedPersist enabled="false" />
+          <autoRepair>true</autoRepair>
+          <flushUsingMappedMemory>true</flushUsingMappedMemory>
+        </persistence>
+        <clustering enabled="true">
+          <localIfAddr>${STORE_IFADDRESS::0.0.0.0}</localIfAddr>
+          <linkReaderCpuAffinityMask>${STORE_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
+          <detachedSend enabled="true">
+            <queueDrainerCpuAffinityMask>${STORE_SENDER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+          </detachedSend>
+          <detachedDispatch enabled="true">
+            <queueDrainerCpuAffinityMask>${STORE_DISPATCHER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+          </detachedDispatch>
+        </clustering>
+      </storage>
+    </app>
+
+    <app name="vehicle-event-sender" mainClass="com.neeve.geofencer.VehicleEventSender" template="app-template">
+      <messaging>
+        <factories>
+          <factory name="com.neeve.geofencer.messages.MessageFactory" />
+          <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory" />
+        </factories>
+        <bus name="vehicle-event-processor">
+          <channels>
+            <channel name="processor-events" join="false" />
+          </channels>
+        </bus>
+        <bus name="vehicle-master">
+          <channels>
+            <channel name="master-requests" join="false" />
+            <channel name="master-events" join="true" />
+          </channels>
+        </bus>
+      </messaging>
+      <storage>
+        <persistence enabled="false" />
+        <clustering enabled="false" />
+      </storage>
+      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+      <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
+    </app>
+
+    <app name="vehicle-alert-receiver" mainClass="com.neeve.geofencer.VehicleAlertReceiver" template="app-template">
+      <messaging>
+        <factories>
+          <factory name="com.neeve.geofencer.messages.MessageFactory" />
+        </factories>
+        <bus name="alerts">
+          <channels>
+            <channel name="alerts" join="true" />
+          </channels>
+        </bus>
+      </messaging>
+      <storage>
+        <persistence enabled="false" />
+        <clustering enabled="false" />
+      </storage>
+      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+    </app>
+  </apps>
+
+  <xvms>
+    <templates>
+      <xvm name="xvm-template">
+        <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
+        <heartbeats enabled="true" interval="5">
+          <collectIndividualThreadStats>true</collectIndividualThreadStats>
+          <includeMessageTypeStats>true</includeMessageTypeStats>
+          <tracing enabled="true">
+            <traceAdminClientStats>false</traceAdminClientStats>
+            <traceAppStats>false</traceAppStats>
+            <tracePoolStats>false</tracePoolStats>
+            <traceSysStats>false</traceSysStats>
+            <traceThreadStats>false</traceThreadStats>
+            <traceUserStats>true</traceUserStats>
+          </tracing>
+        </heartbeats>
+      </xvm>
+    </templates>
+
+    <xvm name="vehicle-event-processor-1" template="xvm-template">
+      <apps>
+        <app name="vehicle-event-processor" autoStart="true" />
+      </apps>
+    </xvm>
+    <xvm name="vehicle-event-processor-2" template="xvm-template">
+      <apps>
+        <app name="vehicle-event-processor" autoStart="true" />
+      </apps>
+    </xvm>
+    <xvm name="vehicle-event-sender" template="xvm-template">
+      <apps>
+        <app name="vehicle-event-sender" autoStart="true" />
+      </apps>
+    </xvm>
+    <xvm name="vehicle-alert-receiver" template="xvm-template">
+      <apps>
+        <app name="vehicle-alert-receiver" autoStart="true" />
+      </apps>
+    </xvm>
+    <xvm name="vehicle-master-1" template="xvm-template">
+      <apps>
+        <app name="vehicle-master" autoStart="true" />
+      </apps>
+    </xvm>
+    <xvm name="vehicle-master-2" template="xvm-template">
+      <apps>
+        <app name="vehicle-master" autoStart="true" />
+      </apps>
+    </xvm>
+  </xvms>
+
+  <profiles>
+    <profile name="test">
+      <env>
         <nv>
-            <discovery.descriptor>mcast://224.0.1.200:4190</discovery.descriptor>
-
-            <!-- optimize for latency -->
-            <optimizefor>throughput</optimizefor>
             <conservecpu>true</conservecpu>
+            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+        </nv>
+        <driver.autoStart>true</driver.autoStart>
+      </env>
+    </profile>
+    <profile name="neeve-lab">
+      <activation>
+        <properties>
+          <lumino.agent.env>neeve-lab</lumino.agent.env>
+        </properties>
+      </activation>
 
-            <!-- turn on latency stats for underyling engines ... -->
-            <aep>
-                <trace>config</trace>
-            </aep>
-            <msg.latency.stats>true</msg.latency.stats>
-            <ods.latency.stats>true</ods.latency.stats>
-            <latencymanager.samplesize>102400</latencymanager.samplesize>
-
-            <!-- and enable servers stats to report them-->
-            <server>
-                <stats>
-                    <enable>true</enable>
-                    <interval>5000</interval>
-                    <userstats.trace>off</userstats.trace>
-                </stats>
-            </server>
+      <env>
+        <nv>
+          <conservecpu>false</conservecpu>
+          <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
         </nv>
 
-        <!-- Configure the test drivers -->
-        <processor.channel>processor-events</processor.channel>
-        <master.channel>master-requests</master.channel>
-        <sender.sendRate>1000</sender.sendRate>
-        <sender.numEventsPerSegment>1000000</sender.numEventsPerSegment>
-        <sender.singleSimulation>false</sender.singleSimulation>
-        <route.numSegments>3200</route.numSegments>
-        <sender.numThreads>10</sender.numThreads>
-    </env>
+        <KAFKA_ADDRESS>192.168.1.7:9092</KAFKA_ADDRESS>
+        <SOLACE_ADDRESS>192.168.1.9</SOLACE_ADDRESS>
+      </env>
 
-    <buses>
-        <bus name="vehicle-event-processor" descriptor="${vehicleevent.bus.descriptor::direct://vehicle-event-processor}">
-            <channels>
-                <channel name="processor-events" id="1"/>
-            </channels>
-        </bus>
-        <bus name="vehicle-master" descriptor="${vehiclemaster.bus.descriptor::direct://vehicle-master}">
-            <channels>
-                <channel name="master-requests" id="1"/>
-                <channel name="master-events" id="2"/>
-            </channels>
-        </bus>
-        <bus name="alerts" descriptor="${vehiclealerts.bus.descriptor::direct://vehicle-alert-receiver}">
-            <channels>
-                <channel name="alerts" id="1"/>
-            </channels>
-        </bus>
-    </buses>
+      <xvms>
+        <templates>
+          <xvm name="xvm-template">
+            <provisioning>
+              <jvm>
+                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                <jvmParams>-Xms20g -Xmx20g</jvmParams>
+                <jvmParamSets>
+                  <jvmParamSet name="prefer-ipv4">
+                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
+                  </jvmParamSet>
+                  <jvmParamSet name="verbose-gc">
+                    <jvmParams>
+                      -XX:+PrintGCDetails 
+                      -XX:+PrintGCTimeStamps 
+                      -XX:+PrintTenuringDistribution 
+                      </jvmParams>
+                  </jvmParamSet>
+                  <jvmParamSet name="flight-recorder">
+                    <jvmParams>
+                      -XX:+UnlockCommercialFeatures 
+                      -XX:+FlightRecorder 
+                      -XX:StartFlightRecording=name=CardholderMaster11Recording,settings=profile 
+                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${targetXvm::flight}-recording.jfr
+                      </jvmParams>
+                  </jvmParamSet>
+                </jvmParamSets>
+              </jvm>
+            </provisioning>
+          </xvm>
+        </templates>
 
-    <apps>
-        <app name="vehicle-master" mainClass="com.neeve.geofencer.VehicleMaster">
-            <messaging>
-                <factories>
-                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
-                </factories>
-                <bus name="vehicle-master">
-                    <channels>
-                        <channel name="master-requests" join="true" />
-                        <channel name="master-events" join="false" />
-                    </channels>
-                </bus>
-            </messaging>
-            <storage>
-                <factories>
-                    <factory name="com.neeve.geofencer.vehiclemaster.state.StateFactory"/>
-                </factories>
-                <persistenceQuorum>1</persistenceQuorum>
-                <persistence enabled="true">
-                    <detachedPersist enabled="false"/>
-                    <autoRepair>true</autoRepair>
-                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
-                </persistence>
-                <clustering enabled="true">
-                    <detachedSend enabled="true"/>
-                    <detachedDispatch enabled="true"/>
-                </clustering>
-            </storage>
-            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        </app>
+        <xvm name="vehicle-event-sender" template="xvm-template">
+          <env>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[1]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[2]</INPUT_MULTIPLEXER_CPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.12</host>
+          </provisioning>
+        </xvm>
 
-        <app name="vehicle-event-processor" mainClass="com.neeve.geofencer.VehicleEventProcessor">
-            <messaging>
-                <factories>
-                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
-                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
-                </factories>
-                <bus name="vehicle-event-processor">
-                    <channels>
-                        <channel name="processor-events" join="true"/>
-                    </channels>
-                </bus>
-                <bus name="alerts">
-                    <channels>
-                        <channel name="alerts" join="false"/>
-                    </channels>
-                </bus>
-                <bus name="vehicle-master">
-                    <channels>
-                        <channel name="master-requests" join="false"/>
-                        <channel name="master-events" join="true"/>
-                    </channels>
-                </bus>
-            </messaging>
-            <storage>
-                <factories>
-                    <factory name="com.neeve.geofencer.state.StateFactory"/>
-                </factories>
-                <persistenceQuorum>1</persistenceQuorum>
-                <persistence enabled="true">
-                    <detachedPersist enabled="false"/>
-                    <autoRepair>true</autoRepair>
-                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
-                </persistence>
-                <clustering enabled="true">
-                    <detachedSend enabled="true"/>
-                    <detachedDispatch enabled="true"/>
-                </clustering>
-            </storage>
-            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        </app>
+        <xvm name="vehicle-alert-receiver" template="xvm-template">
+          <env>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[10]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[12]</INPUT_MULTIPLEXER_CPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.12</host>
+          </provisioning>
+        </xvm>
 
-        <app name="vehicle-event-sender" mainClass="com.neeve.geofencer.VehicleEventSender">
-            <messaging>
-                <factories>
-                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
-                    <factory name="com.neeve.geofencer.vehiclemaster.messages.MessageFactory"/>
-                </factories>
-                <bus name="vehicle-event-processor">
-                    <channels>
-                        <channel name="processor-events" join="false" />
-                    </channels>
-                </bus>
-                <bus name="vehicle-master">
-                    <channels>
-                        <channel name="master-requests" join="false" />
-                        <channel name="master-events" join="true" />
-                    </channels>
-                </bus>
-            </messaging>
-            <storage>
-                <persistence enabled="false" />
-                <clustering enabled="false"/>
-            </storage>
-            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        </app>
+        <xvm name="vehicle-event-processor-1" template="xvm-template">
+          <env>
+            <STORE_IFADDRESS>192.168.2.13</STORE_IFADDRESS>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[1]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[2]</INPUT_MULTIPLEXER_CPUAFFMASK>
+            <STORE_READER_CPUAFFMASK>[3]</STORE_READER_CPUAFFMASK>
+            <STORE_SENDER_CPUAFFMASK>[4]</STORE_SENDER_CPUAFFMASK>
+            <STORE_DISPATCHER_CPUAFFMASK>[5]</STORE_DISPATCHER_CPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.13</host>
+          </provisioning>
+        </xvm>
 
-        <app name="vehicle-alert-receiver" mainClass="com.neeve.geofencer.VehicleAlertReceiver">
-            <messaging>
-                <factories>
-                    <factory name="com.neeve.geofencer.messages.MessageFactory"/>
-                </factories>
-                <bus name="alerts">
-                    <channels>
-                        <channel name="alerts" join="true"/>
-                    </channels>
-                </bus>
-            </messaging>
-            <storage>
-                <persistence enabled="false"/>
-                <clustering enabled="false"/>
-            </storage>
-            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        </app>
-    </apps>
+        <xvm name="vehicle-event-processor-2" template="xvm-template">
+          <env>
+            <STORE_IFADDRESS>192.168.2.14</STORE_IFADDRESS>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[10]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[11]</INPUT_MULTIPLEXER_CPUAFFMASK>
+            <STORE_READER_CPUAFFMASK>[12]</STORE_READER_CPUAFFMASK>
+            <STORE_SENDER_CPUAFFMASK>[13]</STORE_SENDER_CPUAFFMASK>
+            <STORE_DISPATCHER_CPUAFFMASK>[14]</STORE_DISPATCHER_CPUAFFMASK>
+            <BLACKBIRD1_IOTHRCPUAFFMASK></BLACKBIRD1_IOTHRCPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.14</host>
+          </provisioning>
+        </xvm>
 
-    <servers>
-        <server name="vehicle-event-processor-1">
-            <apps>
-                <app name="vehicle-event-processor" autoStart="true"/>
-            </apps>
-        </server>
-        <server name="vehicle-event-processor-2">
-            <apps>
-                <app name="vehicle-event-processor" autoStart="true"/>
-            </apps>
-        </server>
-        <server name="vehicle-event-sender">
-            <apps>
-                <app name="vehicle-event-sender" autoStart="true"/>
-            </apps>
-        </server>
-        <server name="vehicle-alert-receiver">
-            <apps>
-                <app name="vehicle-alert-receiver" autoStart="true"/>
-            </apps>
-        </server>
-        <server name="vehicle-master-1">
-            <apps>
-                <app name="vehicle-master" autoStart="true"/>
-            </apps>
-        </server>
-        <server name="vehicle-master-2">
-            <apps>
-                <app name="vehicle-master" autoStart="true"/>
-            </apps>
-        </server>
-    </servers>
+        <xvm name="vehicle-master-1" template="xvm-template">
+          <env>
+            <STORE_IFADDRESS>192.168.2.14</STORE_IFADDRESS>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[1]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[2]</INPUT_MULTIPLEXER_CPUAFFMASK>
+            <STORE_READER_CPUAFFMASK>[3]</STORE_READER_CPUAFFMASK>
+            <STORE_SENDER_CPUAFFMASK>[4]</STORE_SENDER_CPUAFFMASK>
+            <STORE_DISPATCHER_CPUAFFMASK>[5]</STORE_DISPATCHER_CPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.14</host>
+          </provisioning>
+        </xvm>
+        <xvm name="vehicle-master-2" template="xvm-template">
+          <env>
+            <STORE_IFADDRESS>192.168.2.13</STORE_IFADDRESS>
+            <nv>
+              <enablecpuaffinitymasks>${geofencer.enablecpuaffinitymasks::false}</enablecpuaffinitymasks>
+              <defaultcpuaffinitymask>[10]</defaultcpuaffinitymask>
+            </nv>
+            <INPUT_MULTIPLEXER_CPUAFFMASK>[11]</INPUT_MULTIPLEXER_CPUAFFMASK>
+            <STORE_READER_CPUAFFMASK>[12]</STORE_READER_CPUAFFMASK>
+            <STORE_SENDER_CPUAFFMASK>[13]</STORE_SENDER_CPUAFFMASK>
+            <STORE_DISPATCHER_CPUAFFMASK>[14]</STORE_DISPATCHER_CPUAFFMASK>
+          </env>
+          <provisioning>
+            <host>192.168.1.13</host>
+          </provisioning>
+        </xvm>
+      </xvms>
+    </profile>
+
+    <profile name="direct-messaging">
+      <activation>
+        <properties>
+          <geofencer-bus-provider>direct</geofencer-bus-provider>
+        </properties>
+      </activation>
+      <env>
+        <vehicleevent.bus.descriptor>direct://vehicle-event-processor</vehicleevent.bus.descriptor>
+        <vehiclemaster.bus.descriptor>direct://vehicle-master</vehiclemaster.bus.descriptor>
+        <vehiclealerts.bus.descriptor>direct://vehicle-alert-receiver</vehiclealerts.bus.descriptor>
+      </env>
+    </profile>
+
+    <profile name="solace-messaging">
+      <activation>
+        <properties>
+          <geofencer-bus-provider>solace</geofencer-bus-provider>
+        </properties>
+      </activation>
+      <env>
+        <vehicleevent.bus.descriptor>solace://${SOLACE_ADDRESS::localhost:55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=1</vehicleevent.bus.descriptor>
+        <vehiclemaster.bus.descriptor>solace://${SOLACE_ADDRESS::localhost:55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=1</vehiclemaster.bus.descriptor>
+        <vehiclealerts.bus.descriptor>solace://${SOLACE_ADDRESS::localhost:55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=1</vehiclealerts.bus.descriptor>
+      </env>
+    </profile>
+
+    <profile name="kafka-messaging">
+      <activation>
+        <properties>
+          <geofencer-bus-provider>kafka</geofencer-bus-provider>
+        </properties>
+      </activation>
+      <env>
+        <vehicleevent.bus.descriptor>kafka://${KAFKA_ADDRESS::localhost:9092}</vehicleevent.bus.descriptor>
+        <vehiclemaster.bus.descriptor>kafka://${KAFKA_ADDRESS::localhost:9092}</vehiclemaster.bus.descriptor>
+        <vehiclealerts.bus.descriptor>kafka://${KAFKA_ADDRESS::localhost:9092}</vehiclealerts.bus.descriptor>
+      </env>
+    </profile>
+
+  </profiles>
 </model>

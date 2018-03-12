@@ -52,7 +52,7 @@ final public class Market extends TopicOrientedApplication {
 
         @Override
         public final void locateServices(final Set<URL> urls) throws Exception {
-            urls.add(new File(XRuntime.getRootDirectory(), "conf/services/marketService.xml").toURI().toURL());
+            urls.add(new File(XRuntime.getRootDirectory(), "resources/services/marketService.xml").toURI().toURL());
         }
     }
 

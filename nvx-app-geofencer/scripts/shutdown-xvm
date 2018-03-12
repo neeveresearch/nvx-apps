@@ -1,0 +1,8 @@
+##DISPLAYNAME Shutdown XVM ...
+##DESCRIPTION Shuts down an XVM
+##VAR xvmName [displayName="XVM Name", type=String, validValues="vehicle-event-sender,vehicle-event-processor-1,vehicle-event-processor-2,vehicle-alert-receiver,vehicle-master-1,vehicle-master-2", description="The name of the XVM to launch"] 
+
+assume launch-xvm has run
+
+// shutdown the xvm
+shutdown the ${xvmName::vehicle-event-sender} xvm

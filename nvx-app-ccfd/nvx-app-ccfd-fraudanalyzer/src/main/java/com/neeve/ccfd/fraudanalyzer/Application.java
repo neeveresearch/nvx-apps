@@ -15,7 +15,12 @@ import com.neeve.util.UtlTime;
 import com.neeve.stats.StatsFactory;
 
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
-import com.neeve.ccfd.messages.AuthorizationResponseMessage;
+import com.neeve.ccfd.messages.PaymentTransactionDTO;
+import com.neeve.ccfd.messages.TransformedPaymentTransactionDTO;
+import com.neeve.ccfd.util.UtlCommon;
+import com.neeve.cli.annotations.Configured;
+import com.neeve.ccfd.messages.AuthorizationApprovedMessage;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.ccfd.fraudanalyzer.state.Repository;
 
 @AppHAPolicy(value = AepEngine.HAPolicy.StateReplication)
@@ -26,11 +31,17 @@ public class Application {
     @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
+    @Configured(property = "cardholdermaster.numShards")
+    private int cardholderMasterNumShards;
+
+    @Configured(property = "cardmaster.numShards")
+    private int cardMasterNumShards;
+
     private boolean simulateHardwareAcceleratedFraudCheck() {
         long ts = System.nanoTime();
         while ((System.nanoTime() - ts) < 100000)
             ;
-        return false;
+        return true;
     }
 
     @AppStateFactoryAccessor
@@ -58,12 +69,44 @@ public class Application {
          * This is where one would do the test with the statistical model accelerated by hardware. 
          * In the code here, we simulate the fraud check by sleeping for 100 microseconds.  
          ****/
-        AuthorizationResponseMessage authorizationResponseMessage = AuthorizationResponseMessage.create();
-        authorizationResponseMessage.setFlowStartTs(message.getFlowStartTs());
-        authorizationResponseMessage.setRequestIdFrom(message.getRequestIdUnsafe());
-        authorizationResponseMessage.setDecision(simulateHardwareAcceleratedFraudCheck());
-        authorizationResponseMessage.setDecisionScore(0);
-        _messageSender.sendMessage("authresp", authorizationResponseMessage);
+        if (!simulateHardwareAcceleratedFraudCheck()) {
+            AuthorizationDeclinedMessage authorizationResponseMessage = AuthorizationDeclinedMessage.create();
+            authorizationResponseMessage.setFlowStartTs(message.getFlowStartTs());
+            authorizationResponseMessage.setRequestIdFrom(message.getRequestIdUnsafe());
+            authorizationResponseMessage.setDecisionScore(0);
+            authorizationResponseMessage.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
+            final PaymentTransactionDTO transactionDetails = PaymentTransactionDTO.create();
+            final TransformedPaymentTransactionDTO sourceDetails = message.getNewTransaction();
+            transactionDetails.setCardNumberFrom(sourceDetails.getCardNumberUnsafe());
+            transactionDetails.setMerchantIdFrom(sourceDetails.getMerchantIdUnsafe());
+            transactionDetails.setMerchantStoreIdFrom(sourceDetails.getMerchantStoreIdUnsafe());
+            transactionDetails.setTransactionIdFrom(sourceDetails.getTransactionIdUnsafe());
+            transactionDetails.setAmount(sourceDetails.getAmount());
+            transactionDetails.setCardTransactionSequenceNumber(sourceDetails.getCardTransactionSequenceNumber());
+            authorizationResponseMessage.setNewTransaction(transactionDetails);
+            _messageSender.sendMessage("authresp", authorizationResponseMessage,
+                                       UtlCommon.getShardKey(authorizationResponseMessage.getCardHolderId(), cardholderMasterNumShards) + "/" +
+                                               UtlCommon.getShardKey(authorizationResponseMessage.getNewTransaction().getCardNumber(), cardMasterNumShards));
+        }
+        else {
+            AuthorizationApprovedMessage authorizationResponseMessage = AuthorizationApprovedMessage.create();
+            authorizationResponseMessage.setFlowStartTs(message.getFlowStartTs());
+            authorizationResponseMessage.setRequestIdFrom(message.getRequestIdUnsafe());
+            authorizationResponseMessage.setDecisionScore(0);
+            authorizationResponseMessage.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
+            final PaymentTransactionDTO transactionDetails = PaymentTransactionDTO.create();
+            final TransformedPaymentTransactionDTO sourceDetails = message.getNewTransaction();
+            transactionDetails.setCardNumberFrom(sourceDetails.getCardNumberUnsafe());
+            transactionDetails.setMerchantIdFrom(sourceDetails.getMerchantIdUnsafe());
+            transactionDetails.setMerchantStoreIdFrom(sourceDetails.getMerchantStoreIdUnsafe());
+            transactionDetails.setTransactionIdFrom(sourceDetails.getTransactionIdUnsafe());
+            transactionDetails.setAmount(sourceDetails.getAmount());
+            transactionDetails.setCardTransactionSequenceNumber(sourceDetails.getCardTransactionSequenceNumber());
+            authorizationResponseMessage.setNewTransaction(transactionDetails);
+            _messageSender.sendMessage("authresp", authorizationResponseMessage,
+                                       UtlCommon.getShardKey(authorizationResponseMessage.getCardHolderId(), cardholderMasterNumShards) + "/" +
+                                               UtlCommon.getShardKey(authorizationResponseMessage.getNewTransaction().getCardNumber(), cardMasterNumShards));
+        }
 
         authorizationProcessingLatencies.add(UtlTime.now() - start);
     }

@@ -1,0 +1,18 @@
+##DISPLAYNAME Launch All
+##DESCRIPTION Launches all XVMs in the system
+
+assume provision has run
+
+// launch the vehicle master clusters 
+launch the vehicle-master-1 xvm on numa node 0
+launch the vehicle-master-2 xvm on numa node 1
+
+// launch the vehicle alert receiver 
+launch the vehicle-alert-receiver xvm on numa node 1
+
+// launch the vehicle event processor cluster
+launch the vehicle-event-processor-1 xvm on numa node 0
+launch the vehicle-event-processor-2 xvm on numa node 1
+
+// launch the vehicle event sender
+launch the vehicle-event-sender xvm on numa node 0

@@ -5,6 +5,10 @@
         <factory name="MessageFactory" id="1"/>
     </factories>
 
+    <types>
+      <type name="CreditCardNumber" base="String"/>
+    </types>
+
     <messages>
         <message name="AuthorizationRequestMessage" factoryid="1" id="10">
         	<field name="requestId" type="String" id="10" doc="Unique ID of verification request."/>
@@ -24,11 +28,20 @@
             <field name="merchantStorePostcode" type="String" doc="This is set after lookup by merchant id is performed."/>
         </message>
         
-        <message name="AuthorizationResponseMessage" factoryid="1" id="30">
+        <message name="AuthorizationApprovedMessage" factoryid="1" id="30">
         	<field name="requestId" type="String" id="10" doc="Unique ID of verification request for which this response is generated."/>
         	<field name="flowStartTs" type="Long" id="60" doc="Timestamp at the start of the message flow."/>
-        	<field name="decision" type="Boolean" id="70" doc="Classifies transaction as either fraud if true or not if false."/>
         	<field name="decisionScore" type="Float" id="80" doc="Heuristic value used to determine result, if applicable."/>
+          <field name="cardHolderId" id="90" type="String" doc="This is set after lookup by card number is performed."/>
+          <field name="newTransaction" type="PaymentTransactionDTO" id="100" doc="The approved transaction details."/>
+        </message>
+        
+        <message name="AuthorizationDeclinedMessage" factoryid="1" id="31">
+          <field name="requestId" type="String" id="10" doc="Unique ID of verification request for which this response is generated."/>
+          <field name="flowStartTs" type="Long" id="60" doc="Timestamp at the start of the message flow."/>
+          <field name="decisionScore" type="Float" id="80" doc="Heuristic value used to determine result, if applicable."/>
+          <field name="cardHolderId" id="90" type="String" doc="This is set after lookup by card number is performed."/>
+          <field name="newTransaction" type="PaymentTransactionDTO" id="100" doc="The declined transaction details."/>
         </message>
         
         <message name="NewCardHolderMessage" factoryid="1" id="200">
@@ -68,19 +81,16 @@
     
     <entities>
         <entity name="PaymentTransactionDTO" asEmbedded="true" factoryid="1" id="300">
-        	<field name="transactionId" type="String" id="10" />
-        	<field name="cardNumber" type="String" id="20" />
-            <field name="amount" type="Double" id="30" />
-            <field name="merchantId" type="String" id="40" />
-            <field name="merchantStoreId" type="String" id="50" />
+            <field name="transactionId" type="String" id="10" />
+            <field name="cardNumber" type="CreditCardNumber" id="20" doc="The card number for the transaction."/>
+            <field name="amount" type="Double" id="30" doc="The transaction amount"/>
+            <field name="merchantId" type="String" id="40" doc="Id of merchant."/>
+            <field name="merchantStoreId" type="String" id="50" doc="Id of store, unique at least within merchant."/>
+            <field name="cardTransactionSequenceNumber" type="Long" id="60" doc="A contiguously increasing sequence number for each approved transaction in a card's history."/>
         </entity>
 
         <entity name="TransformedPaymentTransactionDTO" asEmbedded="true" factoryid="1" id="310">
-            <field name="transactionId" type="String" id="10" />
-            <field name="cardNumber" type="String" id="20" />
-            <field name="amount" type="Double" id="30" />
-            <field name="merchantId" type="String" id="40" />
-            <field name="merchantStoreId" type="String" id="50" />
+            <inline ref="PaymentTransactionDTO"/>
 
             <!-- 
                 Fields below are transaction data that is in some way interesting for fraud detection 
