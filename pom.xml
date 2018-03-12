@@ -22,7 +22,7 @@
   </licenses>
 
   <properties>
-    <nvx.platform.version>3.8.0</nvx.platform.version>
+    <nvx.platform.version>3.8.1</nvx.platform.version>
   </properties>
 
   <modules>
