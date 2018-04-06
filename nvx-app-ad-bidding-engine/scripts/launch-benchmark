@@ -8,6 +8,9 @@
 ##VAR numAdRequests [displayName="Ad Requests Send Count", type=int, defaultValue=100000, description="The number of ad requests to send"] 
 ##VAR adRequestRate [displayName="Ad Request Rate", type=int, defaultValue=1000, description="The rate at which to send in ad requests"] 
 
+assume launch-all has run
+shutdown
+
 provision all xvms
 configure all xvms
 deploy to all xvms
