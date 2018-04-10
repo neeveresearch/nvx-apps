@@ -8,9 +8,20 @@
 ##VAR numAdRequests [displayName="Ad Requests Send Count", type=int, defaultValue=100000, description="The number of ad requests to send"] 
 ##VAR adRequestRate [displayName="Ad Request Rate", type=int, defaultValue=1000, description="The rate at which to send in ad requests"] 
 
+assume launch-all has run
+shutdown
+
 provision all xvms
 configure all xvms
 deploy to all xvms
+
+// launch all xvms
+launch the dsp-1 xvm on numa node 1
+launch the dmp-1 xvm on numa node 0
+launch the ssp-1 xvm on numa node 0
+launch the ad-exchange-1 xvm on numa node 1
+launch the ad-exchange-2 xvm on numa node 1
+launch the driver-1 xvm on numa node 0
 
 // clear out old data
 instruct the driver app in the driver-1 xvm to clearVisitors
