@@ -93,7 +93,7 @@
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
 
-      <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${DRIVER_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
       </inboundEventMultiplexing>
@@ -114,7 +114,7 @@
             <channel name="ad_requests" join="false" />
           </channels>
           <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${DRIVER_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            <queueDrainerCpuAffinityMask>${SSP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
           </detachedSend>
         </bus>
       </messaging>
@@ -135,7 +135,7 @@
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
 
-      <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${SSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
       </inboundEventMultiplexing>
@@ -194,7 +194,7 @@
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${AD_EXCHANGE_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
       </inboundEventMultiplexing>
@@ -230,7 +230,7 @@
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${DMP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
       </inboundEventMultiplexing>
@@ -267,7 +267,7 @@
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${DSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
       </inboundEventMultiplexing>
@@ -545,9 +545,17 @@
                   <javaHome>${JAVA_HOME_ZING_1_8_0}</javaHome>
                   <jvmParamSets>
                     <jvmParamSet name="zing-license">
-                       <jvmParams>
-                         -XX:ZingLicenseFile=%XVMRUNDIR%/resources/license/zing/license -XX:+JNIDetachThreadsIfNotDetached
-                       </jvmParams>
+                      <jvmParams>
+                        -XX:ZingLic=/opt/zing/license/nvx-zing-neeve-xplatform-support-1.0.0.jar
+                      </jvmParams>
+                    </jvmParamSet>
+                    <jvmParamSet name="jvm-tuning-params">
+                      <jvmParams>
+                        -XX:+UseC2
+                        -XX:+JNIDetachThreadsIfNotDetached
+                        -XX:GenPauselessNewThreads=2
+                        -XX:GenPauselessOldThreads=3
+                      </jvmParams>
                     </jvmParamSet>
                     <jvmParamSet name="flight-recorder" order="0">
                       <jvmParams></jvmParams>
