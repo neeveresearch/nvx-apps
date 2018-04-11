@@ -92,7 +92,6 @@
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
-
       <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${DRIVER_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
@@ -134,7 +133,6 @@
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <captureEventLatencyStats>true</captureEventLatencyStats>
       <captureMessageTypeStats>true</captureMessageTypeStats>
-
       <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
       <inboundEventMultiplexing>
         <queueDrainerCpuAffinityMask>${SSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
