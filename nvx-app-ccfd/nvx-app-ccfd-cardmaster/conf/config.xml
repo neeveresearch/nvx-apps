@@ -30,35 +30,35 @@
       <channels>
         <channel name="authreq" id="1">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="authreq2" id="2">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
         </channel>
         <channel name="authreq3" id="3">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authreq4" id="4">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${fraudanalyzerShardId}</key>
+          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authresp" id="5">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="card-events" id="6">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="cardholder-events" id="7">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="merchant-events" id="8">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
         </channel>
       </channels>
     </bus>
@@ -89,11 +89,11 @@
         <bus name="ccfd">
           <channels>
             <channel name="authreq" join="true">
-              <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
+              <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
             </channel>
             <channel name="authreq2" join="false" />
             <channel name="card-events" join="true">
-              <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
+              <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
             </channel>
           </channels>
         </bus>
@@ -146,11 +146,17 @@
       </xvm>
     </templates>
     <xvm name="cardmaster-1" displayName="Card Master Primary" template="xvm-template">
+      <env>
+        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+      </env>
       <apps>
         <app name="cardmaster" autoStart="true" />
       </apps>
     </xvm>
     <xvm name="cardmaster-2" displayName="Card Master Backup" template="xvm-template">
+      <env>
+        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+      </env>
       <apps>
         <app name="cardmaster" autoStart="true" />
       </apps>

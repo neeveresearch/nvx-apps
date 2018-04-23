@@ -35,38 +35,38 @@
         <bus name="ccfd"
             descriptor="${CCFD_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2}">
             <channels>
-                <channel name="authreq" id="1">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${cardMasterShardId}</key>
-                </channel>
-                <channel name="authreq2" id="2">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${merchantMasterShardId}</key>
-                </channel>
-                <channel name="authreq3" id="3">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${cardholderMasterShardId}</key>
-                </channel>
-                <channel name="authreq4" id="4">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${fraudanalyzerShardId}</key>
-                </channel>
-                <channel name="authresp" id="5">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
-                </channel>
-                <channel name="card-events" id="6">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${cardMasterShardId}</key>
-                </channel>
-                <channel name="cardholder-events" id="7">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${cardholderMasterShardId}</key>
-                </channel>
-                <channel name="merchant-events" id="8">
-                    <qos>${CCFD_QOS::Guaranteed}</qos>
-                    <key>${merchantMasterShardId}</key>
-                </channel>
+              <channel name="authreq" id="1">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
+              </channel>
+              <channel name="authreq2" id="2">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
+              </channel>
+              <channel name="authreq3" id="3">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
+              </channel>
+              <channel name="authreq4" id="4">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 2)]</key>
+              </channel>
+              <channel name="authresp" id="5">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]/#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
+              </channel>
+              <channel name="card-events" id="6">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
+              </channel>
+              <channel name="cardholder-events" id="7">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
+              </channel>
+              <channel name="merchant-events" id="8">
+                <qos>${CCFD_QOS::Guaranteed}</qos>
+                <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
+              </channel>
             </channels>
         </bus>
     </buses>
@@ -85,12 +85,12 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq3" join="true">
-                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq4" join="false" />
                         <channel name="authresp" join="false" />
                         <channel name="cardholder-events" join="true">
-                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -122,12 +122,12 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq3" join="true">
-                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::1}</filter>
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq4" join="false" />
                         <channel name="authresp" join="false" />
                         <channel name="cardholder-events" join="true">
-                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::1}</filter>
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -159,11 +159,11 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq" join="true">
-                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq2" join="false"/>
                         <channel name="card-events" join="true">
-                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::0}</filter>
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -193,11 +193,11 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq" join="true">
-                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::1}</filter>
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq2" join="false"/>
                         <channel name="card-events" join="true">
-                            <filter>cardMasterShardId=${CARDMASTER_SHARDID::1}</filter>
+                            <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -227,7 +227,7 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq4" join="true">
-                            <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID::0}</filter>
+                            <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID}</filter>
                         </channel>
                         <channel name="authresp" join="false"/>
                     </channels>
@@ -258,7 +258,7 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq4" join="true">
-                            <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID::1}</filter>
+                            <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID}</filter>
                         </channel>
                         <channel name="authresp" join="false"/>
                     </channels>
@@ -289,11 +289,11 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq2" join="true">
-                          <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
+                          <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq3" join="false"/>
                         <channel name="merchant-events" join="true">
-                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
+                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -323,11 +323,11 @@
                 <bus name="ccfd">
                     <channels>
                         <channel name="authreq2" join="true">
-                          <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::1}</filter>
+                          <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
                         </channel>
                         <channel name="authreq3" join="false"/>
                         <channel name="merchant-events" join="true">
-                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::1}</filter>
+                            <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
                         </channel>
                     </channels>
                 </bus>
@@ -389,84 +389,132 @@
           </xvm>
         </templates>
         <xvm name="cardholdermaster-1-1" displayName="Cardholder Master 1p" template="xvm-template">
+            <env>
+              <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardholdermaster-1" autoStart="true" />
             </apps>
         </xvm>
         <xvm name="cardholdermaster-1-2" displayName="Cardholder Master 1s" template="xvm-template">
+            <env>
+              <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardholdermaster-1" autoStart="true" />
             </apps>       
         </xvm>
         <xvm name="cardholdermaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
+            <env>
+              <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardholdermaster-2" autoStart="true" />
             </apps>       
         </xvm>
         <xvm name="cardholdermaster-2-2" displayName="Cardholder Master 2s" template="xvm-template" >
+            <env>
+              <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardholdermaster-2" autoStart="true" />
             </apps>       
         </xvm>    
         
         <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
+            <env>
+              <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardmaster-1" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
+            <env>
+              <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardmaster-1" autoStart="true"/>
             </apps>       
         </xvm>        
         <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
+            <env>
+              <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
+            <env>
+              <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="cardmaster-2" autoStart="true"/>
             </apps>       
         </xvm>
 
         <xvm name="fraudanalyzer-1-1" displayName="Fraud Analyzer 1p" template="xvm-template">
+            <env>
+              <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
+            </env>
             <apps>
                 <app name="fraudanalyzer-1" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="fraudanalyzer-1-2" displayName="Fraud Analyzer 1s" template="xvm-template">
+            <env>
+              <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
+            </env>
             <apps>
                 <app name="fraudanalyzer-1" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="fraudanalyzer-2-1" displayName="Fraud Analyzer 2p" template="xvm-template">
+            <env>
+              <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
+            </env>
             <apps>
                 <app name="fraudanalyzer-2" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="fraudanalyzer-2-2" displayName="Fraud Analyzer 2s" template="xvm-template">
+            <env>
+              <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
+            </env>
             <apps>
                 <app name="fraudanalyzer-2" autoStart="true"/>
             </apps>       
         </xvm>
         
         <xvm name="merchantmaster-1-1" displayName="Merchant Master 1p" template="xvm-template">
+            <env>
+              <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="merchantmaster-1" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="merchantmaster-1-2" displayName="Merchant Master 1s" template="xvm-template">
+            <env>
+              <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="merchantmaster-1" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="merchantmaster-2-1" displayName="Merchant Master 2p" template="xvm-template">
+            <env>
+              <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="merchantmaster-2" autoStart="true"/>
             </apps>       
         </xvm>
         <xvm name="merchantmaster-2-2" displayName="Merchant Master 2s" template="xvm-template">
+            <env>
+              <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
+            </env>
             <apps>
                 <app name="merchantmaster-2" autoStart="true"/>
             </apps>       

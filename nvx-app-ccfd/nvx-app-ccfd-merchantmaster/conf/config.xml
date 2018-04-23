@@ -29,34 +29,35 @@
       <channels>
         <channel name="authreq" id="1">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="authreq2" id="2">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
         </channel>
         <channel name="authreq3" id="3">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authreq4" id="4">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${fraudanalyzerShardId}</key>
+          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authresp" id="5">
-          <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+          <qos>${CCFD_QOS::Guaranteed}</qos>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="card-events" id="6">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="cardholder-events" id="7">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="merchant-events" id="8">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
         </channel>
       </channels>
     </bus>
@@ -87,11 +88,11 @@
         <bus name="ccfd">
           <channels>
             <channel name="authreq2" join="true">
-              <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
+              <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
             </channel>
             <channel name="authreq3" join="false" />
             <channel name="merchant-events" join="true">
-              <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID::0}</filter>
+              <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
             </channel>
           </channels>
         </bus>
@@ -144,11 +145,17 @@
       </xvm>
     </templates>
     <xvm name="merchantmaster-1" displayName="Merchant Master Primary" template="xvm-template">
+      <env>
+        <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+      </env>
       <apps>
         <app name="merchantmaster" autoStart="true" />
       </apps>
     </xvm>
     <xvm name="merchantmaster-2" displayName="Merchant Master Backup" template="xvm-template">
+      <env>
+        <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+      </env>
       <apps>
         <app name="merchantmaster" autoStart="true" />
       </apps>
@@ -169,8 +176,8 @@
     <profile name="test">
       <env>
         <nv>
-            <conservecpu>true</conservecpu>
-            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+          <conservecpu>true</conservecpu>
+          <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
         </nv>
         <driver.autoStart>true</driver.autoStart>
         <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
@@ -260,7 +267,7 @@
         </xvm>
       </xvms>
     </profile>
-      
+
     <profile name="solace-messaging">
       <activation>
         <properties>

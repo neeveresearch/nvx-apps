@@ -27,35 +27,35 @@
       <channels>
         <channel name="authreq" id="1">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="authreq2" id="2">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
         </channel>
         <channel name="authreq3" id="3">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authreq4" id="4">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${fraudanalyzerShardId}</key>
+          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authresp" id="5">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="card-events" id="6">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="cardholder-events" id="7">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="merchant-events" id="8">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
         </channel>
       </channels>
     </bus>
@@ -100,7 +100,7 @@
         </heartbeats>
       </xvm>
     </templates>
-    
+
     <xvm name="perfdriver-1" displayName="Perf Test Driver" template="xvm-template">
       <env>
         <nv.time.useepochoffset>false</nv.time.useepochoffset>
@@ -115,8 +115,8 @@
     <profile name="test">
       <env>
         <nv>
-            <conservecpu>true</conservecpu>
-            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+          <conservecpu>true</conservecpu>
+          <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
         </nv>
         <driver.autoStart>true</driver.autoStart>
         <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
