@@ -3,9 +3,11 @@
 
 assume provision has run
 
-// launch the processor cluster 
-launch the merchantmaster-1 xvm
-launch the merchantmaster-2 xvm
+// launch the processor clusters
+launch the merchantmaster-1-1 xvm
+launch the merchantmaster-2-1 xvm
+launch the merchantmaster-1-2 xvm
+launch the merchantmaster-2-2 xvm
 
 // Launch the receiver driver
 launch the merchantmaster-receive-driver xvm

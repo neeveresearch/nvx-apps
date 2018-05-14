@@ -12,7 +12,6 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 
 import com.neeve.server.embedded.EmbeddedXVM;
-import com.neeve.util.UtlEnv;
 import com.neeve.util.UtlFile;
 
 public class AbstractTest {
@@ -73,8 +72,7 @@ public class AbstractTest {
     @SuppressWarnings("unchecked")
     public <T> T startApp(Class<T> appClass, String appName, String xvmName, Properties env) throws Throwable {
         URL ddlConfig = new File(getProjectBaseDirectory(), "/conf/config.xml").toURI().toURL();
-        env.setProperty("x.env.nv.data.directory", "rdat/" + xvmName);
-        UtlEnv.reset();
+        env.setProperty("x.env.nv.data.directory", new File(getTestbedRoot(), "rdat/" + xvmName).getCanonicalPath());
         EmbeddedXVM xvm = EmbeddedXVM.create(ddlConfig, xvmName, env);
         xvms.add(xvm);
         xvm.start();

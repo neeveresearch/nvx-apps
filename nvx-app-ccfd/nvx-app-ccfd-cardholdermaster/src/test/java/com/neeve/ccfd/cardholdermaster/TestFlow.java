@@ -17,10 +17,11 @@ public class TestFlow extends AbstractTest {
         // configure
         Properties env = new Properties();
         env.put("nv.ddl.profiles", "test");
-        env.put("x.apps.cardholdermaster.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.cardholdermaster-app-template.storage.clustering.enabled", "false");
 
         // start the processor
-        startApp(Application.class, "cardholdermaster-1", "cardholdermaster-1", env);
+        startApp(Application.class, "cardholdermaster-1", "cardholdermaster-1-1", env);
+
         // start the receiver
         ReceiveDriver receiver = startApp(ReceiveDriver.class, "cardholdermaster-receive-driver", "cardholdermaster-receive-driver", env);
         Thread.sleep(1000);
