@@ -18,10 +18,10 @@ public class TestFlow extends AbstractTest {
         // configure
         Properties env = new Properties();
         env.put("nv.ddl.profiles", "test");
-        env.put("x.apps.fraudanalyzer.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.fraudanalyzer-app-template.storage.clustering.enabled", "false");
 
         // start the processor
-        startApp(Application.class, "fraudanalyzer-1", "fraudanalyzer-1", env);
+        startApp(Application.class, "fraudanalyzer-1", "fraudanalyzer-1-1", env);
 
         // start the receiver
         ReceiveDriver receiver = startApp(ReceiveDriver.class, "fraudanalyzer-receive-driver", "fraudanalyzer-receive-driver", env);

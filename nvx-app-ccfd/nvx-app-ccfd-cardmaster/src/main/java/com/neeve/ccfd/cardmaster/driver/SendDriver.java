@@ -3,9 +3,9 @@ package com.neeve.ccfd.cardmaster.driver;
 import java.util.Random;
 
 import com.neeve.ccfd.messages.NewCardMessage;
+import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
@@ -34,9 +34,6 @@ public class SendDriver {
     private final XLinkedList<String> addedCardNumbers = new XLinkedList<String>();
     private volatile AepMessageSender messageSender;
 
-    @Configured(property = "cardmaster.numShards")
-    private int cardMasterNumShards;
-
     @AppInjectionPoint
     final public void setMessageSender(AepMessageSender messageSender) {
         this.messageSender = messageSender;
@@ -51,7 +48,7 @@ public class SendDriver {
             newCardMessage.setRequestId(TestDataGenerator.generateId());
             newCardMessage.setCardNumber(cardNumber);
             newCardMessage.setCardHolderId(TestDataGenerator.generateId());
-            messageSender.sendMessage("card-events", newCardMessage, UtlCommon.getShardKey(cardNumber, cardMasterNumShards));
+            messageSender.sendMessage("card-events", newCardMessage);
         }
     }
 
@@ -61,13 +58,17 @@ public class SendDriver {
         UtlGovernor.run(count, rate, new Runnable() {
             @Override
             public void run() {
+                PaymentTransactionDTO transaction = testDataGenerator.generateTransactionMessage(addedCardNumbers.get(random.nextInt(addedCardNumbers.size())),
+                                                                                                 TestDataGenerator.generateId(),
+                                                                                                 TestDataGenerator.generateId());
+
                 AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                 message.setFlowStartTs(UtlTime.now());
                 message.setRequestId(TestDataGenerator.generateId());
-                message.setNewTransaction(testDataGenerator.generateTransactionMessage(addedCardNumbers.get(random.nextInt(addedCardNumbers.size())),
-                                                                                       TestDataGenerator.generateId(),
-                                                                                       TestDataGenerator.generateId()));
-                messageSender.sendMessage("authreq", message, UtlCommon.getShardKey(message.getNewTransaction().getCardNumber(), cardMasterNumShards));
+                message.setCardNumberFrom(transaction.getCardNumberUnsafe());
+                message.setMerchantIdFrom(transaction.getMerchantIdUnsafe());
+                message.setNewTransaction(transaction);
+                messageSender.sendMessage("authreq", message);
                 sentCount.increment();
             }
         });

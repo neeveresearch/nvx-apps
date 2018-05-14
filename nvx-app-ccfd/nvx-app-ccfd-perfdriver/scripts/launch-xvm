@@ -1,6 +1,6 @@
 ##DISPLAYNAME Launch XVM ...
 ##DESCRIPTION Launches an XVM
-##VAR xvmName [displayName="XVM Name", type=String, validValues="perfdriver-1,perfdriver-2,perfdriver-send-driver,perfdriver-receive-driver", description="The name of the XVM to launch"] 
+##VAR xvmName [displayName="XVM Name", type=String, validValues="perfdriver-1,perfdriver-send-driver,perfdriver-receive-driver", description="The name of the XVM to launch"] 
 
 assume provision has run
 

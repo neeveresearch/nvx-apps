@@ -1,6 +1,6 @@
 ##DISPLAYNAME Launch XVM ...
 ##DESCRIPTION Launches an XVM
-##VAR xvmName [displayName="XVM Name", type=String, validValues="cardmaster-1,cardmaster-2,cardmaster-send-driver,cardmaster-receive-driver", description="The name of the XVM to launch"] 
+##VAR xvmName [displayName="XVM Name", type=String, validValues="cardmaster-1-1,cardmaster-1-2,cardmaster-2-1,cardmaster-2-2,cardmaster-send-driver,cardmaster-receive-driver", description="The name of the XVM to launch"] 
 
 assume provision has run
 

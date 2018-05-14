@@ -3,14 +3,4 @@
 
 assume launch-all has run
 
-// stop the send driver
-stop the cardholdermaster-send-driver app in the cardholdermaster-send-driver xvm
-
-// shutdown the processor cluster
-stop the cardholdermaster app in the cardholdermaster-2 xvm
-stop the cardholdermaster app in the cardholdermaster-1 xvm
-
-// stop the receive driver
-stop the cardholdermaster-receive-driver app in the cardholdermaster-receive-driver xvm
-
 shutdown

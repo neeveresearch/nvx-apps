@@ -3,14 +3,4 @@
 
 assume launch-all has run
 
-// stop the send driver
-stop the fraudanalyzer-send-driver app in the fraudanalyzer-send-driver xvm
-
-// shutdown the processor cluster
-stop the fraudanalyzer app in the fraudanalyzer-2 xvm
-stop the fraudanalyzer app in the fraudanalyzer-1 xvm
-
-// stop the receive driver
-stop the fraudanalyzer-receive-driver app in the fraudanalyzer-receive-driver xvm
-
 shutdown

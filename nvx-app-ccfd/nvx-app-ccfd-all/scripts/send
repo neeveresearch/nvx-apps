@@ -6,4 +6,4 @@
 assume provision has run
 
 // launch the processor cluster
-instruct the perfdriver-1 app in the perfdriver-1 xvm to send with ${numMessages::1000} ${sendRate::100}
+instruct the perfdriver app in the perfdriver-1 xvm to send with ${numMessages::1000} ${sendRate::100}
