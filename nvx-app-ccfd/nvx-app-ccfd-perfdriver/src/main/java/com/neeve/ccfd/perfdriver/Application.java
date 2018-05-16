@@ -2,16 +2,24 @@ package com.neeve.ccfd.perfdriver;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.neeve.cli.annotations.Command;
-import com.neeve.cli.annotations.Option;
-import com.neeve.cli.annotations.Configured;
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.annotations.EventHandler;
+import com.neeve.ccfd.messages.AuthorizationApprovedMessage;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
+import com.neeve.ccfd.messages.AuthorizationRequestMessage;
+import com.neeve.ccfd.messages.NewCardHolderMessage;
+import com.neeve.ccfd.messages.NewCardMessage;
+import com.neeve.ccfd.messages.NewMerchantMessage;
+import com.neeve.ccfd.messages.PaymentTransactionDTO;
+import com.neeve.ccfd.util.TestDataGenerator;
+import com.neeve.cli.annotations.Command;
+import com.neeve.cli.annotations.Configured;
+import com.neeve.cli.annotations.Option;
 import com.neeve.lang.XIterator;
 import com.neeve.lang.XLinkedList;
-import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppHAPolicy;
+import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.stats.IStats.Counter;
@@ -19,14 +27,6 @@ import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
 import com.neeve.util.UtlGovernor;
 import com.neeve.util.UtlTime;
-import com.neeve.ccfd.messages.AuthorizationApprovedMessage;
-import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
-import com.neeve.ccfd.messages.AuthorizationRequestMessage;
-import com.neeve.ccfd.messages.NewCardHolderMessage;
-import com.neeve.ccfd.messages.NewCardMessage;
-import com.neeve.ccfd.messages.NewMerchantMessage;
-import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 
 @AppHAPolicy(value = AepEngine.HAPolicy.StateReplication)
 public class Application {
@@ -84,16 +84,18 @@ public class Application {
                             merchantStoreIterator = merchantStoreIterator.toFirst();
                         }
                         governer.blockToNext();
+                        final PaymentTransactionDTO newTransaction = dataGenerator.generateTransactionMessage(cardIterator.next(),
+                                                                                                              merchantIterator.next(),
+                                                                                                              merchantStoreIterator.next());
+
                         AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                         message.setFlowStartTs(UtlTime.now());
                         message.setRequestId(TestDataGenerator.generateId());
-                        message.setNewTransaction(dataGenerator.generateTransactionMessage(cardIterator.next(),
-                                                                                           merchantIterator.next(),
-                                                                                           merchantStoreIterator.next()));
+                        message.setCardNumberFrom(newTransaction.getCardNumberUnsafe());
+                        message.setMerchantIdFrom(newTransaction.getMerchantIdUnsafe());
+                        message.setNewTransaction(newTransaction);
 
-                        _messageSender.sendMessage("authreq",
-                                                   message,
-                                                   UtlCommon.getShardKey(message.getNewTransaction().getCardNumber(), cardMasterNumShards));
+                        _messageSender.sendMessage("authreq", message);
                         authorizationRequestCount.increment();
                     }
                 }
@@ -117,15 +119,6 @@ public class Application {
     private int sendCount;
     @Configured(property = "driver.sendRate")
     private int sendRate;
-
-    @Configured(property = "cardholdermaster.numShards")
-    private int cardholderMasterNumShards;
-
-    @Configured(property = "merchantmaster.numShards")
-    private int merchantMasterNumShards;
-
-    @Configured(property = "cardmaster.numShards")
-    private int cardMasterNumShards;
 
     @AppStat
     private final Counter newCardRequestCount = StatsFactory.createCounterStat("NewCardRequest Sent Count");
@@ -170,10 +163,10 @@ public class Application {
                         newCardMessage.setRequestId(TestDataGenerator.generateId());
                         newCardMessage.setCardNumber(cardNumber);
                         newCardMessage.setCardHolderId(newCardHolderMessage.getCardHolderId());
-                        _messageSender.sendMessage("card-events", newCardMessage, UtlCommon.getShardKey(newCardMessage.getCardNumber(), cardMasterNumShards));
+                        _messageSender.sendMessage("card-events", newCardMessage);
                         newCardRequestCount.increment();
                     }
-                    _messageSender.sendMessage("cardholder-events", newCardHolderMessage, UtlCommon.getShardKey(newCardHolderMessage.getCardHolderId(), cardholderMasterNumShards));
+                    _messageSender.sendMessage("cardholder-events", newCardHolderMessage);
                     newCardHolderRequestCount.increment();
                 }
                 catch (Exception e) {
@@ -198,7 +191,7 @@ public class Application {
                     NewMerchantMessage newMerchantMessage = dataGenerator.generateNewMerchantMessage(1);
                     existingMerchantIds.add(newMerchantMessage.getMerchantId());
                     existingMerchantStoreIds.add(newMerchantMessage.getStoresIterator().next().getStoreId());
-                    _messageSender.sendMessage("merchant-events", newMerchantMessage, UtlCommon.getShardKey(newMerchantMessage.getMerchantId(), merchantMasterNumShards));
+                    _messageSender.sendMessage("merchant-events", newMerchantMessage);
                     newMerchantRequestCount.increment();
                 }
                 catch (Exception e) {

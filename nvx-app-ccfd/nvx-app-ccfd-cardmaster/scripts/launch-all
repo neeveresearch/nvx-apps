@@ -4,8 +4,10 @@
 assume provision has run
 
 // launch the processor cluster 
-launch the cardmaster-1 xvm
-launch the cardmaster-2 xvm
+launch the cardmaster-1-1 xvm
+launch the cardmaster-2-2 xvm
+launch the cardmaster-1-2 xvm
+launch the cardmaster-2-2 xvm
 
 // Launch the receiver driver
 launch the cardmaster-receive-driver xvm

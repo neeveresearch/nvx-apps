@@ -18,10 +18,10 @@ public class TestFlow extends AbstractTest {
         // configure
         Properties env = new Properties();
         env.put("nv.ddl.profiles", "test");
-        env.put("x.apps.merchantmaster.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.merchantmaster-app-template.storage.clustering.enabled", "false");
 
         // start the processor
-        startApp(Application.class, "merchantmaster-1", "merchantmaster-1", env);
+        startApp(Application.class, "merchantmaster-1", "merchantmaster-1-1", env);
 
         // start the receiver
         ReceiveDriver receiver = startApp(ReceiveDriver.class, "merchantmaster-receive-driver", "merchantmaster-receive-driver", env);

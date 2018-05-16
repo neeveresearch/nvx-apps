@@ -8,8 +8,6 @@ import com.neeve.ccfd.cardmaster.state.PaymentCard;
 import com.neeve.ccfd.cardmaster.state.Repository;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.messages.NewCardMessage;
-import com.neeve.ccfd.util.UtlCommon;
-import com.neeve.cli.annotations.Configured;
 import com.neeve.lang.XString;
 import com.neeve.server.app.annotations.AppHAPolicy;
 import com.neeve.server.app.annotations.AppInjectionPoint;
@@ -32,9 +30,6 @@ public class Application {
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
     private AepMessageSender _messageSender;
-
-    @Configured(property = "merchantmaster.numShards")
-    private int merchantMasterNumShards;
 
     @AppStateFactoryAccessor
     final public IAepApplicationStateFactory getStateFactory() {
@@ -80,7 +75,7 @@ public class Application {
         // send message to continue authorization with card holder resolved
         final AuthorizationRequestMessage outMessage = message.copy();
         outMessage.setCardHolderIdFrom(cardHolderId);
-        _messageSender.sendMessage("authreq2", outMessage, UtlCommon.getShardKey(message.getNewTransaction().getMerchantId(), merchantMasterNumShards));
+        _messageSender.sendMessage("authreq2", outMessage);
 
         authorizationProcessingLatencies.add(UtlTime.now() - start);
     }

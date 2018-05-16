@@ -3,9 +3,11 @@
 
 assume provision has run
 
-// launch the processor cluster 
-launch the cardholdermaster-1 xvm
-launch the cardholdermaster-2 xvm
+// launch the cardholdermaster clusters 
+launch the cardholdermaster-1-1 xvm
+launch the cardholdermaster-1-2 xvm
+launch the cardholdermaster-2-1 xvm
+launch the cardholdermaster-2-2 xvm
 
 // Launch the receiver driver
 launch the cardholdermaster-receive-driver xvm

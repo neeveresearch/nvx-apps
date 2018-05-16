@@ -2,11 +2,10 @@ package com.neeve.ccfd.cardholdermaster.driver;
 
 import java.util.Random;
 
-import com.neeve.ccfd.messages.NewCardHolderMessage;
-import com.neeve.ccfd.messages.AuthorizationRequestMessage;
-import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.aep.AepMessageSender;
+import com.neeve.ccfd.messages.AuthorizationRequestMessage;
+import com.neeve.ccfd.messages.NewCardHolderMessage;
+import com.neeve.ccfd.util.TestDataGenerator;
 import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
@@ -28,9 +27,6 @@ public class SendDriver {
     @Configured(property = "driver.sendRate")
     private int sendRate;
 
-    @Configured(property = "cardholdermaster.numShards")
-    private int cardholderMasterNumShards;
-
     @AppStat
     private final Counter sentCount = StatsFactory.createCounterStat("SendDriver Count");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
@@ -48,7 +44,7 @@ public class SendDriver {
         for (int i = 0; i < count; i++) {
             NewCardHolderMessage newCardHolderMessage = testDataGenerator.generateCardHolderMessage(350, 2, TestDataGenerator.generateId(), TestDataGenerator.generateId());
             addedCardHolderIds.add(newCardHolderMessage.getCardHolderId());
-            messageSender.sendMessage("authreq3", newCardHolderMessage, UtlCommon.getShardKey(newCardHolderMessage.getCardHolderId(), cardholderMasterNumShards));
+            messageSender.sendMessage("authreq3", newCardHolderMessage);
         }
     }
 
@@ -66,7 +62,7 @@ public class SendDriver {
                                                                                        TestDataGenerator.generateId(),
                                                                                        TestDataGenerator.generateId()));
                 message.setCardHolderId(addedCardHolderIds.get(random.nextInt(addedCardHolderIds.size())));
-                messageSender.sendMessage("authreq3", message, UtlCommon.getShardKey(message.getCardHolderId(), cardholderMasterNumShards));
+                messageSender.sendMessage("authreq3", message);
                 sentCount.increment();
             }
         });

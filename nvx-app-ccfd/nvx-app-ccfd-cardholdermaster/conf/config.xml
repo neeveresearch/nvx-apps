@@ -2,6 +2,8 @@
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <env>
     <nv>
+      <!-- discovery descriptor -->
+      <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
       <!-- optimize for latency -->
       <optimizefor>latency</optimizefor>
       <aep.trace>info</aep.trace>
@@ -9,6 +11,7 @@
       <!-- global latency stats settings -->
       <msg.latency.stats>true</msg.latency.stats>
       <ods.latency.stats>true</ods.latency.stats>
+      <link.network.stampiots>true</link.network.stampiots>
       <latencymanager.samplesize>10240</latencymanager.samplesize>
     </nv>
 
@@ -23,7 +26,6 @@
     <merchantmaster.numShards>1</merchantmaster.numShards>
     <cardholdermaster.numShards>1</cardholdermaster.numShards>
     <fraudanalyzer.numShards>1</fraudanalyzer.numShards>
-
   </env>
 
   <buses>
@@ -32,41 +34,85 @@
       <channels>
         <channel name="authreq" id="1">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="authreq2" id="2">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
         </channel>
         <channel name="authreq3" id="3">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authreq4" id="4">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${fraudanalyzerShardId}</key>
+          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="authresp" id="5">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}/${cardMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="card-events" id="6">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardMasterShardId}</key>
+          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
         </channel>
         <channel name="cardholder-events" id="7">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${cardholderMasterShardId}</key>
+          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
         </channel>
         <channel name="merchant-events" id="8">
           <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>${merchantMasterShardId}</key>
+          <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
         </channel>
       </channels>
     </bus>
   </buses>
 
   <apps>
+    <templates>
+        <app name="cardholdermaster-app-template" mainClass="com.neeve.ccfd.cardholdermaster.Application" displayName="Cardholder Master">
+            <captureTransactionLatencyStats>true
+            </captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq3" join="true">
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
+                        </channel>
+                        <channel name="authreq4" join="false" />
+                        <channel name="authresp" join="false" />
+                        <channel name="cardholder-events" join="true">
+                            <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
+                        </channel>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage>
+                <factories>
+                    <factory
+                        name="com.neeve.ccfd.cardholdermaster.state.StateFactory" />
+                </factories>
+                <clustering enabled="true">
+                  <localIfAddr>${CARDHOLDERMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                  <storeName>cardholdermaster-${CARDHOLDERMASTER_SHARDID}</storeName>
+                </clustering>
+                <persistence enabled="true">
+                    <!-- detached persist is not supported for state replication -->
+                    <detachedPersist enabled="false"/>
+                </persistence>
+                <queryable>${cardholdermaster.queryTransactions::false}</queryable>
+            </storage>
+            <inboundEventAcknowledgementPolicy>OnStoreStability</inboundEventAcknowledgementPolicy>
+        </app>
+    </templates>
+  
+    <!-- Card Holder App Partitions-->
+    <app name="cardholdermaster-1" template="cardholdermaster-app-template"/>
+    <app name="cardholdermaster-2" template="cardholdermaster-app-template"/>
+  
     <app name="cardholdermaster-send-driver" displayName="Card Holder Master Send Driver" mainClass="com.neeve.ccfd.cardholdermaster.driver.SendDriver">
       <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
       <messaging>
@@ -82,40 +128,6 @@
           </bus>
         </buses>
       </messaging>
-    </app>
-
-    <app name="cardholdermaster" displayName="Card Holder Master" mainClass="com.neeve.ccfd.cardholdermaster.Application">
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ccfd.messages.MessageFactory" />
-        </factories>
-        <buses>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq3" join="true">
-                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
-              </channel>
-              <channel name="authreq4" join="false" />
-              <channel name="authresp" join="false" />
-              <channel name="cardholder-events" join="true">
-                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID::0}</filter>
-              </channel>
-            </channels>
-          </bus>
-        </buses>
-      </messaging>
-      <storage>
-        <factories>
-          <factory name="com.neeve.ccfd.cardholdermaster.state.StateFactory" />
-        </factories>
-        <clustering enabled="true" />
-        <persistence enabled="true">
-          <!-- detached persist is not supported for state replication -->
-          <detachedPersist enabled="false" />
-        </persistence>
-        <queryable>${cardholdermaster.queryTransactions::false}</queryable>
-      </storage>
     </app>
 
     <app name="cardholdermaster-receive-driver" displayName="Card Holder Receive Driver" mainClass="com.neeve.ccfd.cardholdermaster.driver.ReceiveDriver">
@@ -144,7 +156,7 @@
       <xvm name="xvm-template">
         <heartbeats enabled="true" interval="10">
           <collectIndividualThreadStats>false</collectIndividualThreadStats>
-          <tracing enabled="true">
+          <tracing enabled="false">
             <traceAdminClientStats>false</traceAdminClientStats>
             <traceAppStats>false</traceAppStats>
             <tracePoolStats>false</tracePoolStats>
@@ -155,16 +167,38 @@
         </heartbeats>
       </xvm>
     </templates>
-    <xvm name="cardholdermaster-1" displayName="Cardholder Master Primary" template="xvm-template">
+    <xvm name="cardholdermaster-1-1" displayName="Cardholder Master 1p" template="xvm-template">
+      <env>
+        <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+      </env>
       <apps>
-        <app name="cardholdermaster" autoStart="true" />
+          <app name="cardholdermaster-1" autoStart="true" />
       </apps>
     </xvm>
-    <xvm name="cardholdermaster-2" displayName="Cardholder Master Backup" template="xvm-template">
+    <xvm name="cardholdermaster-1-2" displayName="Cardholder Master 1s" template="xvm-template">
+      <env>
+        <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+      </env>
       <apps>
-        <app name="cardholdermaster" autoStart="true" />
-      </apps>
+          <app name="cardholdermaster-1" autoStart="true" />
+      </apps>       
     </xvm>
+    <xvm name="cardholdermaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
+      <env>
+        <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+      </env>
+      <apps>
+          <app name="cardholdermaster-2" autoStart="true" />
+      </apps>       
+    </xvm>
+    <xvm name="cardholdermaster-2-2" displayName="Cardholder Master 2s" template="xvm-template" >
+      <env>
+        <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+      </env>
+      <apps>
+          <app name="cardholdermaster-2" autoStart="true" />
+      </apps>       
+    </xvm>  
     <xvm name="cardholdermaster-send-driver" displayName="Cardholder Master Send Driver" template="xvm-template">
       <apps>
         <app name="cardholdermaster-send-driver" autoStart="true" />
@@ -181,39 +215,49 @@
     <profile name="test">
       <env>
         <nv>
-            <conservecpu>true</conservecpu>
-            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+          <conservecpu>true</conservecpu>
+          <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
         </nv>
         <driver.autoStart>true</driver.autoStart>
-          <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+        <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
       </env>
     </profile>
     <profile name="neeve-lab">
+      <env> 
+        <cardmaster.numShards>2</cardmaster.numShards>
+        <merchantmaster.numShards>2</merchantmaster.numShards>
+        <cardholdermaster.numShards>2</cardholdermaster.numShards>
+        <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
+      </env>
       <xvms>
         <templates>
           <xvm name="xvm-template">
+            <env>
+              <GC_HEAP_SIZE_PARAMS>-Xms4g -Xmx4g</GC_HEAP_SIZE_PARAMS>
+              <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+            </env>
             <provisioning>
-              <rootDirectory>/root/work/lumino</rootDirectory>
               <jvm>
                 <javaHome>/usr/java/jdk1.8.0_60</javaHome>
                 <jvmParamSets>
                   <jvmParamSet name="prefer-ipv4">
-                    <jvmParams>-Djava.net.preferIPv4Stack=true </jvmParams>
+                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
                   </jvmParamSet>
-                  <jvmParamSet name="verbose-gc">
+                  <jvmParamSet name="heap-size" order="-1">
+                    <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
+                  </jvmParamSet>
+                  <jvmParamSet name="gc-tuning" order="0">
                     <jvmParams>
-                    -XX:+PrintGCDetails 
-                    -XX:+PrintGCTimeStamps 
-                    -XX:+PrintTenuringDistribution 
-                    </jvmParams>
+                        ${GC_TUNING_PARAMS}
+                      </jvmParams>
                   </jvmParamSet>
                   <jvmParamSet name="flight-recorder">
                     <jvmParams>
-                    -XX:+UnlockCommercialFeatures 
-                    -XX:+FlightRecorder 
-                    -XX:StartFlightRecording=name=CardholderMaster11Recording,settings=profile 
-                    -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${targetXvm::flight}-recording.jfr
-                    </jvmParams>
+                      -XX:+UnlockCommercialFeatures 
+                      -XX:+FlightRecorder 
+                      -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile 
+                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
+                       </jvmParams>
                   </jvmParamSet>
                 </jvmParamSets>
               </jvm>
@@ -221,7 +265,7 @@
           </xvm>
         </templates>
 
-        <xvm name="cardholdermaster-1" template="xvm-template">
+        <xvm name="cardholdermaster-1-1" template="xvm-template">
           <env>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
           </env>
@@ -235,7 +279,7 @@
           </provisioning>
         </xvm>
 
-        <xvm name="cardholdermaster-2" template="xvm-template">
+        <xvm name="cardholdermaster-1-2" template="xvm-template">
           <env>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
           </env>
@@ -277,7 +321,7 @@
         </xvm>
       </xvms>
     </profile>
-      
+
     <profile name="solace-messaging">
       <activation>
         <properties>

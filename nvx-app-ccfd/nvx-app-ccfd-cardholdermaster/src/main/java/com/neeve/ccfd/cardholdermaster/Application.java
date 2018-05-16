@@ -16,7 +16,6 @@ import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.messages.NewCardHolderMessage;
 import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.cli.annotations.Configured;
 import com.neeve.ods.IStoreQueryEngine;
 import com.neeve.ods.IStoreQueryResultSet;
@@ -49,15 +48,6 @@ public class Application {
     @AppStat(name = "Txn Query Enabled")
     @Configured(property = "cardholdermaster.queryTransactions", defaultValue = "false")
     private boolean queryTransactions;
-
-    @Configured(property = "fraudanalyzer.numShards")
-    private int fraudanalyzerNumShards;
-
-    @Configured(property = "cardholdermaster.numShards")
-    private int cardholderMasterNumShards;
-
-    @Configured(property = "cardmaster.numShards")
-    private int cardMasterNumShards;
 
     private boolean isTransactionFraudulent(final CardHolder cardholder, final AuthorizationRequestMessage authRequest) {
         long ts = System.nanoTime();
@@ -132,7 +122,9 @@ public class Application {
         // add card holder
         CardHolder cardHolder = CardHolder.create();
         cardHolder.setCardHolderId(message.getCardHolderId());
-        for (PaymentTransactionDTO dto : message.getHistory()) {
+        Iterator<PaymentTransactionDTO> transactions = message.getHistoryIterator();
+        while (transactions.hasNext()) {
+            PaymentTransactionDTO dto = transactions.next();
             PaymentTransaction transaction = PaymentTransaction.create();
             transaction.setCardNumberFrom(dto.getCardNumberUnsafe());
             transaction.setPaymentTransactionIdFrom(dto.getTransactionIdUnsafe());
@@ -170,7 +162,7 @@ public class Application {
             // cardholdermaster and fraudanalyzer, so we will use cardholder ID to make shard key for fraud analyzer. 
             // We could choose anything to make fraudanalyzer shard key, including generating with RNG,
             // as long as it will result in spreading the message load evenly across fraud analyzer instances. 
-            _messageSender.sendMessage("authreq4", outboundMessage, UtlCommon.getShardKey(authRequest.getCardHolderId(), fraudanalyzerNumShards));
+            _messageSender.sendMessage("authreq4", outboundMessage);
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
         else {
@@ -180,9 +172,7 @@ public class Application {
             authorizationResponseMessage.setDecisionScore(0);
             authorizationResponseMessage.setCardHolderIdFrom(authRequest.getCardHolderIdUnsafe());
             authorizationResponseMessage.setNewTransaction(authRequest.getNewTransaction().copy());
-            _messageSender.sendMessage("authresp", authorizationResponseMessage,
-                                       UtlCommon.getShardKey(authRequest.getCardHolderId(), cardholderMasterNumShards) + "/" +
-                                               UtlCommon.getShardKey(authRequest.getNewTransaction().getCardNumber(), cardMasterNumShards));
+            _messageSender.sendMessage("authresp", authorizationResponseMessage);
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
     }
