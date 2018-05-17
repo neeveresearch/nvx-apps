@@ -1,6 +1,6 @@
 ##DISPLAYNAME Shutdown XVM ...
 ##DESCRIPTION Shuts down an XVM
-##VAR xvmName [displayName="XVM Name", type=String, validValues="perfdriver-1,perfdriver-2,perfdriver-send-driver,perfdriver-receive-driver", description="The name of the XVM to shutdown"] 
+##VAR xvmName [displayName="XVM Name", type=String, validValues="perfdriver-1,perfdriver-send-driver,perfdriver-receive-driver", description="The name of the XVM to shutdown"] 
 
 assume launch-xvm has run
 

@@ -3,9 +3,11 @@
 
 assume provision has run
 
-// launch the processor cluster 
-launch the fraudanalyzer-1 xvm
-launch the fraudanalyzer-2 xvm
+// launch the fraudanalyzer clusters 
+launch the fraudanalyzer-1-1 xvm
+launch the fraudanalyzer-1-2 xvm
+launch the fraudanalyzer-2-1 xvm
+launch the fraudanalyzer-2-2 xvm
 
 // Launch the receiver driver
 launch the fraudanalyzer-receive-driver xvm

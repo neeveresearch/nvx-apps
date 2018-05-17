@@ -3,7 +3,6 @@ package com.neeve.ccfd.fraudanalyzer.driver;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
@@ -28,9 +27,6 @@ public class SendDriver {
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
     private volatile AepMessageSender messageSender;
 
-    @Configured(property = "fraudanalyzer.numShards")
-    private int fraudanalyzerNumShards;
-
     @AppInjectionPoint
     final public void setMessageSender(AepMessageSender messageSender) {
         this.messageSender = messageSender;
@@ -51,7 +47,7 @@ public class SendDriver {
                 message.setCardHolderId(TestDataGenerator.generateId());
                 message.setMerchantStoreCountryCode(TestDataGenerator.DEFAULT_COUNTRY_CODE);
                 message.setMerchantStorePostcode(TestDataGenerator.DEFAULT_POSTAL_CODE);
-                messageSender.sendMessage("authreq4", message, UtlCommon.getShardKey(message.getCardHolderId(), fraudanalyzerNumShards));
+                messageSender.sendMessage("authreq4", message);
                 sentCount.increment();
             }
         });

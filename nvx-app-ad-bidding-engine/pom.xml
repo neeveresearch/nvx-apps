@@ -8,7 +8,7 @@
     <parent>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-apps-parent</artifactId>
-      <version>3.8.2</version>
+      <version>3.9.0</version>
     </parent>
     
     <licenses>
@@ -129,50 +129,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-      <profile>
-        <!--
-          This profile is currently for use by Neeve personnel.
-          Please contact Neeve sales if you are interested in using
-          Zing with the X Platform .
-        -->
-        <id>zing-enable</id>
-        <build>
-          <plugins>
-            <plugin>
-              <groupId>com.neeve</groupId>
-              <artifactId>nvx-license-zing-mojo</artifactId>
-              <version>1.0.3</version>
-              <executions>
-                <execution>
-                  <goals>
-                    <goal>generate-license</goal>
-                  </goals>
-                  <phase>prepare-package</phase>
-                  <configuration>
-                    <customerName>Neeve</customerName>
-                    <outputDirectory>${project.build.directory}/resources/license/zing</outputDirectory>
-                    <jarsDirectory>${project.build.directory}/dependency</jarsDirectory>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </build>
-  
-        <pluginRepositories>
-          <pluginRepository>
-            <id>neeve-internal-release</id>
-            <releases>
-              <enabled>true</enabled>
-            </releases>
-            <snapshots>
-              <enabled>false</enabled>
-            </snapshots>
-            <url>https://nexus.neeveresearch.com/nexus/content/repositories/internal-releases/</url>
-          </pluginRepository>
-        </pluginRepositories>
-      </profile>
-    </profiles>
 </project>

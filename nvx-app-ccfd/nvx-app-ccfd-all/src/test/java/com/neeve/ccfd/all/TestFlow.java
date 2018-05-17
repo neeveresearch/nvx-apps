@@ -16,24 +16,20 @@ public class TestFlow extends AbstractTest {
         Properties env = new Properties();
         env.put("nv.ddl.profiles", "test");
         // disable clustering to speed up app startup
-        env.put("x.apps.fraudanalyzer-1.storage.clustering.enabled", "false");
-        env.put("x.apps.fraudanalyzer-2.storage.clustering.enabled", "false");
-        env.put("x.apps.cardholdermaster-1.storage.clustering.enabled", "false");
-        env.put("x.apps.cardholdermaster-2.storage.clustering.enabled", "false");
-        env.put("x.apps.merchantmaster-1.storage.clustering.enabled", "false");
-        env.put("x.apps.merchantmaster-2.storage.clustering.enabled", "false");
-        env.put("x.apps.cardmaster-1.storage.clustering.enabled", "false");
-        env.put("x.apps.cardmaster-2.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.fraudanalyzer-app-template.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.cardholdermaster-app-template.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.merchantmaster-app-template.storage.clustering.enabled", "false");
+        env.put("x.apps.templates.cardmaster-app-template.storage.clustering.enabled", "false");
 
         // start apps
-        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-1", "fraudanalyzer-1-1", env);
-        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer-2", "fraudanalyzer-2-1", env);
-        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-1", "cardholdermaster-1-1", env);
-        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster-2", "cardholdermaster-2-1", env);
-        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-1", "merchantmaster-1-1", env);
-        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster-2", "merchantmaster-2-1", env);
-        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-1", "cardmaster-1-1", env);
-        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster-2", "cardmaster-2-1", env);
+        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer", "fraudanalyzer-1-1", env);
+        startApp(com.neeve.ccfd.fraudanalyzer.Application.class, "fraudanalyzer", "fraudanalyzer-2-1", env);
+        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster", "cardholdermaster-1-1", env);
+        startApp(com.neeve.ccfd.cardholdermaster.Application.class, "cardholdermaster", "cardholdermaster-2-1", env);
+        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster", "merchantmaster-1-1", env);
+        startApp(com.neeve.ccfd.merchantmaster.Application.class, "merchantmaster", "merchantmaster-2-1", env);
+        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster", "cardmaster-1-1", env);
+        startApp(com.neeve.ccfd.cardmaster.Application.class, "cardmaster", "cardmaster-2-1", env);
 
         // sleep to let all connections be established.
         Thread.sleep(1000);

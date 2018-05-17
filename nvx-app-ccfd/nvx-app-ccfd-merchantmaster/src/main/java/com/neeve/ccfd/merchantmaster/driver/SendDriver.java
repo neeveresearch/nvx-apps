@@ -3,6 +3,7 @@ package com.neeve.ccfd.merchantmaster.driver;
 import java.util.Random;
 
 import com.neeve.ccfd.messages.NewMerchantMessage;
+import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.util.TestDataGenerator;
 import com.neeve.ccfd.util.UtlCommon;
@@ -28,9 +29,6 @@ public class SendDriver {
     @Configured(property = "driver.sendRate")
     private int sendRate;
 
-    @Configured(property = "merchantmaster.numShards")
-    private int merchantMasterNumShards;
-
     @AppStat
     private final Counter sentCount = StatsFactory.createCounterStat("SendDriver Count");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
@@ -50,7 +48,7 @@ public class SendDriver {
             NewMerchantMessage newMerchantMessage = testDataGenerator.generateNewMerchantMessage(1);
             addedMerchantIds.add(newMerchantMessage.getMerchantId());
             addedMerchantStores.add(newMerchantMessage.getStoresIterator().next().getStoreId());
-            messageSender.sendMessage("authreq2", newMerchantMessage, UtlCommon.getShardKey(newMerchantMessage.getMerchantId(), merchantMasterNumShards));
+            messageSender.sendMessage("authreq2", newMerchantMessage);
         }
     }
 
@@ -62,15 +60,18 @@ public class SendDriver {
             @Override
             public void run() {
                 int merchantIndex = random.nextInt(addedMerchantIds.size());
+                PaymentTransactionDTO newTransaction = testDataGenerator.generateTransactionMessage(TestDataGenerator.generateId(),
+                                                                                                    addedMerchantIds.get(merchantIndex),
+                                                                                                    addedMerchantStores.get(merchantIndex));
                 AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                 message.setFlowStartTs(UtlTime.now());
                 message.setRequestId(TestDataGenerator.generateId());
-                message.setNewTransaction(testDataGenerator.generateTransactionMessage(TestDataGenerator.generateId(),
-                                                                                       addedMerchantIds.get(merchantIndex),
-                                                                                       addedMerchantStores.get(merchantIndex)));
                 message.setCardHolderId(UtlCommon.generateId());
+                message.setCardNumber(newTransaction.getCardNumber());
+                message.setMerchantId(newTransaction.getMerchantId());
+                message.setNewTransaction(newTransaction);
 
-                messageSender.sendMessage("authreq2", message, UtlCommon.getShardKey(message.getNewTransaction().getMerchantId(), merchantMasterNumShards));
+                messageSender.sendMessage("authreq2", message);
                 sentCount.increment();
             }
         });
