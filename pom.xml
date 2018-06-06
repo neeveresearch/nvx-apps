@@ -3,7 +3,7 @@
     <groupId>com.neeve</groupId>
     <artifactId>nvx-apps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.7.7</version>
+    <version>3.7-SNAPSHOT</version>
     <name>X Platform Apps Parent</name>
    
     <organization>
@@ -98,26 +98,32 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
                     <version>2.4</version>
-                    <configuration>
-                      <allowSnapshots>false</allowSnapshots>
-                      <allowRangeMatching>true</allowRangeMatching>
-                      <allowDowngrade>true</allowDowngrade>
-                        <properties>
-                            <property>
-                                <name>nvx.platform.version</name>
-                                <version>[${nvx.platform.version}]</version>
-                                <dependencies>
-                                    <dependency>
-                                        <groupId>com.neeve</groupId>
-                                        <artifactId>nvx-platform-bom</artifactId>
-                                    </dependency>
-                                </dependencies>
-                            </property>
-                        </properties>
-                    </configuration>
+                      <configuration>
+                          <allowSnapshots>true</allowSnapshots>
+                          <allowRangeMatching>true</allowRangeMatching>
+                          <allowDowngrade>true</allowDowngrade>
+                          <allowIncrementalUpdates>true</allowIncrementalUpdates>
+                          <allowMinorUpdates>true</allowMinorUpdates>
+                          <allowMajorUpdates>true</allowMajorUpdates>
+                          <forceVersion>true</forceVersion>
+                          <excludeProperties>jersey.version,jetty.version</excludeProperties>
+                          <properties>
+                              <property>
+                                  <name>nvx.platform.version</name>
+                                  <version>[${nvx.platform.version}]</version>
+                                  <dependencies>
+                                      <dependency>
+                                          <groupId>com.neeve</groupId>
+                                          <artifactId>nvx-platform-bom</artifactId>
+                                      </dependency>
+                                  </dependencies>
+                              </property>
+                          </properties>
+                      </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
+  
     </build>
 
     <repositories>
