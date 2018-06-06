@@ -107,7 +107,7 @@
                           <allowMinorUpdates>true</allowMinorUpdates>
                           <allowMajorUpdates>true</allowMajorUpdates>
                           <forceVersion>true</forceVersion>
-                          <excludeProperties>jersey.version,jetty.version</excludeProperties>
+                          <excludeProperties>jersey.version,jetty.version,nvx.fix.version</excludeProperties>
                           <properties>
                               <property>
                                   <name>nvx.platform.version</name>
