@@ -10,7 +10,6 @@ import com.neeve.toa.service.ToaService;
 import com.neeve.toa.service.ToaServiceChannel;
 import com.neeve.trace.*;
 import com.neeve.trace.Tracer.Level;
-import com.neeve.xbuf.*;
 import com.neeve.aep.*;
 import com.neeve.aep.AepEngine.HAPolicy;
 import com.neeve.aep.annotations.*;
@@ -115,15 +114,6 @@ final public class App extends TopicOrientedApplication {
                 tickToTradeLatencies.add(mnos.getPreWireTs() - mnos.getTickTs());
             }
         }
-    }
-
-    static {
-        // Enable framing during deserialization. This is an optimization that should be enabled for 
-        // latency critical message types working with domains that copy information from inbound
-        // messages to the domain state. 
-        //
-        // Note: In future releases, it will be possible to set the desync policy via configuration
-        EMSNewOrderSingle.setDesyncPolicy(XbufDesyncPolicy.FrameFields);
     }
 
     // what messaging QOS to use for this application
