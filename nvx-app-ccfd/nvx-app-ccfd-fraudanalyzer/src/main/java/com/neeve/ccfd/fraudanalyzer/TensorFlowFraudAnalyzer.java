@@ -49,8 +49,8 @@ public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
     @Override
     public final void open() throws Exception {
         File modelSourceFolder = extractModel();
-        Tensor<String> checkpointPrefix = Tensors.create(modelSourceFolder.getPath() + "\\checkpoint\\model-checkpoint.ckpt");
-        SavedModelBundle b = SavedModelBundle.load(modelSourceFolder.getPath() + "\\saved-model", "serve");
+        Tensor<String> checkpointPrefix = Tensors.create(modelSourceFolder.getPath() + File.separator + "checkpoint" + File.separator + "model-checkpoint.ckpt");
+        SavedModelBundle b = SavedModelBundle.load(modelSourceFolder.getPath() + File.separator + "saved-model", "serve");
         this.graph = b.graph();
         this.session = new Session(graph);
 
