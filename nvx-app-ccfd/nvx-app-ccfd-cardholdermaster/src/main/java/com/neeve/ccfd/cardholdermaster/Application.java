@@ -121,7 +121,7 @@ public class Application {
 
         // add card holder
         CardHolder cardHolder = CardHolder.create();
-        cardHolder.setCardHolderId(message.getCardHolderId());
+        cardHolder.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
         Iterator<PaymentTransactionDTO> transactions = message.getHistoryIterator();
         while (transactions.hasNext()) {
             PaymentTransactionDTO dto = transactions.next();

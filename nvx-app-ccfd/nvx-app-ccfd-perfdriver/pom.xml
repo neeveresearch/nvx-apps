@@ -19,12 +19,6 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
             <artifactId>nvx-app-ccfd-cardmaster</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

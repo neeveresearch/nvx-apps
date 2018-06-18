@@ -11,6 +11,7 @@ import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
 import com.neeve.lang.XLinkedList;
+import com.neeve.lang.XString;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
@@ -31,7 +32,7 @@ public class SendDriver {
     private final Counter sentCount = StatsFactory.createCounterStat("SendDriver Count");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
     private final Random random = new Random(System.currentTimeMillis());
-    private final XLinkedList<String> addedCardNumbers = new XLinkedList<String>();
+    private final XLinkedList<XString> addedCardNumbers = new XLinkedList<XString>();
     private volatile AepMessageSender messageSender;
 
     @AppInjectionPoint
@@ -41,13 +42,14 @@ public class SendDriver {
 
     @Command(name = "addCards", description = "Instructs the driver to add cards to the card master")
     public final void addCards(@Argument(name = "count", position = 1, required = true, description = "The number of cards to add") int count) {
+        final XString idGen = XString.create(32, true, true);
         for (int i = 0; i < count; i++) {
-            final String cardNumber = TestDataGenerator.generateId();
+            final XString cardNumber = TestDataGenerator.generateIdTo(XString.create(32, true, true));
             addedCardNumbers.add(cardNumber);
             NewCardMessage newCardMessage = NewCardMessage.create();
-            newCardMessage.setRequestId(TestDataGenerator.generateId());
-            newCardMessage.setCardNumber(cardNumber);
-            newCardMessage.setCardHolderId(TestDataGenerator.generateId());
+            newCardMessage.setRequestIdFrom(TestDataGenerator.generateIdTo(idGen));
+            newCardMessage.setCardNumberFrom(cardNumber);
+            newCardMessage.setCardHolderIdFrom(TestDataGenerator.generateIdTo(idGen));
             messageSender.sendMessage("card-events", newCardMessage);
         }
     }
@@ -55,16 +57,20 @@ public class SendDriver {
     @Command(name = "sendAuths", description = "Instructs the driver to send authorization requests")
     public final void sendAuthorizationRequests(@Argument(name = "count", position = 1, required = true, description = "The number of messages to send") int count,
                                                 @Argument(name = "rate", position = 2, required = true, description = "The rate at which to send") int rate) {
+        final XString merchangeIdGen = XString.create(32, true, true);
+        final XString merchantStoreIdGen = XString.create(32, true, true);
+        final XString requestIdGen = XString.create(32, true, true);
+
         UtlGovernor.run(count, rate, new Runnable() {
             @Override
             public void run() {
                 PaymentTransactionDTO transaction = testDataGenerator.generateTransactionMessage(addedCardNumbers.get(random.nextInt(addedCardNumbers.size())),
-                                                                                                 TestDataGenerator.generateId(),
-                                                                                                 TestDataGenerator.generateId());
+                                                                                                 TestDataGenerator.generateIdTo(merchangeIdGen),
+                                                                                                 TestDataGenerator.generateIdTo(merchantStoreIdGen));
 
                 AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                 message.setFlowStartTs(UtlTime.now());
-                message.setRequestId(TestDataGenerator.generateId());
+                message.setRequestIdFrom(TestDataGenerator.generateIdTo(requestIdGen));
                 message.setCardNumberFrom(transaction.getCardNumberUnsafe());
                 message.setMerchantIdFrom(transaction.getMerchantIdUnsafe());
                 message.setNewTransaction(transaction);

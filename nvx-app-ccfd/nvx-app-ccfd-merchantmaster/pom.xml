@@ -19,12 +19,6 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
             <artifactId>nvx-talon-all</artifactId>
             <scope>provided</scope>
         </dependency>

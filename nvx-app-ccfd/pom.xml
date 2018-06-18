@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ccfd</artifactId>
     <packaging>pom</packaging>
-    <name>X Platform Credit Card Fraud Detection Parent</name>
+    <name>Fraud Detection Parent</name>
 
     <parent>
       <groupId>com.neeve</groupId>
@@ -26,7 +26,6 @@
 
     <modules>
         <module>nvx-app-ccfd-roe</module>
-        <module>nvx-app-ccfd-util</module>
         <module>nvx-app-ccfd-cardmaster</module>
         <module>nvx-app-ccfd-merchantmaster</module>
         <module>nvx-app-ccfd-cardholdermaster</module>

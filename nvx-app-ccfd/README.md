@@ -28,3 +28,10 @@ Assumining the checks in the CardHolderMaster pass the authorization request is 
 
 # Project Layout
 The card processing system is laid out such that each module (Merchant Master, Card Master, Card Holder Master, and Fraud Analyizer) can be be built and deployed each as its own independenct system with a separate release cadence, platform dependencies and lifecycle. However, we've also created an aggregator module (nvx-ccdf-all) that aggregates all of the apps into a single deployable system to facilite ease of testing and demoing all modules in tandem. Consequently, nvx-ccdf-all is a good place to start. 
+
+# Running with Tensor flow
+Due to limited platform support in the tensor flow binaries and their very large size the tensor flow based analyzer is not bundled with the fraud detection system by default. To build the project with the tensor flow binaries included, build with __mvn -Ptensorflow__ and check out the instructions for [installing TensorFlow](https://www.tensorflow.org/install/install_java) for your platform.
+
+Note also that support for provisioning tensory native libraries using Lumino or Robin is not currently fully supported. 
+
+Finally, Tensor flow requires that you run with at least Java 7. 

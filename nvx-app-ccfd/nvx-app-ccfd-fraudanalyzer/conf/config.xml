@@ -19,6 +19,9 @@
     <!-- Configure the test drivers -->
     <driver.sendRate>1000</driver.sendRate>
     <driver.sendCount>1000</driver.sendCount>
+    
+    <!-- Tensor Flow -->
+    <ccfd.useTensorFlow>false</ccfd.useTensorFlow>
 
     <cardmaster.numShards>1</cardmaster.numShards>
     <merchantmaster.numShards>1</merchantmaster.numShards>
@@ -220,6 +223,7 @@
         <merchantmaster.numShards>2</merchantmaster.numShards>
         <cardholdermaster.numShards>2</cardholdermaster.numShards>
         <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
+        <ccfd.useTensorFlow>true</ccfd.useTensorFlow>
       </env>
       <xvms>
         <templates>

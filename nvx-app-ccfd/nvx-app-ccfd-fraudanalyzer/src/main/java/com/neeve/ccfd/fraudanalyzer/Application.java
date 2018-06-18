@@ -10,7 +10,10 @@ import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.messages.TransformedPaymentTransactionDTO;
+import com.neeve.ci.XRuntime;
+import com.neeve.server.app.annotations.AppFinalizer;
 import com.neeve.server.app.annotations.AppHAPolicy;
+import com.neeve.server.app.annotations.AppInitializer;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppStat;
 import com.neeve.server.app.annotations.AppStateFactoryAccessor;
@@ -18,22 +21,21 @@ import com.neeve.sma.MessageView;
 import com.neeve.stats.IStats.Counter;
 import com.neeve.stats.IStats.Latencies;
 import com.neeve.stats.StatsFactory;
+import com.neeve.trace.Tracer;
+import com.neeve.trace.Tracer.Level;
+import com.neeve.util.UtlThrowable;
 import com.neeve.util.UtlTime;
 
 @AppHAPolicy(value = AepEngine.HAPolicy.StateReplication)
 public class Application {
+    private static final Tracer tracer = Tracer.create("ccfd.fraudanalyzer", Level.INFO);
     private AepMessageSender _messageSender;
     @AppStat
     private final Counter authorizationRequestCount = StatsFactory.createCounterStat("AuthorizationRequest Received Count");
     @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
-    private boolean simulateHardwareAcceleratedFraudCheck() {
-        long ts = System.nanoTime();
-        while ((System.nanoTime() - ts) < 100000)
-            ;
-        return true;
-    }
+    FraudAnalyzer fraudAnalyzer;
 
     @AppStateFactoryAccessor
     final public IAepApplicationStateFactory getStateFactory() {
@@ -43,6 +45,35 @@ public class Application {
                 return Repository.create();
             }
         };
+    }
+
+    @AppInitializer
+    final public void init() throws Exception {
+        boolean useTensorFlow = XRuntime.getValue("ccfd.useTensorFlow", false);
+        if (useTensorFlow) {
+            try {
+                fraudAnalyzer = new TensorFlowFraudAnalyzer();
+                fraudAnalyzer.open();
+            }
+            catch (Throwable t) {
+                useTensorFlow = false;
+                tracer.log("Error loading TensorFlow analyzer: " + UtlThrowable.prepareStackTrace(t), Level.WARNING);
+                tracer.log("... falling back to Mock Analyzer: " + UtlThrowable.prepareStackTrace(t), Level.WARNING);
+                fraudAnalyzer = new MockFraudAnalyzer();
+                fraudAnalyzer.open();
+            }
+        }
+        else {
+            fraudAnalyzer = new MockFraudAnalyzer();
+            fraudAnalyzer.open();
+        }
+
+        tracer.log("Tensor Flow fraud analyzer is..." + (useTensorFlow ? "ENABLED" : "DISABLED"), Level.CONFIG);
+    }
+
+    @AppFinalizer
+    final public void close() throws Exception {
+        fraudAnalyzer.close();
     }
 
     @AppInjectionPoint
@@ -56,11 +87,7 @@ public class Application {
         authorizationRequestCount.increment();
         long start = UtlTime.now();
 
-        /****
-         * This is where one would do the test with the statistical model accelerated by hardware. 
-         * In the code here, we simulate the fraud check by sleeping for 100 microseconds.  
-         ****/
-        if (!simulateHardwareAcceleratedFraudCheck()) {
+        if (fraudAnalyzer.isFraudulent(message)) {
             final PaymentTransactionDTO transactionDetails = PaymentTransactionDTO.create();
             final TransformedPaymentTransactionDTO sourceDetails = message.getNewTransaction();
             transactionDetails.setCardNumberFrom(sourceDetails.getCardNumberUnsafe());
