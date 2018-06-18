@@ -3,7 +3,7 @@ The machine learning algorithm here was adapted from Currie32's excellent projec
 [kaggle](https://www.kaggle.com/currie32/predicting-fraud-with-tensorflow/notebook). 
 
 # Changes
-We tried to maka as few change to the model as possible to demonstrate how existing models can be plugged into the X platform. Among the few changes we did make:
+We tried to make as few change to the model as possible to demonstrate how existing models can be plugged into the X platform. Among the few changes we did make:
 
 * Removed / commented some of the demonstrative / charting steps. 
 * Ability to save the model in format that the tensor flow java library can ingest
