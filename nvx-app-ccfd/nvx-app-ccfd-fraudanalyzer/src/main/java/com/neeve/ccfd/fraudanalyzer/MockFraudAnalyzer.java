@@ -6,11 +6,13 @@
 package com.neeve.ccfd.fraudanalyzer;
 
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
+import com.neeve.ci.XRuntime;
 
 /**
  * A mock analyzer which simulates some processing time.  
  */
 public class MockFraudAnalyzer implements FraudAnalyzer {
+    long mockProcessingTime = XRuntime.getValue("ccfd.mockProcessingTime", 90000l);
 
     /* (non-Javadoc)
      * @see com.neeve.ccfd.fraudanalyzer.FraudAnalyzer#open()
@@ -29,9 +31,9 @@ public class MockFraudAnalyzer implements FraudAnalyzer {
      */
     @Override
     public final boolean isFraudulent(FraudAnalysisRequestMessage request) {
+        //Simulate TensorFlow processing time:
         long ts = System.nanoTime();
-        while ((System.nanoTime() - ts) < 10000)
-            ;
+        while ((System.nanoTime() - ts) < mockProcessingTime) {}
         return request.getNewTransaction().getFlaggedAsFraud();
     }
 

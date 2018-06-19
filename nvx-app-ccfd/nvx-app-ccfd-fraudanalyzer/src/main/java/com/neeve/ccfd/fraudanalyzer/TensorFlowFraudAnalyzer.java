@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 import org.tensorflow.DataType;
 import org.tensorflow.Graph;
 import org.tensorflow.Operation;
+import org.tensorflow.Output;
 import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Session;
 import org.tensorflow.Session.Runner;
@@ -37,11 +39,16 @@ import com.neeve.util.UtlJar;
 public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
     private static Tracer tracer = Tracer.create("ccfc.fraudanalyzer", Level.INFO);
 
-    private Graph graph;
-    private Session session;
-    private final FloatBuffer paramInputData = FloatBuffer.allocate(37);
+    private final FloatBuffer paramInputData = ByteBuffer.allocateDirect(Long.SIZE * 37).asFloatBuffer();
     private final long[] paramInputDimensions = new long[] { 1, 37 };
     private final Tensor<Float> paramKeep = Tensor.create(new Float(1.0f), Float.class);
+    private final FloatBuffer resultBuffer = ByteBuffer.allocateDirect(Long.SIZE * 2).asFloatBuffer();
+
+    private Graph graph;
+    private Session session;
+    private Output<?> inputData;
+    private Output<?> keep;
+    private Output<?> result;
 
     /* (non-Javadoc)
      * @see com.neeve.ccfd.fraudanalyzer.FraudAnalyzer#open()
@@ -56,6 +63,10 @@ public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
 
         // Initialize from training checkpoint
         session.runner().feed("save/Const", checkpointPrefix).addTarget("save/restore_all").run();
+
+        inputData = graph.operation("inputdata").output(0);
+        keep = graph.operation("pkeep").output(0);
+        result = graph.operation("Softmax").output(0);
 
         if (tracer.debug) {
             Iterator<Operation> operations = graph.operations();
@@ -141,10 +152,10 @@ public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
         final Tensor<Float> inputDataTensor = Tensor.create(paramInputDimensions, paramInputData);
 
         Runner runner = session.runner();
-        runner = runner.feed("inputdata", inputDataTensor);
-        runner = runner.feed("pkeep", paramKeep);
+        runner = runner.feed(inputData, inputDataTensor);
+        runner = runner.feed(keep, paramKeep);
 
-        List<Tensor<?>> results = runner.fetch("Softmax:0").run();
+        List<Tensor<?>> results = runner.fetch(result).run();
 
         if (results.size() != 1) {
             throw new IllegalArgumentException("Unexpected result set size: " + results.size());
@@ -153,11 +164,11 @@ public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
 
         boolean fraudPrediction = false;
         if (t.dataType() == DataType.FLOAT) {
-            FloatBuffer r = FloatBuffer.allocate(t.numElements());
-            results.get(0).writeTo(r);
-            r.flip();
-            float fraud = r.get();
-            float normal = r.get();
+            resultBuffer.position(0).limit(resultBuffer.capacity());
+            results.get(0).writeTo(resultBuffer);
+            resultBuffer.flip();
+            float fraud = resultBuffer.get();
+            float normal = resultBuffer.get();
             fraudPrediction = (fraud > normal);
         }
         else {
