@@ -66,6 +66,16 @@ public class Application {
                     // all of the transactions, and simulating the cost of 
                     // business logic by spinning for 100us below.
                     //
+                    // During this phase you would likely also be computing
+                    // features to pass on to the the Machine Learning check
+                    // further on in the pipeling. For example, you might have
+                    // defined a feature based on whether the card holder has
+                    // made a purchase from this vendor in the past, or perhaps
+                    // percentiles in the card holder's transaction amount. 
+                    //
+                    // Having all of the transaction history in memory is what
+                    // makes this sort of processsing possible directly within
+                    // the transaction processing stream!
                 }
             }
             else {
