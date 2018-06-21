@@ -19,8 +19,8 @@ public class TestFlow extends AbstractTest {
         int sendRate = 1000;
         // configure
         Properties env = new Properties();
-        env.put("x.env.driver.sendCount", sendCount);
-        env.put("x.env.driver.sendRate", sendRate);
+        env.put("x.env.driver.sendCount", String.valueOf(sendCount));
+        env.put("x.env.driver.sendRate", String.valueOf(sendRate));
         env.put("nv.ddl.profiles", "test");
         env.put("x.apps.templates.cardmaster-app-template.storage.clustering.enabled", "false");
 
