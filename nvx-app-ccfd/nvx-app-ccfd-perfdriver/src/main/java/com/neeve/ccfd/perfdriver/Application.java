@@ -142,9 +142,10 @@ public class Application {
         _messageSender = messageSender;
     }
 
-    @Command(displayName = "Seed Card Holders", description = "Seeds card holders with their transaction history.")
-    public final void seedCardHolders(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of card holders to send") int count,
-                                      @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in card holders") int rate) {
+    @Command(name = "seedCardHolders", displayName = "Seed Card Holders", description = "Seeds card holders with their transaction history.")
+    public final void seedCardHolders(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of card holders to seed") final int count,
+                                      @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in card holders") final int rate,
+                                      @Option(shortForm = 'a', longForm = "async", defaultValue = "true", description = "Whether or not to spin up a background thread to do the sends") final boolean async) {
         if (authSendRunner.isRunning()) {
             throw new IllegalStateException("Can't add card holders while authorization sender is running!");
         }
@@ -154,7 +155,7 @@ public class Application {
             throw new IllegalStateException("Can't seed card holders before seeding merchants");
         }
 
-        UtlGovernor.run(count, rate, new Runnable() {
+        final Runnable seedOperation = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -176,11 +177,23 @@ public class Application {
                     throw new IllegalStateException("This should never happen. Added for UtlReflector.");
                 }
             }
-        });
+        };
+
+        if (async) {
+            Thread seederThread = new Thread(new Runnable() {
+                public void run() {
+                    UtlGovernor.run(count, rate, seedOperation);
+                }
+            }, "Card Holder Seeder");
+            seederThread.start();
+        }
+        else {
+            UtlGovernor.run(count, rate, seedOperation);
+        }
     }
 
-    @Command(displayName = "Seed Merchants", description = "Seeds merchants with their stores.")
-    public final void seedMerchants(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of merchants to send") int count,
+    @Command(name = "seedMerchants", displayName = "Seed Merchants", description = "Seeds merchants with their stores.")
+    public final void seedMerchants(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of merchants to seed") int count,
                                     @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in merchants") int rate) {
         if (authSendRunner.isRunning()) {
             throw new IllegalStateException("Can't add merchants while authorization sender is running!");
@@ -248,7 +261,7 @@ public class Application {
     public void run(String[] args) {
         if (autoStart) {
             seedMerchants(100, 100);
-            seedCardHolders(100, 100);
+            seedCardHolders(100, 100, false);
             sendAuthorizationRequests(sendCount, sendRate, false);
         }
     }

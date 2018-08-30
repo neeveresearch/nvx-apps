@@ -1,5 +1,7 @@
 package com.neeve.ccfd.cardholdermaster;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.Iterator;
 
 import com.neeve.aep.AepEngine;
@@ -16,7 +18,9 @@ import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.messages.NewCardHolderMessage;
 import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.util.TestDataGenerator;
+import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
+import com.neeve.cli.annotations.Option;
 import com.neeve.ods.IStoreQueryEngine;
 import com.neeve.ods.IStoreQueryResultSet;
 import com.neeve.server.app.annotations.AppHAPolicy;
@@ -44,6 +48,7 @@ public class Application {
     private final Counter unknownCardHolderRequestCount = StatsFactory.createCounterStat("Unknown CardHolder Request Received Count");
     @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
+    private volatile long lastCardHolderSeededTime = 0;
 
     @AppStat(name = "Txn Query Enabled")
     @Configured(property = "cardholdermaster.queryTransactions", defaultValue = "false")
@@ -128,6 +133,7 @@ public class Application {
     final public void handleNewCardHolder(NewCardHolderMessage message, Repository repository) throws Exception {
         // stats
         newCardHolderRequestCount.increment();
+        lastCardHolderSeededTime = System.currentTimeMillis();
 
         // add card holder
         CardHolder cardHolder = CardHolder.create();
@@ -185,5 +191,10 @@ public class Application {
             _messageSender.sendMessage("authresp", authorizationResponseMessage);
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
+    }
+
+    @Command(name = "newCardHoldersSeededSince", description = "Checks if new card holders have been seeded since the given time")
+    public boolean newCardHoldersSeededSince(@Option(shortForm = 's', longForm = "since", description = "Specifies the duration over which to check if a new card holder has been seeded") Date since) throws ParseException {
+        return new Date(lastCardHolderSeededTime).after(since);
     }
 }

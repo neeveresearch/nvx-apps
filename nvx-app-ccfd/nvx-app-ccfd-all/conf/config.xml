@@ -430,6 +430,10 @@
           <lumino.agent.env>neeve-lab</lumino.agent.env>
         </properties>
       </activation>
+      <env>
+        <driver.autoStart>false</driver.autoStart>
+      </env>
+      
       <xvms>
         <templates>
           <xvm name="xvm-template">

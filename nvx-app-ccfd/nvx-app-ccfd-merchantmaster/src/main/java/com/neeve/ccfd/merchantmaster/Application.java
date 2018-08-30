@@ -1,5 +1,8 @@
 package com.neeve.ccfd.merchantmaster;
 
+import java.text.ParseException;
+import java.util.Date;
+
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.aep.IAepApplicationStateFactory;
@@ -10,6 +13,8 @@ import com.neeve.ccfd.merchantmaster.state.Repository;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.messages.NewMerchantMessage;
 import com.neeve.ccfd.messages.NewMerchantStoreDTO;
+import com.neeve.cli.annotations.Command;
+import com.neeve.cli.annotations.Option;
 import com.neeve.lang.XIterator;
 import com.neeve.server.app.annotations.AppHAPolicy;
 import com.neeve.server.app.annotations.AppInjectionPoint;
@@ -32,6 +37,7 @@ public class Application {
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
 
     private AepMessageSender _messageSender;
+    private volatile long lastMerchantSeededTime = 0;
 
     @AppStateFactoryAccessor
     final public IAepApplicationStateFactory getStateFactory() {
@@ -52,6 +58,7 @@ public class Application {
     final public void handleNewMerchant(NewMerchantMessage message, Repository repository) {
         // stats
         newMerchantRequestCount.increment();
+        lastMerchantSeededTime = System.currentTimeMillis();
 
         // add new merchant
         Merchant merchant = Merchant.create();
@@ -98,5 +105,10 @@ public class Application {
         }
         _messageSender.sendMessage("authreq3", outMessage);
         authorizationProcessingLatencies.add(UtlTime.now() - start);
+    }
+
+    @Command(name = "newMerchantsSeededSince", description = "Checks if new merchants have been received in the ")
+    public boolean newMerchantsSeededSince(@Option(shortForm = 's', longForm = "since", description = "Specifies the duration over which to check if a new merchant has been seeded") Date since) throws ParseException {
+        return new Date(lastMerchantSeededTime).after(since);
     }
 }
