@@ -30,7 +30,6 @@
     <module>nvx-app-tick-to-trade</module>
     <module>nvx-app-ad-bidding-engine</module>
     <module>nvx-app-geofencer</module>
-    <module>nvx-app-bookstore</module>
     <module>nvx-app-ccfd</module>
   </modules>
 
