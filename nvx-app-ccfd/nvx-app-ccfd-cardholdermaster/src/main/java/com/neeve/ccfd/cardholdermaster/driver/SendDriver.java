@@ -10,6 +10,7 @@ import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
 import com.neeve.lang.XLinkedList;
+import com.neeve.lang.XString;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
@@ -31,7 +32,7 @@ public class SendDriver {
     private final Counter sentCount = StatsFactory.createCounterStat("SendDriver Count");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
     private final Random random = new Random(System.currentTimeMillis());
-    private final XLinkedList<String> addedCardHolderIds = new XLinkedList<String>();
+    private final XLinkedList<XString> addedCardHolderIds = new XLinkedList<XString>();
     private volatile AepMessageSender messageSender;
 
     @AppInjectionPoint
@@ -41,9 +42,11 @@ public class SendDriver {
 
     @Command(name = "addCardHolders", description = "Instructs the driver to add card holders to the card holder master")
     public final void addCardHolders(@Argument(name = "count", position = 1, required = true, description = "The number of card holders to add") int count) throws Exception {
+        final XString merchantIdGen = XString.create(32, true, true);
+        final XString merchantStoreIdGen = XString.create(32, true, true);
         for (int i = 0; i < count; i++) {
-            NewCardHolderMessage newCardHolderMessage = testDataGenerator.generateCardHolderMessage(350, 2, TestDataGenerator.generateId(), TestDataGenerator.generateId());
-            addedCardHolderIds.add(newCardHolderMessage.getCardHolderId());
+            NewCardHolderMessage newCardHolderMessage = testDataGenerator.generateCardHolderMessage(350, 2, TestDataGenerator.generateIdTo(merchantIdGen), TestDataGenerator.generateIdTo(merchantStoreIdGen));
+            addedCardHolderIds.add(XString.create(newCardHolderMessage.getCardHolderId()));
             messageSender.sendMessage("authreq3", newCardHolderMessage);
         }
     }
@@ -52,16 +55,20 @@ public class SendDriver {
     public final void sendAuthorizationRequests(@Argument(name = "count", position = 1, required = true, description = "The number of messages to send") int count,
                                                 @Argument(name = "rate", position = 2, required = true, description = "The rate at which to send") int rate) {
 
+        final XString requestIdGen = XString.create(32, true, true);
+        final XString cardNumberGen = XString.create(32, true, true);
+        final XString merchantIdGen = XString.create(32, true, true);
+        final XString merchantStoreIdGen = XString.create(32, true, true);
         UtlGovernor.run(count, rate, new Runnable() {
             @Override
             public void run() {
                 AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                 message.setFlowStartTs(UtlTime.now());
-                message.setRequestId(TestDataGenerator.generateId());
-                message.setNewTransaction(testDataGenerator.generateTransactionMessage(TestDataGenerator.generateId(),
-                                                                                       TestDataGenerator.generateId(),
-                                                                                       TestDataGenerator.generateId()));
-                message.setCardHolderId(addedCardHolderIds.get(random.nextInt(addedCardHolderIds.size())));
+                message.setRequestIdFrom(TestDataGenerator.generateIdTo(requestIdGen));
+                message.setNewTransaction(testDataGenerator.generateTransactionMessage(TestDataGenerator.generateIdTo(cardNumberGen),
+                                                                                       TestDataGenerator.generateIdTo(merchantIdGen),
+                                                                                       TestDataGenerator.generateIdTo(merchantStoreIdGen)));
+                message.setCardHolderIdFrom(addedCardHolderIds.get(random.nextInt(addedCardHolderIds.size())));
                 messageSender.sendMessage("authreq3", message);
                 sentCount.increment();
             }

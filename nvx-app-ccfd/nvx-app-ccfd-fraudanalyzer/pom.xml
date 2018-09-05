@@ -7,19 +7,13 @@
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-app-ccfd</artifactId>
-        <version>3.9.1</version>
+        <version>3.10-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-app-ccfd-roe</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.neeve</groupId>
-            <artifactId>nvx-app-ccfd-util</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -50,9 +44,31 @@
             <artifactId>nvx-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
+        
+        <!-- 
+        Set tensor flow to a provided, optional dependency unless specifically
+        included by profile, below. This keeps the size of binaries in check and
+        maximizes portability on platform on which tensorflow is not supported.  
+        -->
+        <dependency>
+          <groupId>org.tensorflow</groupId>
+          <artifactId>tensorflow</artifactId>
+          <version>1.8.0</version>
+          <optional>true</optional>
+          <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/ml-model/output</directory>
+                <includes>
+                    <include>ml-output.zip</include>
+                </includes>
+                <filtering>false</filtering>
+             </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>com.neeve</groupId>
@@ -96,4 +112,19 @@
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+      <profile>
+        <id>tensorflow</id>
+        <dependencies>
+          <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow</artifactId>
+            <version>1.8.0</version>
+            <optional>false</optional>
+            <scope>compile</scope>
+          </dependency>
+        </dependencies>
+      </profile>
+    </profiles>
 </project>

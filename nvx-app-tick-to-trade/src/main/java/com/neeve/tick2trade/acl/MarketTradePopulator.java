@@ -15,13 +15,13 @@ final public class MarketTradePopulator {
         message.setSendingTimeAsTimestamp(timestamp);
 
         // MarketTrade.FIXExecutionReport.FIXExecutionStatus
-        message.getClOrdIDField().setValueFrom(marketNewOrderSingle.getClOrdIDField());
-        message.getOrderIDField().setValueFrom(marketNewOrderSingle.getClOrdIDField());
+        message.setClOrdIDFrom(marketNewOrderSingle.getClOrdIDUnsafe());
+        message.setOrderIDFrom(marketNewOrderSingle.getClOrdIDUnsafe());
         message.setOrdStatus(OrdStatus.FILLED);
         message.setTransactTimeAsTimestamp(timestamp);
 
         // MarketTrade.FIXExecutionReport
-        message.getComplianceIDField().setValueFrom(marketNewOrderSingle.getComplianceIDField());
+        message.setComplianceIDFrom(marketNewOrderSingle.getComplianceIDUnsafe());
         message.setExecType(ExecType.TRADE);
         message.setExecIDFrom(timestamp);
 

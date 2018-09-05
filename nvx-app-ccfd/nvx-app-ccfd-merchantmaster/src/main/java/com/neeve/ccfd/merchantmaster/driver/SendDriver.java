@@ -6,12 +6,12 @@ import com.neeve.ccfd.messages.NewMerchantMessage;
 import com.neeve.ccfd.messages.PaymentTransactionDTO;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.util.TestDataGenerator;
-import com.neeve.ccfd.util.UtlCommon;
 import com.neeve.aep.AepMessageSender;
 import com.neeve.cli.annotations.Argument;
 import com.neeve.cli.annotations.Command;
 import com.neeve.cli.annotations.Configured;
 import com.neeve.lang.XLinkedList;
+import com.neeve.lang.XString;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
 import com.neeve.server.app.annotations.AppStat;
@@ -33,8 +33,8 @@ public class SendDriver {
     private final Counter sentCount = StatsFactory.createCounterStat("SendDriver Count");
     private final TestDataGenerator testDataGenerator = new TestDataGenerator(100);
     private final Random random = new Random(System.currentTimeMillis());
-    private final XLinkedList<String> addedMerchantIds = new XLinkedList<String>();
-    private final XLinkedList<String> addedMerchantStores = new XLinkedList<String>();
+    private final XLinkedList<XString> addedMerchantIds = new XLinkedList<XString>();
+    private final XLinkedList<XString> addedMerchantStores = new XLinkedList<XString>();
     private volatile AepMessageSender messageSender;
 
     @AppInjectionPoint
@@ -46,8 +46,8 @@ public class SendDriver {
     public final void addMerchants(@Argument(name = "count", position = 1, required = true, description = "The number of merchants to add") int count) {
         for (int i = 0; i < count; i++) {
             NewMerchantMessage newMerchantMessage = testDataGenerator.generateNewMerchantMessage(1);
-            addedMerchantIds.add(newMerchantMessage.getMerchantId());
-            addedMerchantStores.add(newMerchantMessage.getStoresIterator().next().getStoreId());
+            addedMerchantIds.add(XString.create(newMerchantMessage.getMerchantId()));
+            addedMerchantStores.add(XString.create(newMerchantMessage.getStoresIterator().next().getStoreId()));
             messageSender.sendMessage("authreq2", newMerchantMessage);
         }
     }
@@ -56,17 +56,18 @@ public class SendDriver {
     public final void sendAuthorizationRequests(@Argument(name = "count", position = 1, required = true, description = "The number of messages to send") int count,
                                                 @Argument(name = "rate", position = 2, required = true, description = "The rate at which to send") int rate) {
 
+        final XString idHolder = XString.create(32, true, true);
         UtlGovernor.run(count, rate, new Runnable() {
             @Override
             public void run() {
                 int merchantIndex = random.nextInt(addedMerchantIds.size());
-                PaymentTransactionDTO newTransaction = testDataGenerator.generateTransactionMessage(TestDataGenerator.generateId(),
+                PaymentTransactionDTO newTransaction = testDataGenerator.generateTransactionMessage(TestDataGenerator.generateIdTo(idHolder),
                                                                                                     addedMerchantIds.get(merchantIndex),
                                                                                                     addedMerchantStores.get(merchantIndex));
                 AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                 message.setFlowStartTs(UtlTime.now());
-                message.setRequestId(TestDataGenerator.generateId());
-                message.setCardHolderId(UtlCommon.generateId());
+                message.setRequestIdFrom(TestDataGenerator.generateIdTo(idHolder));
+                message.setCardHolderIdFrom(TestDataGenerator.generateIdTo(idHolder));
                 message.setCardNumber(newTransaction.getCardNumber());
                 message.setMerchantId(newTransaction.getMerchantId());
                 message.setNewTransaction(newTransaction);

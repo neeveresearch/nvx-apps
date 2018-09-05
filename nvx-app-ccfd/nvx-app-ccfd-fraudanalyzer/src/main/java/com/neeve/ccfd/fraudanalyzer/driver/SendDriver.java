@@ -1,5 +1,7 @@
 package com.neeve.ccfd.fraudanalyzer.driver;
 
+import static com.neeve.ccfd.util.TestDataGenerator.*;
+
 import com.neeve.aep.AepMessageSender;
 import com.neeve.ccfd.messages.FraudAnalysisRequestMessage;
 import com.neeve.ccfd.util.TestDataGenerator;
@@ -39,14 +41,14 @@ public class SendDriver {
             @Override
             public void run() {
                 FraudAnalysisRequestMessage message = FraudAnalysisRequestMessage.create();
-                message.setRequestId(TestDataGenerator.generateId());
+                message.setRequestIdFrom(generateIdTo(tempIdHolder()));
                 message.setFlowStartTs(UtlTime.now());
 
                 message.setNewTransaction(testDataGenerator.generateTransformedTransactionMessage());
 
-                message.setCardHolderId(TestDataGenerator.generateId());
-                message.setMerchantStoreCountryCode(TestDataGenerator.DEFAULT_COUNTRY_CODE);
-                message.setMerchantStorePostcode(TestDataGenerator.DEFAULT_POSTAL_CODE);
+                message.setCardHolderIdFrom(generateIdTo(tempIdHolder()));
+                message.setMerchantStoreCountryCode(DEFAULT_COUNTRY_CODE);
+                message.setMerchantStorePostcode(DEFAULT_POSTAL_CODE);
                 messageSender.sendMessage("authreq4", message);
                 sentCount.increment();
             }

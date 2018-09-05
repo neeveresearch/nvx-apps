@@ -1,5 +1,6 @@
 package com.neeve.ccfd.perfdriver;
 
+import static com.neeve.ccfd.util.TestDataGenerator.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.neeve.aep.AepEngine;
@@ -18,6 +19,7 @@ import com.neeve.cli.annotations.Configured;
 import com.neeve.cli.annotations.Option;
 import com.neeve.lang.XIterator;
 import com.neeve.lang.XLinkedList;
+import com.neeve.lang.XString;
 import com.neeve.server.app.annotations.AppHAPolicy;
 import com.neeve.server.app.annotations.AppInjectionPoint;
 import com.neeve.server.app.annotations.AppMain;
@@ -72,9 +74,9 @@ public class Application {
                 try {
                     UtlGovernor governer = new UtlGovernor(rate);
                     int numSent = 0;
-                    XIterator<String> cardIterator = existingCardNumbers.iterator();
-                    XIterator<String> merchantIterator = existingMerchantIds.iterator();
-                    XIterator<String> merchantStoreIterator = existingMerchantStoreIds.iterator();
+                    XIterator<XString> cardIterator = existingCardNumbers.iterator();
+                    XIterator<XString> merchantIterator = existingMerchantIds.iterator();
+                    XIterator<XString> merchantStoreIterator = existingMerchantStoreIds.iterator();
                     while (numSent++ < count && !stopRequested) {
                         if (!cardIterator.hasNext()) {
                             cardIterator = cardIterator.toFirst();
@@ -90,7 +92,7 @@ public class Application {
 
                         AuthorizationRequestMessage message = AuthorizationRequestMessage.create();
                         message.setFlowStartTs(UtlTime.now());
-                        message.setRequestId(TestDataGenerator.generateId());
+                        message.setRequestIdFrom(generateIdTo(tempIdHolder()));
                         message.setCardNumberFrom(newTransaction.getCardNumberUnsafe());
                         message.setMerchantIdFrom(newTransaction.getMerchantIdUnsafe());
                         message.setNewTransaction(newTransaction);
@@ -110,9 +112,9 @@ public class Application {
     }
 
     private AepMessageSender _messageSender;
-    private final XLinkedList<String> existingCardNumbers = new XLinkedList<String>();
-    private final XLinkedList<String> existingMerchantIds = new XLinkedList<String>();
-    private final XLinkedList<String> existingMerchantStoreIds = new XLinkedList<String>();
+    private final XLinkedList<XString> existingCardNumbers = new XLinkedList<XString>();
+    private final XLinkedList<XString> existingMerchantIds = new XLinkedList<XString>();
+    private final XLinkedList<XString> existingMerchantStoreIds = new XLinkedList<XString>();
     @Configured(property = "driver.autoStart", defaultValue = "true")
     private boolean autoStart;
     @Configured(property = "driver.sendCount")
@@ -140,29 +142,30 @@ public class Application {
         _messageSender = messageSender;
     }
 
-    @Command(displayName = "Seed Card Holders", description = "Seeds card holders with their transaction history.")
-    public final void seedCardHolders(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of card holders to send") int count,
-                                      @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in card holders") int rate) {
+    @Command(name = "seedCardHolders", displayName = "Seed Card Holders", description = "Seeds card holders with their transaction history.")
+    public final void seedCardHolders(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of card holders to seed") final int count,
+                                      @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in card holders") final int rate,
+                                      @Option(shortForm = 'a', longForm = "async", defaultValue = "true", description = "Whether or not to spin up a background thread to do the sends") final boolean async) {
         if (authSendRunner.isRunning()) {
             throw new IllegalStateException("Can't add card holders while authorization sender is running!");
         }
-        final XIterator<String> merchantIterator = existingMerchantIds.iterator();
-        final XIterator<String> merchantStoreIterator = existingMerchantStoreIds.iterator();
+        final XIterator<XString> merchantIterator = existingMerchantIds.iterator();
+        final XIterator<XString> merchantStoreIterator = existingMerchantStoreIds.iterator();
         if (!merchantIterator.hasNext()) {
             throw new IllegalStateException("Can't seed card holders before seeding merchants");
         }
 
-        UtlGovernor.run(count, rate, new Runnable() {
+        final Runnable seedOperation = new Runnable() {
             @Override
             public void run() {
                 try {
                     NewCardHolderMessage newCardHolderMessage = dataGenerator.generateCardHolderMessage(350, 2, merchantIterator.next(), merchantStoreIterator.next());
                     for (String cardNumber : newCardHolderMessage.getCardNumbers()) {
-                        existingCardNumbers.add(cardNumber);
+                        existingCardNumbers.add(XString.create(cardNumber));
                         NewCardMessage newCardMessage = NewCardMessage.create();
-                        newCardMessage.setRequestId(TestDataGenerator.generateId());
+                        newCardMessage.setRequestIdFrom(generateIdTo(tempIdHolder()));
                         newCardMessage.setCardNumber(cardNumber);
-                        newCardMessage.setCardHolderId(newCardHolderMessage.getCardHolderId());
+                        newCardMessage.setCardHolderIdFrom(newCardHolderMessage.getCardHolderIdUnsafe());
                         _messageSender.sendMessage("card-events", newCardMessage);
                         newCardRequestCount.increment();
                     }
@@ -174,11 +177,23 @@ public class Application {
                     throw new IllegalStateException("This should never happen. Added for UtlReflector.");
                 }
             }
-        });
+        };
+
+        if (async) {
+            Thread seederThread = new Thread(new Runnable() {
+                public void run() {
+                    UtlGovernor.run(count, rate, seedOperation);
+                }
+            }, "Card Holder Seeder");
+            seederThread.start();
+        }
+        else {
+            UtlGovernor.run(count, rate, seedOperation);
+        }
     }
 
-    @Command(displayName = "Seed Merchants", description = "Seeds merchants with their stores.")
-    public final void seedMerchants(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of merchants to send") int count,
+    @Command(name = "seedMerchants", displayName = "Seed Merchants", description = "Seeds merchants with their stores.")
+    public final void seedMerchants(@Option(shortForm = 'c', longForm = "count", defaultValue = "100", description = "The number of merchants to seed") int count,
                                     @Option(shortForm = 'r', longForm = "rate", defaultValue = "100", description = "The rate at which to send in merchants") int rate) {
         if (authSendRunner.isRunning()) {
             throw new IllegalStateException("Can't add merchants while authorization sender is running!");
@@ -189,8 +204,8 @@ public class Application {
             public void run() {
                 try {
                     NewMerchantMessage newMerchantMessage = dataGenerator.generateNewMerchantMessage(1);
-                    existingMerchantIds.add(newMerchantMessage.getMerchantId());
-                    existingMerchantStoreIds.add(newMerchantMessage.getStoresIterator().next().getStoreId());
+                    existingMerchantIds.add(XString.create(newMerchantMessage.getMerchantId()));
+                    existingMerchantStoreIds.add(XString.create(newMerchantMessage.getStoresIterator().next().getStoreId()));
                     _messageSender.sendMessage("merchant-events", newMerchantMessage);
                     newMerchantRequestCount.increment();
                 }
@@ -246,7 +261,7 @@ public class Application {
     public void run(String[] args) {
         if (autoStart) {
             seedMerchants(100, 100);
-            seedCardHolders(100, 100);
+            seedCardHolders(100, 100, false);
             sendAuthorizationRequests(sendCount, sendRate, false);
         }
     }

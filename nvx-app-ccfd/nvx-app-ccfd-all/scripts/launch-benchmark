@@ -1,0 +1,57 @@
+##DISPLAYNAME Launch Benchmark ...
+##DESCRIPTION Provisions, launches and seeds for a benchmark run.
+##VAR numMerchants [displayName="Number of Merchants", type=Int, defaultValue=200000, description="The number of merchants to seed"] 
+##VAR merchantSeedRate [displayName="Merchant Seed Rate", type=Int, defaultValue=10000, description="The rate at which to seed merchant data"] 
+##VAR numCardHolders [displayName="Number of Card Holders", type=Int, defaultValue=50000, description="The number of card holders to seed"] 
+##VAR cardHolderSeedRate [displayName="Card Holder Seed Rate", type=Int, defaultValue=500, description="The rate at which to card holder data"] 
+##VAR warmupAuthorizationCount [displayName="Warmup Authorization Count", type=Int, defaultValue=10000, description="The number of warmup authorizations to send"] 
+##VAR warmupAuthorizationRate [displayName="Warmup Authorization Rate", type=Int, defaultValue=10000, description="The rate at which to send warmup authorizations"] 
+
+provision all xvms
+configure all xvms
+deploy to all xvms
+
+// launch the fraudanalyzer clusters 
+launch the fraudanalyzer-1-1 xvm
+launch the fraudanalyzer-1-2 xvm
+launch the fraudanalyzer-2-1 xvm
+launch the fraudanalyzer-2-2 xvm
+
+// launch the cardholdermaster clusters 
+launch the cardholdermaster-1-1 xvm
+launch the cardholdermaster-1-2 xvm
+launch the cardholdermaster-2-1 xvm
+launch the cardholdermaster-2-2 xvm
+
+// launch the merchantmaster cluster2 
+launch the merchantmaster-1-1 xvm
+launch the merchantmaster-1-2 xvm
+launch the merchantmaster-2-1 xvm
+launch the merchantmaster-2-2 xvm
+
+// launch the cardmaster clusters
+launch the cardmaster-1-1 xvm
+launch the cardmaster-1-2 xvm
+launch the cardmaster-2-1 xvm
+launch the cardmaster-2-2 xvm
+
+// launch the test driver clusters
+launch the perfdriver-1 xvm
+
+// Seed Merchant Data
+instruct the perfdriver app in the perfdriver-1 xvm to seedMerchants with -c ${numMerchants::200000} -r ${merchantSeedRate::10000}
+
+// Wait for new merhants to be seeded into merchantmaster partitions
+sleep for 5 seconds
+wait for 2 minutes with 5 second polls until the merchantmaster-1 app in the merchantmaster-1-1 xvm newMerchantsSeededSince  is false with --since "10 seconds ago"
+wait for 2 minutes with 5 second polls until the merchantmaster-2 app in the merchantmaster-2-1 xvm newMerchantsSeededSince  is false with --since "10 seconds ago"
+
+// Seed Card Holder Data
+instruct the perfdriver app in the perfdriver-1 xvm to seedCardHolders with -c ${numCardHolders::50000} -r ${cardHolderSeedRate::500} --async
+
+// Wait for new transactions to be seeded into partitions apps
+sleep for 5 seconds
+wait for 10 minutes with 10 second polls until the cardholdermaster-1 app in the cardholdermaster-1-1 xvm newCardHoldersSeededSince is false with --since "1 minute ago"
+wait for 10 minutes with 10 second polls until the cardholdermaster-2 app in the cardholdermaster-2-1 xvm newCardHoldersSeededSince is false with --since "1 minute ago"
+
+instruct the perfdriver app in the perfdriver-1 xvm to sendAuthorizationRequests with --count ${warmupAuthorizationCount::10000} --rate ${warmupAuthorizationRate::10000} --async

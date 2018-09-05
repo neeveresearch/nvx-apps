@@ -9,19 +9,13 @@
   <parent>
     <groupId>com.neeve</groupId>
     <artifactId>nvx-app-ccfd</artifactId>
-    <version>3.9.1</version>
+    <version>3.10-SNAPSHOT</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-app-ccfd-roe</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-app-ccfd-util</artifactId>
       <version>${project.version}</version>
     </dependency>
 

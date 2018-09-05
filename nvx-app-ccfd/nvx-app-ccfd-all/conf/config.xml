@@ -13,6 +13,9 @@
       <optimizefor>latency</optimizefor>
       <aep.trace>info</aep.trace>
 
+      <!-- use zero garbage spin locks -->
+      <pool.lockingstrategy>Spinning</pool.lockingstrategy>
+      
       <!-- global latency stats settings -->
       <msg.latency.stats>true</msg.latency.stats>
       <ods.latency.stats>true</ods.latency.stats>
@@ -427,6 +430,10 @@
           <lumino.agent.env>neeve-lab</lumino.agent.env>
         </properties>
       </activation>
+      <env>
+        <driver.autoStart>false</driver.autoStart>
+      </env>
+      
       <xvms>
         <templates>
           <xvm name="xvm-template">

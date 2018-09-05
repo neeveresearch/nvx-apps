@@ -117,117 +117,71 @@
       <inline ref="PaymentTransactionDTO" />
 
       <!--
-        Fields below are transaction data that is in some way interesting for fraud detection
-        Fraud is indicated when there is a deviation in the field value from the distribution (or mean) for the field.
-        This can be determined with statistical analysis such as Bayesian Classifiers or with Neural Networks.
-        We get the distribution density function by analyzing all the values from the incoming data.
-        Distribution density must have only one global extrema. We assume that any interesting fields for analysis
-        will have Normal Distribution.
-        Field probabilities must be uncorrelated. Input data may be already uncorrelated or linearly correlated.
-        If linearly correlated, we could run principal component analysis on them and create new fields.
-        We assume that incoming data is already statistically processed and uncorrelated.
+        Fields below are computed 'features' of transaction data that are 
+        used by the machine learning model for fraud detection. New feature
+        fields may be added over time as the machine learning model evolves. 
       -->
 
-      <field name="value000" type="Float" id="100" />
-      <field name="value001" type="Float" id="101" />
-      <field name="value002" type="Float" id="102" />
-      <field name="value003" type="Float" id="103" />
-      <field name="value004" type="Float" id="104" />
-      <field name="value005" type="Float" id="105" />
-      <field name="value006" type="Float" id="106" />
-      <field name="value007" type="Float" id="107" />
-      <field name="value008" type="Float" id="108" />
-      <field name="value009" type="Float" id="109" />
-      <field name="value010" type="Float" id="110" />
-      <field name="value011" type="Float" id="111" />
-      <field name="value012" type="Float" id="112" />
-      <field name="value013" type="Float" id="113" />
-      <field name="value014" type="Float" id="114" />
-      <field name="value015" type="Float" id="115" />
-      <field name="value016" type="Float" id="116" />
-      <field name="value017" type="Float" id="117" />
-      <field name="value018" type="Float" id="118" />
-      <field name="value019" type="Float" id="119" />
-      <field name="value020" type="Float" id="120" />
-      <field name="value021" type="Float" id="121" />
-      <field name="value022" type="Float" id="122" />
-      <field name="value023" type="Float" id="123" />
-      <field name="value024" type="Float" id="124" />
-      <field name="value025" type="Float" id="125" />
-      <field name="value026" type="Float" id="126" />
-      <field name="value027" type="Float" id="127" />
-      <field name="value028" type="Float" id="128" />
-      <field name="value029" type="Float" id="129" />
-      <field name="value030" type="Float" id="130" />
-      <field name="value031" type="Float" id="131" />
-      <field name="value032" type="Float" id="132" />
-      <field name="value033" type="Float" id="133" />
-      <field name="value034" type="Float" id="134" />
-      <field name="value035" type="Float" id="135" />
-      <field name="value036" type="Float" id="136" />
-      <field name="value037" type="Float" id="137" />
-      <field name="value038" type="Float" id="138" />
-      <field name="value039" type="Float" id="139" />
-      <field name="value040" type="Float" id="140" />
-      <field name="value041" type="Float" id="141" />
-      <field name="value042" type="Float" id="142" />
-      <field name="value043" type="Float" id="143" />
-      <field name="value044" type="Float" id="144" />
-      <field name="value045" type="Float" id="145" />
-      <field name="value046" type="Float" id="146" />
-      <field name="value047" type="Float" id="147" />
-      <field name="value048" type="Float" id="148" />
-      <field name="value049" type="Float" id="149" />
-      <field name="value050" type="Float" id="150" />
-      <field name="value051" type="Float" id="151" />
-      <field name="value052" type="Float" id="152" />
-      <field name="value053" type="Float" id="153" />
-      <field name="value054" type="Float" id="154" />
-      <field name="value055" type="Float" id="155" />
-      <field name="value056" type="Float" id="156" />
-      <field name="value057" type="Float" id="157" />
-      <field name="value058" type="Float" id="158" />
-      <field name="value059" type="Float" id="159" />
-      <field name="value060" type="Float" id="160" />
-      <field name="value061" type="Float" id="161" />
-      <field name="value062" type="Float" id="162" />
-      <field name="value063" type="Float" id="163" />
-      <field name="value064" type="Float" id="164" />
-      <field name="value065" type="Float" id="165" />
-      <field name="value066" type="Float" id="166" />
-      <field name="value067" type="Float" id="167" />
-      <field name="value068" type="Float" id="168" />
-      <field name="value069" type="Float" id="169" />
-      <field name="value070" type="Float" id="170" />
-      <field name="value071" type="Float" id="171" />
-      <field name="value072" type="Float" id="172" />
-      <field name="value073" type="Float" id="173" />
-      <field name="value074" type="Float" id="174" />
-      <field name="value075" type="Float" id="175" />
-      <field name="value076" type="Float" id="176" />
-      <field name="value077" type="Float" id="177" />
-      <field name="value078" type="Float" id="178" />
-      <field name="value079" type="Float" id="179" />
-      <field name="value080" type="Float" id="180" />
-      <field name="value081" type="Float" id="181" />
-      <field name="value082" type="Float" id="182" />
-      <field name="value083" type="Float" id="183" />
-      <field name="value084" type="Float" id="184" />
-      <field name="value085" type="Float" id="185" />
-      <field name="value086" type="Float" id="186" />
-      <field name="value087" type="Float" id="187" />
-      <field name="value088" type="Float" id="188" />
-      <field name="value089" type="Float" id="189" />
-      <field name="value090" type="Float" id="190" />
-      <field name="value091" type="Float" id="191" />
-      <field name="value092" type="Float" id="192" />
-      <field name="value093" type="Float" id="193" />
-      <field name="value094" type="Float" id="194" />
-      <field name="value095" type="Float" id="195" />
-      <field name="value096" type="Float" id="196" />
-      <field name="value097" type="Float" id="197" />
-      <field name="value098" type="Float" id="198" />
-      <field name="value099" type="Float" id="199" />
+      <field name="TimeNormal" type="Float" id="100" />
+      <field name="V1" type="Float" id="101" />
+      <field name="V2" type="Float" id="102" />
+      <field name="V3" type="Float" id="103" />
+      <field name="V4" type="Float" id="104" />
+      <field name="V5" type="Float" id="105" />
+      <field name="V6" type="Float" id="106" />
+      <field name="V7" type="Float" id="107" />
+      <field name="V8" type="Float" id="108" />
+      <field name="V9" type="Float" id="109" />
+      <field name="V10" type="Float" id="110" />
+      <field name="V11" type="Float" id="111" />
+      <field name="V12" type="Float" id="112" />
+      <field name="V13" type="Float" id="113" />
+      <field name="V14" type="Float" id="114" />
+      <field name="V15" type="Float" id="115" />
+      <field name="V16" type="Float" id="116" />
+      <field name="V17" type="Float" id="117" />
+      <field name="V18" type="Float" id="118" />
+      <field name="V19" type="Float" id="119" />
+      <field name="V20" type="Float" id="120" />
+      <field name="V21" type="Float" id="121" />
+      <field name="V22" type="Float" id="122" />
+      <field name="V23" type="Float" id="123" />
+      <field name="V24" type="Float" id="124" />
+      <field name="V25" type="Float" id="125" />
+      <field name="V26" type="Float" id="126" />
+      <field name="V27" type="Float" id="127" />
+      <field name="V28" type="Float" id="128" />
+      <field name="AmountNormal" type="Float" id="129" />
+      <field name="V1_" type="Float" id="130" />
+      <field name="V2_" type="Float" id="131" />
+      <field name="V3_" type="Float" id="132" />
+      <field name="V4_" type="Float" id="133" />
+      <field name="V5_" type="Float" id="134" />
+      <field name="V6_" type="Float" id="135" />
+      <field name="V7_" type="Float" id="136" />
+      <field name="V8_" type="Float" id="137" />
+      <field name="V9_" type="Float" id="138" />
+      <field name="V10_" type="Float" id="139" />
+      <field name="V11_" type="Float" id="140" />
+      <field name="V12_" type="Float" id="141" />
+      <field name="V13_" type="Float" id="142" />
+      <field name="V14_" type="Float" id="143" />
+      <field name="V15_" type="Float" id="144" />
+      <field name="V16_" type="Float" id="145" />
+      <field name="V17_" type="Float" id="146" />
+      <field name="V18_" type="Float" id="147" />
+      <field name="V19_" type="Float" id="148" />
+      <field name="V20_" type="Float" id="149" />
+      <field name="V21_" type="Float" id="150" />
+      <field name="V22_" type="Float" id="151" />
+      <field name="V23_" type="Float" id="152" />
+      <field name="V24_" type="Float" id="153" />
+      <field name="V25_" type="Float" id="154" />
+      <field name="V26_" type="Float" id="155" />
+      <field name="V27_" type="Float" id="156" />
+      <field name="V28_" type="Float" id="157" />
+      <field name="AmountMaxFraudNormal" type="Float" id="158" />
+      <field name="FlaggedAsFraud" type="Boolean" id="159" doc="There is reason to believe this is fraud (not fed into ML, used for validation purposes)"/>
     </entity>
 
     <entity name="NewMerchantStoreDTO" factoryid="1" id="320" asEmbedded="true" doc="Represents merchant's store">

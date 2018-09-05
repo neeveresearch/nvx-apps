@@ -39,13 +39,15 @@ public class TestMessageFlow extends AbstractTest {
         int newOrderCount = 1000;
         System.out.println("Sending in " + newOrderCount + " New Orders...");
         driverApp.start(newOrderCount, 1000, true);
+
         // poll for ad response received
-        while (driverApp.getSentCount() < newOrderCount) {
+        long timeout = System.currentTimeMillis() + 60000;
+        while (driverApp.getSentCount() < newOrderCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(200);
         }
         System.out.println("...New Orders Sent ... Waiting for responses");
 
-        while (driverApp.getReceivedCount() < newOrderCount) {
+        while (driverApp.getReceivedCount() < newOrderCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(200);
         }
         System.out.println("Responses received ... validating final counts.");
@@ -71,12 +73,13 @@ public class TestMessageFlow extends AbstractTest {
         System.out.println("Sending in " + newOrderCount + " New Orders...");
         localDriver.start(newOrderCount, 1000, true);
         // poll for ad response received
-        while (localDriver.getSentCount() < newOrderCount) {
+        long timeout = System.currentTimeMillis() + 60000;
+        while (localDriver.getSentCount() < newOrderCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(200);
         }
         System.out.println("...New Orders Sent ... Waiting for responses");
 
-        while (localDriver.getReceivedCount() < newOrderCount) {
+        while (localDriver.getReceivedCount() < newOrderCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(200);
         }
         System.out.println("Responses received ... validating final counts.");

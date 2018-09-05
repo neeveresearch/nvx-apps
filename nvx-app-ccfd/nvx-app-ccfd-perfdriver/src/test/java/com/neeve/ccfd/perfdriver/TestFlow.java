@@ -12,8 +12,12 @@ import org.junit.Test;
 public class TestFlow extends AbstractTest {
     @Test
     public void testFlow() throws Throwable {
+        int sendCount = 1000;
+        int sendRate = 1000;
         // configure
         Properties env = new Properties();
+        env.put("x.env.driver.sendCount", String.valueOf(sendCount));
+        env.put("x.env.driver.sendRate", String.valueOf(sendRate));
         env.put("nv.ddl.profiles", "test");
         // disable clustering to speed up app startup
         env.put("x.apps.templates.fraudanalyzer-app-template.storage.clustering.enabled", "false");
@@ -34,7 +38,8 @@ public class TestFlow extends AbstractTest {
         Application driverApp = startApp(com.neeve.ccfd.perfdriver.Application.class, "perfdriver", "perfdriver-1", "nvx-app-ccfd-perfdriver", env);
 
         // poll for authorization response received
-        while (driverApp.getAuthorizationResponseCount() < 1000) {
+        long timeout = System.currentTimeMillis() + (30 + (sendCount / sendRate)) * 1000;
+        while (driverApp.getAuthorizationResponseCount() < sendCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(1000);
         }
 
@@ -42,7 +47,7 @@ public class TestFlow extends AbstractTest {
         Thread.sleep(1000);
 
         // validate
-        assertEquals("Wrong number of authorizations requested", 1000, driverApp.getAuthorizationRequestCount());
-        assertEquals("Wrong number of authorizations performed", 1000, driverApp.getAuthorizationResponseCount());
+        assertEquals("Wrong number of authorizations requested", sendCount, driverApp.getAuthorizationRequestCount());
+        assertEquals("Wrong number of authorizations performed", sendCount, driverApp.getAuthorizationResponseCount());
     }
 }

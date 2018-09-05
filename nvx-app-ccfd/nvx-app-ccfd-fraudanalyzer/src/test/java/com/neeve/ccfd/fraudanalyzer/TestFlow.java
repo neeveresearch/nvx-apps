@@ -15,8 +15,12 @@ import com.neeve.ccfd.fraudanalyzer.driver.SendDriver;
 public class TestFlow extends AbstractTest {
     @Test
     public void testFlow() throws Throwable {
+        int sendCount = 1000;
+        int sendRate = 1000;
         // configure
         Properties env = new Properties();
+        env.put("x.env.driver.sendCount", String.valueOf(sendCount));
+        env.put("x.env.driver.sendRate", String.valueOf(sendRate));
         env.put("nv.ddl.profiles", "test");
         env.put("x.apps.templates.fraudanalyzer-app-template.storage.clustering.enabled", "false");
 
@@ -31,8 +35,8 @@ public class TestFlow extends AbstractTest {
         SendDriver sender = startApp(SendDriver.class, "fraudanalyzer-send-driver", "fraudanalyzer-send-driver", env);
 
         // send
-        long timeout = System.currentTimeMillis() + 60000;
-        while (receiver.getNumReceived() < 1000 && System.currentTimeMillis() < timeout) {
+        long timeout = System.currentTimeMillis() + (30 + (sendCount / sendRate)) * 1000;
+        while (receiver.getNumReceived() < sendCount && System.currentTimeMillis() < timeout) {
             Thread.sleep(500);
         }
 

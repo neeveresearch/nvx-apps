@@ -20,7 +20,7 @@
     <driver.sendCount>1000</driver.sendCount>
 
     <!-- Use XSQL State Queries for fraud checks? -->
-    <cardholdermaster.queryTransactions>true</cardholdermaster.queryTransactions>
+    <cardholdermaster.queryTransactions>false</cardholdermaster.queryTransactions>
 
     <cardmaster.numShards>1</cardmaster.numShards>
     <merchantmaster.numShards>1</merchantmaster.numShards>
