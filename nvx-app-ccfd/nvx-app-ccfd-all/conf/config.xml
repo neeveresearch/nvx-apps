@@ -35,6 +35,9 @@
     <merchantmaster.numShards>2</merchantmaster.numShards>
     <cardholdermaster.numShards>2</cardholdermaster.numShards>
     <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
+
+    <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
+    <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
   </env>
 
   <buses>
@@ -665,6 +668,18 @@
       </activation>
       <env>
         <CCFD_BUS_DESCRIPTOR>solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+      </env>
+    </profile>
+    
+    <profile name="activemq">
+      <activation>
+        <properties>
+          <ccfd-bus-provider>activemq</ccfd-bus-provider>
+        </properties>
+      </activation>
+      <env>
+          <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
+          <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
       </env>
     </profile>
   </profiles>
