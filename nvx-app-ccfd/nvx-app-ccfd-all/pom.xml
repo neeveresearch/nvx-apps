@@ -57,11 +57,6 @@
 
     <dependency>
       <groupId>com.neeve</groupId>
-      <artifactId>nvx-solace</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.neeve</groupId>
       <artifactId>nvx-native</artifactId>
       <classifier>linux-x86-64</classifier>
     </dependency>
