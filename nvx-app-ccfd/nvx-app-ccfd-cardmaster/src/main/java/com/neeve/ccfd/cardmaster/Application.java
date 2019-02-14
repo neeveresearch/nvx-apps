@@ -77,10 +77,11 @@ public class Application {
             rejection.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
             rejection.setNewTransaction(message.getNewTransaction().copy());
             _messageSender.sendMessage("authresp", rejection);
+            return;
         }
 
         // validate that a card holder id is associated with the card. 
-        if (card.hasCardHolderId()) {
+        if (!card.hasCardHolderId()) {
             throw new IllegalStateException("Card '" + card.getCardNumber() + "' has no associated card holder id!");
         }
 
