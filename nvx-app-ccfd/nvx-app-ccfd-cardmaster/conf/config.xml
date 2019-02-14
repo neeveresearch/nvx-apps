@@ -82,6 +82,7 @@
                 <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
               </channel>
               <channel name="authreq2" join="false" />
+              <channel name="authresp" join="false" />
               <channel name="card-events" join="true">
                 <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
               </channel>
@@ -134,6 +135,7 @@
         <bus name="ccfd">
           <channels>
             <channel name="authreq2" join="true" />
+            <channel name="authresp" join="true" />
           </channels>
         </bus>
       </messaging>

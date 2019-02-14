@@ -6,6 +6,7 @@ import com.neeve.aep.IAepApplicationStateFactory;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.ccfd.cardmaster.state.PaymentCard;
 import com.neeve.ccfd.cardmaster.state.Repository;
+import com.neeve.ccfd.messages.AuthorizationDeclinedMessage;
 import com.neeve.ccfd.messages.AuthorizationRequestMessage;
 import com.neeve.ccfd.messages.NewCardMessage;
 import com.neeve.lang.XString;
@@ -67,14 +68,25 @@ public class Application {
         long start = UtlTime.now();
 
         // lookup cardholder
-        final XString cardHolderId = repository.getCards().get(message.getNewTransaction().getCardNumber()).getCardHolderIdUnsafe();
-        if (cardHolderId == null) {
-            throw new IllegalStateException("Cardholder not found " + message.getNewTransaction().getCardNumber());
+        final PaymentCard card = repository.getCards().get(message.getNewTransaction().getCardNumber());
+        if (card == null) {
+            AuthorizationDeclinedMessage rejection = AuthorizationDeclinedMessage.create();
+            rejection.setFlowStartTs(message.getFlowStartTs());
+            rejection.setRequestIdFrom(message.getRequestIdUnsafe());
+            rejection.setDecisionScore(0);
+            rejection.setCardHolderIdFrom(message.getCardHolderIdUnsafe());
+            rejection.setNewTransaction(message.getNewTransaction().copy());
+            _messageSender.sendMessage("authresp", rejection);
+        }
+
+        // validate that a card holder id is associated with the card. 
+        if (card.hasCardHolderId()) {
+            throw new IllegalStateException("Card '" + card.getCardNumber() + "' has no associated card holder id!");
         }
 
         // send message to continue authorization with card holder resolved
         final AuthorizationRequestMessage outMessage = message.copy();
-        outMessage.setCardHolderIdFrom(cardHolderId);
+        outMessage.setCardHolderIdFrom(card.getCardHolderIdUnsafe());
         _messageSender.sendMessage("authreq2", outMessage);
 
         authorizationProcessingLatencies.add(UtlTime.now() - start);
