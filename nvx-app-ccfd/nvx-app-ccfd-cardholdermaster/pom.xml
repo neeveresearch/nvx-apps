@@ -29,20 +29,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+        </dependency>
+        
+        <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-            <version>5.15.6</version>
-        </dependency>
-
+        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-kafka</artifactId>
-            <version>1.4.0</version>
         </dependency>
 
         <dependency>

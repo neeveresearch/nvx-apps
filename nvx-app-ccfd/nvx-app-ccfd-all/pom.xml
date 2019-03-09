@@ -42,7 +42,7 @@
       <artifactId>nvx-app-ccfd-merchantmaster</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    
     <dependency>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-app-ccfd-perfdriver</artifactId>
@@ -53,6 +53,11 @@
       <groupId>com.neeve</groupId>
       <artifactId>nvx-talon-all</artifactId>
       <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.neeve</groupId>
+      <artifactId>nvx-kafka</artifactId>
     </dependency>
 
     <dependency>

@@ -23,7 +23,7 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-
+	
     <modules>
         <module>nvx-app-ccfd-roe</module>
         <module>nvx-app-ccfd-cardmaster</module>
@@ -33,6 +33,23 @@
         <module>nvx-app-ccfd-perfdriver</module>
         <module>nvx-app-ccfd-all</module>
     </modules>
+    
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>com.neeve</groupId>
+          <artifactId>nvx-kafka</artifactId>
+          <version>1.4.0</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.15.6</version>
+        </dependency>
+        
+      </dependencies>
+    </dependencyManagement>
     
     <build>
         <plugins>
