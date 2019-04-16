@@ -4,7 +4,7 @@
   <groupId>com.neeve</groupId>
   <artifactId>nvx-apps-parent</artifactId>
   <packaging>pom</packaging>
-  <version>3.12-SNAPSHOT</version>
+  <version>3.12.0</version>
   <name>X Platform Apps Parent</name>
    
   <organization>
@@ -22,7 +22,7 @@
   </licenses>
 
   <properties>
-    <nvx.platform.version>3.12-SNAPSHOT</nvx.platform.version>
+    <nvx.platform.version>3.12.0</nvx.platform.version>
   </properties>
 
   <modules>
