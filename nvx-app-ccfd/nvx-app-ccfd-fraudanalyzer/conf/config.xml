@@ -27,11 +27,26 @@
     <merchantmaster.numShards>1</merchantmaster.numShards>
     <cardholdermaster.numShards>1</cardholdermaster.numShards>
     <fraudanalyzer.numShards>1</fraudanalyzer.numShards>
+    
+    <!-- 
+      Default addresses for various messaging provider profiles.
+      This are typically overriden either by a environment profile
+      (e.g. production) or from the target environement where
+      the application is being deployed:
+      -->
+    <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
+    <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
+    
+    <SOLACE_HOST>localhost</SOLACE_HOST>
+    <SOLACE_PORT>55555</SOLACE_PORT>
+    
+    <KAFKA_HOST>localhost</KAFKA_HOST>
+    <KAFKA_PORT>9092</KAFKA_PORT>
   </env>
 
   <buses>
     <bus name="ccfd"
-      descriptor="${CCFD_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=false&amp;FLOW_FORWARDING_MODE=2}">
+      descriptor="${CCFD_BUS_DESCRIPTOR::solace://${SOLACE_HOST}:${SOLACE_PORT}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2}">
       <channels>
         <channel name="authreq" id="1">
           <qos>${CCFD_QOS::Guaranteed}</qos>
@@ -325,7 +340,30 @@
         </properties>
       </activation>
       <env>
-        <CCFD_BUS_DESCRIPTOR>solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+        <CCFD_BUS_DESCRIPTOR>solace://${SOLACE_HOST::localhost}:${SOLACE_PORT::55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+      </env>
+    </profile>
+    
+    <profile name="activemq">
+      <activation>
+        <properties>
+          <ccfd-bus-provider>activemq</ccfd-bus-provider>
+        </properties>
+      </activation>
+      <env>
+          <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
+          <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
+      </env>
+    </profile>
+    
+    <profile name="kafka">
+      <activation>
+        <properties>
+          <ccfd-bus-provider>kafka</ccfd-bus-provider>
+        </properties>
+      </activation>
+      <env>
+          <CCFD_BUS_DESCRIPTOR>kafka://${KAFKA_HOST::localhost}:${KAFKA_PORT::9092}</CCFD_BUS_DESCRIPTOR>
       </env>
     </profile>
     

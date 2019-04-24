@@ -48,6 +48,8 @@ public class Application {
     private final Counter unknownCardHolderRequestCount = StatsFactory.createCounterStat("Unknown CardHolder Request Received Count");
     @AppStat
     private final Latencies authorizationProcessingLatencies = StatsFactory.createLatencyStat("Authorization Processing Time");
+    @AppStat
+    private final Counter authorizationDeclinedCount = StatsFactory.createCounterStat("Authorization Declined Count");
     private volatile long lastCardHolderSeededTime = 0;
 
     @AppStat(name = "Txn Query Enabled")
@@ -173,11 +175,6 @@ public class Application {
             outboundMessage.setCardHolderIdFrom(authRequest.getCardHolderIdUnsafe());
             outboundMessage.setMerchantStoreCountryCodeFrom(authRequest.getMerchantStoreCountryCodeUnsafe());
             outboundMessage.setMerchantStorePostcodeFrom(authRequest.getMerchantStorePostcodeUnsafe());
-
-            // Fraud Analyzer has no partitioned state. We know that in our demo it will have same number of shards for 
-            // cardholdermaster and fraudanalyzer, so we will use cardholder ID to make shard key for fraud analyzer. 
-            // We could choose anything to make fraudanalyzer shard key, including generating with RNG,
-            // as long as it will result in spreading the message load evenly across fraud analyzer instances. 
             _messageSender.sendMessage("authreq4", outboundMessage);
             authorizationProcessingLatencies.add(UtlTime.now() - start);
         }
@@ -190,6 +187,7 @@ public class Application {
             authorizationResponseMessage.setNewTransaction(authRequest.getNewTransaction().copy());
             _messageSender.sendMessage("authresp", authorizationResponseMessage);
             authorizationProcessingLatencies.add(UtlTime.now() - start);
+            authorizationDeclinedCount.increment();
         }
     }
 
