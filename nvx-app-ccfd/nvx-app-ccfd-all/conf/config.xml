@@ -2,7 +2,7 @@
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl">
 
   <systemDetails>
-    <displayName>Fraud Detection System (3.8)</displayName>
+    <displayName>Fraud Detection System (3.9)</displayName>
   </systemDetails>
   <env>
     <nv>
