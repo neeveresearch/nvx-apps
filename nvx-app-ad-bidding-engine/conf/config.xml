@@ -3,7 +3,7 @@
   <systemDetails>
     <displayName>Ad Serving System</displayName>
     <name>nvx-app-ad-bidding-engine</name>
-    <version>3.8-SNAPSHOT</version>
+    <version>3.12.1</version>
   </systemDetails>
 
   <env>
