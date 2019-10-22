@@ -7,7 +7,7 @@
     <parent>
       <groupId>com.neeve</groupId>
       <artifactId>nvx-apps-parent</artifactId>
-      <version>3.12.0</version>
+      <version>3.12.2</version>
     </parent>
     
     <licenses>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-kafka</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.5.1</version>
         </dependency>
         
         <dependency>
