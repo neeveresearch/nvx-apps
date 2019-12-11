@@ -22,7 +22,7 @@
   </licenses>
 
   <properties>
-    <nvx.platform.version>3.13-SNAPSHOT</nvx.platform.version>
+    <nvx.platform.version>3.12.3</nvx.platform.version>
   </properties>
 
   <modules>

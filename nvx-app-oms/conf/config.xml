@@ -244,7 +244,7 @@
             <nv.defaultcpuaffinitymask>[0]</nv.defaultcpuaffinitymask>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
             <oms.orderPreallocateCount>2000000</oms.orderPreallocateCount>
-            <oms.clustering.eventmultiplexer.cpuaffinitymask>[2]</oms.clustering.eventmultiplexer.cpuaffinitymask>
+            <oms.cluster.eventmultiplexer.cpuaffinitymask>[2]</oms.cluster.eventmultiplexer.cpuaffinitymask>
             <oms.clustering.replication.detachedsender.cpuaffinitymask>[3]</oms.clustering.replication.detachedsender.cpuaffinitymask>
             <oms.clustering.replication.localifaddr>192.168.2.13</oms.clustering.replication.localifaddr>
             <oms.clustering.replication.localport>12000</oms.clustering.replication.localport>
@@ -280,7 +280,7 @@
             <nv.defaultcpuaffinitymask>[0]</nv.defaultcpuaffinitymask>
             <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
             <oms.orderPreallocateCount>2000000</oms.orderPreallocateCount>
-            <oms.clustering.eventmultiplexer.cpuaffinitymask>[2]</oms.clustering.eventmultiplexer.cpuaffinitymask>
+            <oms.cluster.eventmultiplexer.cpuaffinitymask>[2]</oms.cluster.eventmultiplexer.cpuaffinitymask>
             <oms.clustering.replication.detachedsender.cpuaffinitymask>[3]</oms.clustering.replication.detachedsender.cpuaffinitymask>
             <oms.clustering.replication.localifaddr>192.168.2.14</oms.clustering.replication.localifaddr>
             <oms.clustering.replication.localport>12000</oms.clustering.replication.localport>
