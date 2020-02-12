@@ -1,12 +1,34 @@
 <?xml version="1.0"?>
 
 <model xmlns="http://www.neeveresearch.com/schema/x-adml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="com.neeve.oms.state">
+    <import model="com/neeve/fix/entities/entities.xml"/>
+
     <factories>
         <factory name="StateFactory" id="2"/>
     </factories>
 
     <entities>
         <entity name="Repository" factoryid="2" id="1">
+            <field name="orders" type="Orders" id="1"/>
+        </entity>
+
+        <entity name="Order" factoryid="2" id="2" doc="Contains order data">
+			<field name="orderId" type="Long" id="37" isKey="true"/>
+            <field name="senderCompID" type="String" id="49"/>
+			<field name="targetCompID" type="String" id="56"/>
+			<field name="symbol" type="String" id="55"/>
+			<field name="clOrdID" type="String" id="11"/>
+			<field name="side" type="Side" id="54"/>
+			<field name="ordType" type="OrdType" id="40"/>
+			<field name="price" type="Double" id="44"/>
+			<field name="orderQty" type="Double" id="38"/>
+			<field name="timeInForce" type="TimeInForce" id="59"/>
+			<field name="cumQuantity" type="Double" id="14"/>
+			<field name="leavesQty" type="Double" id="151"/>
         </entity>
     </entities>
+
+    <collections>
+        <collection name="Orders" is="LongMap" contains="Order" factoryid="2" id="100"/>
+    </collections>
 </model>
