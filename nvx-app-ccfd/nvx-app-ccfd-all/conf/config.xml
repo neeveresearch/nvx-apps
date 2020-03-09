@@ -11,7 +11,7 @@
 
       <!-- optimize for latency -->
       <optimizefor>latency</optimizefor>
-      <aep.trace>info</aep.trace>
+      <aep.trace>config</aep.trace>
 
       <!-- use zero garbage spin locks -->
       <pool.lockingstrategy>Spinning</pool.lockingstrategy>
@@ -452,7 +452,12 @@
         </properties>
       </activation>
       <env>
+        <SOLACE_HOST>192.168.1.7</SOLACE_HOST>
+        <SOLACE_PORT>55555</SOLACE_PORT>
         <driver.autoStart>false</driver.autoStart>
+        <nv>
+            <discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=${DISCOVERY_INTERFACE}</discovery.descriptor>
+        </nv>
       </env>
       
       <xvms>
@@ -493,6 +498,7 @@
   
         <xvm name="cardholdermaster-1-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.12</CARDHOLDERMASTER_STORE_ADDRESS>
             <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
                 <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
@@ -504,6 +510,7 @@
   
         <xvm name="cardholdermaster-1-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
             <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
                 <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
@@ -514,6 +521,7 @@
         </xvm>
         <xvm name="cardholdermaster-2-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
             <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
                 <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
@@ -524,6 +532,7 @@
         </xvm>
         <xvm name="cardholdermaster-2-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
             <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
             <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
                 <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
@@ -535,6 +544,7 @@
   
         <xvm name="cardmaster-1-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -544,6 +554,7 @@
   
         <xvm name="cardmaster-1-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
             <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -553,6 +564,7 @@
   
         <xvm name="cardmaster-2-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
             <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -562,6 +574,7 @@
   
         <xvm name="cardmaster-2-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -571,6 +584,7 @@
   
         <xvm name="fraudanalyzer-1-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
             <FRAUDANALYZER_STORE_ADDRESS>192.168.2.14</FRAUDANALYZER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -579,6 +593,7 @@
         </xvm>
         <xvm name="fraudanalyzer-1-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -587,6 +602,7 @@
         </xvm>
         <xvm name="fraudanalyzer-2-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
             <FRAUDANALYZER_STORE_ADDRESS>192.168.2.13</FRAUDANALYZER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -595,6 +611,7 @@
         </xvm>
         <xvm name="fraudanalyzer-2-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -604,6 +621,7 @@
   
         <xvm name="merchantmaster-1-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
             <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -612,6 +630,7 @@
         </xvm>
         <xvm name="merchantmaster-1-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
             <MERCHANTMASTER_STORE_ADDRESS>192.168.2.14</MERCHANTMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -620,6 +639,7 @@
         </xvm>
         <xvm name="merchantmaster-2-1" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
             <MERCHANTMASTER_STORE_ADDRESS>192.168.2.12</MERCHANTMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -628,6 +648,7 @@
         </xvm>
         <xvm name="merchantmaster-2-2" template="xvm-template">
           <env>
+            <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
             <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
           </env>
           <provisioning>
@@ -636,6 +657,9 @@
         </xvm>
   
         <xvm name="perfdriver-1" template="xvm-template">
+            <env>
+              <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+            </env>
           <provisioning>
             <host>192.168.1.12</host>
           </provisioning>
