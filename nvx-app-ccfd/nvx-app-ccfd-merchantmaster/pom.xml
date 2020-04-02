@@ -19,7 +19,7 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -31,11 +31,6 @@
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
         </dependency>
 
         <dependency>
