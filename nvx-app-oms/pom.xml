@@ -20,7 +20,7 @@
     </licenses>
     
     <properties>
-        <nvx.fix.version>0.9-M7</nvx.fix.version>
+        <nvx.fix.version>0.9-M8</nvx.fix.version>
     </properties>
 
     <dependencies>
