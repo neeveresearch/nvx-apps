@@ -22,8 +22,5 @@ This is a simple financial service execution management system which includes a 
 ### Stream Processing Ad Bidding Exchange (nvx-app-adbidding-engine)
 This application is based on ad bidding solution donated by Kode41 which showcases the ease of developing a low latency ad exchange using the X Platform.
 
-### Microservices Bookstore App (nvx-app-bookstore)
-This application uses Eagle to implement a classic "Bookstore App" e-commerce usecase using a microservices architecture.
-
 ### Credit Card Fraud Detection (nvx-app-ccfd)
 This project is based on card processing solution donated by Kode41 which showcases a fraud detection usecase using the X Platform. 
