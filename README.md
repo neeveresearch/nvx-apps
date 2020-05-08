@@ -22,9 +22,6 @@ This is a simple financial service execution management system which includes a 
 ### Stream Processing Ad Bidding Exchange (nvx-app-adbidding-engine)
 This application is based on ad bidding solution donated by Kode41 which showcases the ease of developing a low latency ad exchange using the X Platform.
 
-### IOT Geofencing App (nvx-app-geofencer)
-This application implements a geofencing flow on the X Platform demonstrating the platforms utility in handling IOT flows. 
-
 ### Microservices Bookstore App (nvx-app-bookstore)
 This application uses Eagle to implement a classic "Bookstore App" e-commerce usecase using a microservices architecture.
 
