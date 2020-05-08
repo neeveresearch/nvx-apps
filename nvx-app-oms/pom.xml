@@ -9,7 +9,7 @@
         <artifactId>nvx-apps-parent</artifactId>
         <version>3.14-SNAPSHOT</version>
     </parent>
-    
+
     <licenses>
         <license>
             <name>Apache 2.0</name>
@@ -18,7 +18,7 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-    
+
     <properties>
         <nvx.fix.version>0.9-M8</nvx.fix.version>
     </properties>
@@ -29,13 +29,13 @@
             <artifactId>nvx-fix</artifactId>
             <version>${nvx.fix.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-native</artifactId>
@@ -66,7 +66,7 @@
                 <artifactId>nvx-platform-maven-plugin</artifactId>
                 <version>${nvx.platform.version}</version>
                 <executions>
-                   <execution>
+                    <execution>
                         <id>State</id>
                         <phase>generate-sources</phase>
                         <goals>
@@ -77,7 +77,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
-                    
+
                     <execution>
                         <id>Messages</id>
                         <phase>generate-sources</phase>
@@ -89,7 +89,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
-                    
+
                     <execution>
                         <id>Xar</id>
                         <phase>package</phase>
@@ -113,7 +113,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>

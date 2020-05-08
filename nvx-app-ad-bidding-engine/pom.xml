@@ -1,16 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>nvx-app-ad-bidding-engine</artifactId>
     <packaging>jar</packaging>
     <name>Ad Serving System</name>
 
     <parent>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-apps-parent</artifactId>
-      <version>3.14-SNAPSHOT</version>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-apps-parent</artifactId>
+        <version>3.14-SNAPSHOT</version>
     </parent>
-    
+
     <licenses>
         <license>
             <name>Apache 2.0</name>
@@ -26,13 +25,13 @@
             <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
@@ -56,7 +55,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>com.neeve</groupId>
                 <artifactId>nvx-platform-maven-plugin</artifactId>
@@ -92,7 +91,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
-                    
+
                     <execution>
                         <id>Xar</id>
                         <phase>package</phase>

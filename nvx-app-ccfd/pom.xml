@@ -5,11 +5,11 @@
     <name>Fraud Detection Parent</name>
 
     <parent>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-apps-parent</artifactId>
-      <version>3.14-SNAPSHOT</version>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-apps-parent</artifactId>
+        <version>3.14-SNAPSHOT</version>
     </parent>
-   
+
     <organization>
         <name>Neeve Research, LLC</name>
         <url>http://www.neeveresearch.com</url>
@@ -23,7 +23,7 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-	
+
     <modules>
         <module>nvx-app-ccfd-roe</module>
         <module>nvx-app-ccfd-cardmaster</module>
@@ -33,16 +33,16 @@
         <module>nvx-app-ccfd-perfdriver</module>
         <module>nvx-app-ccfd-all</module>
     </modules>
-    
+
     <build>
         <plugins>
             <plugin>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                <source>1.7</source>
-                <target>1.7</target>
-              </configuration>
-              <version>3.6.1</version>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+                <version>3.6.1</version>
             </plugin>
         </plugins>
     </build>

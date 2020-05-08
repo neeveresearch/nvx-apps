@@ -5,11 +5,11 @@
     <name>Geofencer Application</name>
 
     <parent>
-      <groupId>com.neeve</groupId>
-      <artifactId>nvx-apps-parent</artifactId>
-      <version>3.14-SNAPSHOT</version>
+        <groupId>com.neeve</groupId>
+        <artifactId>nvx-apps-parent</artifactId>
+        <version>3.14-SNAPSHOT</version>
     </parent>
-    
+
     <licenses>
         <license>
             <name>Apache 2.0</name>
@@ -25,28 +25,21 @@
             <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-kafka</artifactId>
-            <version>1.1-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>0.10.2.0</version>
         </dependency>
     </dependencies>
 
@@ -65,7 +58,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>com.neeve</groupId>
                 <artifactId>nvx-platform-maven-plugin</artifactId>
@@ -135,7 +128,7 @@
                             <namespace>com.neeve.geofencer.vehiclemaster.state</namespace>
                         </configuration>
                     </execution>
-                   
+
                     <execution>
                         <id>Xar</id>
                         <phase>package</phase>
@@ -143,7 +136,7 @@
                             <goal>robin-xar</goal>
                         </goals>
                     </execution>
-                    
+
                 </executions>
             </plugin>
         </plugins>
