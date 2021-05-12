@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl">
-
     <systemDetails>
         <displayName>Fraud Detection System (3.8)</displayName>
     </systemDetails>

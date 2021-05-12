@@ -37,7 +37,7 @@
             <groupId>com.neeve</groupId>
             <artifactId>nvx-kafka</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-native</artifactId>
@@ -63,7 +63,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
-                    
+
                     <execution>
                         <id>Xar</id>
                         <phase>package</phase>
