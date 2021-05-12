@@ -43,18 +43,18 @@
             <artifactId>nvx-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
-        
+
         <!-- 
         Set tensor flow to a provided, optional dependency unless specifically
         included by profile, below. This keeps the size of binaries in check and
         maximizes portability on platform on which tensorflow is not supported.  
         -->
         <dependency>
-          <groupId>org.tensorflow</groupId>
-          <artifactId>tensorflow</artifactId>
-          <version>1.8.0</version>
-          <optional>true</optional>
-          <scope>provided</scope>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow</artifactId>
+            <version>1.8.0</version>
+            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -72,7 +72,7 @@
                     <include>ml-output.zip</include>
                 </includes>
                 <filtering>false</filtering>
-             </resource>
+            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -91,7 +91,7 @@
                             <encodingType>Xbuf</encodingType>
                         </configuration>
                     </execution>
-                    
+
                     <execution>
                         <id>Xar</id>
                         <phase>package</phase>
@@ -117,19 +117,19 @@
             </plugin>
         </plugins>
     </build>
-    
+
     <profiles>
-      <profile>
-        <id>tensorflow</id>
-        <dependencies>
-          <dependency>
-            <groupId>org.tensorflow</groupId>
-            <artifactId>tensorflow</artifactId>
-            <version>1.8.0</version>
-            <optional>false</optional>
-            <scope>compile</scope>
-          </dependency>
-        </dependencies>
-      </profile>
+        <profile>
+            <id>tensorflow</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.tensorflow</groupId>
+                    <artifactId>tensorflow</artifactId>
+                    <version>1.8.0</version>
+                    <optional>false</optional>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 </project>

@@ -1,373 +1,366 @@
 <?xml version="1.0"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <env>
-    <nv>
-      <!-- discovery descriptor -->
-      <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
-
-      <!-- optimize for latency -->
-      <optimizefor>latency</optimizefor>
-      <aep.trace>info</aep.trace>
-
-      <!-- global latency stats settings -->
-      <msg.latency.stats>true</msg.latency.stats>
-      <ods.latency.stats>true</ods.latency.stats>
-      <link.network.stampiots>true</link.network.stampiots>
-      <latencymanager.samplesize>10240</latencymanager.samplesize>
-    </nv>
-
-    <!-- Configure the test drivers -->
-    <driver.sendRate>1000</driver.sendRate>
-    <driver.sendCount>1000</driver.sendCount>
-
-    <cardmaster.numShards>1</cardmaster.numShards>
-    <merchantmaster.numShards>1</merchantmaster.numShards>
-    <cardholdermaster.numShards>1</cardholdermaster.numShards>
-    <fraudanalyzer.numShards>1</fraudanalyzer.numShards>
-
-    <!-- 
-      Default addresses for various messaging provider profiles.
-      This are typically overriden either by a environment profile
-      (e.g. production) or from the target environement where
-      the application is being deployed:
-      -->
-    <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
-    <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
-    
-    <SOLACE_HOST>localhost</SOLACE_HOST>
-    <SOLACE_PORT>55555</SOLACE_PORT>
-    
-    <KAFKA_HOST>localhost</KAFKA_HOST>
-    <KAFKA_PORT>9092</KAFKA_PORT>
-  </env>
-
-  <buses>
-    <bus name="ccfd"
-      descriptor="${CCFD_BUS_DESCRIPTOR::solace://${SOLACE_HOST}:${SOLACE_PORT}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2}">
-      <channels>
-        <channel name="authreq" id="1">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
-        </channel>
-        <channel name="authreq2" id="2">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
-        </channel>
-        <channel name="authreq3" id="3">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
-        </channel>
-        <channel name="authreq4" id="4">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
-        </channel>
-        <channel name="authresp" id="5">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
-        </channel>
-        <channel name="card-events" id="6">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
-        </channel>
-        <channel name="cardholder-events" id="7">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
-        </channel>
-        <channel name="merchant-events" id="8">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
-        </channel>
-      </channels>
-    </bus>
-  </buses>
-
-  <apps>
-    <templates>
-      <app name="cardmaster-app-template" mainClass="com.neeve.ccfd.cardmaster.Application"
-        displayName="Card Master">
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <messaging>
-          <factories>
-            <factory name="com.neeve.ccfd.messages.MessageFactory" />
-          </factories>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq" join="true">
-                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
-              </channel>
-              <channel name="authreq2" join="false" />
-              <channel name="authresp" join="false" />
-              <channel name="card-events" join="true">
-                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
-              </channel>
-            </channels>
-          </bus>
-        </messaging>
-        <storage>
-          <factories>
-            <factory name="com.neeve.ccfd.cardmaster.state.StateFactory" />
-          </factories>
-          <clustering enabled="true">
-            <localIfAddr>${CARDMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
-            <storeName>cardmaster-${CARDMASTER_SHARDID}</storeName>
-          </clustering>
-          <persistence enabled="true">
-            <!-- detached persist is not supported for state replication -->
-            <detachedPersist enabled="false" />
-          </persistence>
-        </storage>
-      </app>
-    </templates>
-
-    <!-- Card Master App Partitions -->
-    <app name="cardmaster-1" template="cardmaster-app-template" />
-    <app name="cardmaster-2" template="cardmaster-app-template" />
-
-    <app name="cardmaster-send-driver" displayName="Send Driver"
-      mainClass="com.neeve.ccfd.cardmaster.driver.SendDriver">
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ccfd.messages.MessageFactory" />
-        </factories>
-        <bus name="ccfd">
-          <channels>
-            <channel name="authreq" join="false" />
-            <channel name="card-events" join="false" />
-          </channels>
-        </bus>
-      </messaging>
-    </app>
-
-    <app name="cardmaster-receive-driver" displayName="Receive Driver"
-      mainClass="com.neeve.ccfd.cardmaster.driver.ReceiveDriver">
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ccfd.messages.MessageFactory" />
-        </factories>
-        <bus name="ccfd">
-          <channels>
-            <channel name="authreq2" join="true" />
-            <channel name="authresp" join="true" />
-          </channels>
-        </bus>
-      </messaging>
-      <storage enabled="false">
-        <clustering enabled="false" />
-        <persistence enabled="false" />
-      </storage>
-    </app>
-  </apps>
-
-  <xvms>
-    <templates>
-      <xvm name="xvm-template">
-        <heartbeats enabled="true" interval="10">
-          <collectIndividualThreadStats>false</collectIndividualThreadStats>
-          <tracing enabled="false">
-            <traceAdminClientStats>false</traceAdminClientStats>
-            <traceAppStats>false</traceAppStats>
-            <tracePoolStats>false</tracePoolStats>
-            <traceSysStats>false</traceSysStats>
-            <traceThreadStats>false</traceThreadStats>
-            <traceUserStats>true</traceUserStats>
-          </tracing>
-        </heartbeats>
-      </xvm>
-    </templates>
-    <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-send-driver" displayName="Card Master Send Driver" template="xvm-template">
-      <apps>
-        <app name="cardmaster-send-driver" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-receive-driver" displayName="Card Master Receiver" template="xvm-template">
-      <apps>
-        <app name="cardmaster-receive-driver" autoStart="true" />
-      </apps>
-    </xvm>
-  </xvms>
-
-  <profiles>
-    <profile name="test">
-      <env>
+    <env>
         <nv>
-          <conservecpu>true</conservecpu>
-          <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+            <!-- discovery descriptor -->
+            <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
+
+            <!-- optimize for latency -->
+            <optimizefor>latency</optimizefor>
+            <aep.trace>info</aep.trace>
+
+            <!-- global latency stats settings -->
+            <msg.latency.stats>true</msg.latency.stats>
+            <ods.latency.stats>true</ods.latency.stats>
+            <link.network.stampiots>true</link.network.stampiots>
+            <latencymanager.samplesize>10240</latencymanager.samplesize>
         </nv>
-        <driver.autoStart>true</driver.autoStart>
-        <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    <profile name="neeve-lab">
-      <env> 
-        <cardmaster.numShards>2</cardmaster.numShards>
-        <merchantmaster.numShards>2</merchantmaster.numShards>
-        <cardholdermaster.numShards>2</cardholdermaster.numShards>
-        <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
-      </env>
-      <xvms>
+
+        <!-- Configure the test drivers -->
+        <driver.sendRate>1000</driver.sendRate>
+        <driver.sendCount>1000</driver.sendCount>
+
+        <cardmaster.numShards>1</cardmaster.numShards>
+        <merchantmaster.numShards>1</merchantmaster.numShards>
+        <cardholdermaster.numShards>1</cardholdermaster.numShards>
+        <fraudanalyzer.numShards>1</fraudanalyzer.numShards>
+
+        <!-- 
+          Default addresses for various messaging provider profiles.
+          This are typically overriden either by a environment profile
+          (e.g. production) or from the target environement where
+          the application is being deployed:
+          -->
+        <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
+        <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
+
+        <SOLACE_HOST>localhost</SOLACE_HOST>
+        <SOLACE_PORT>55555</SOLACE_PORT>
+
+        <KAFKA_HOST>localhost</KAFKA_HOST>
+        <KAFKA_PORT>9092</KAFKA_PORT>
+    </env>
+
+    <buses>
+        <bus name="ccfd" descriptor="${CCFD_BUS_DESCRIPTOR::solace://${SOLACE_HOST}:${SOLACE_PORT}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2}">
+            <channels>
+                <channel name="authreq" id="1">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
+                </channel>
+                <channel name="authreq2" id="2">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[merchantMasterShardId = hash(${merchantId},1)]</key>
+                </channel>
+                <channel name="authreq3" id="3">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
+                </channel>
+                <channel name="authreq4" id="4">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 1)]</key>
+                </channel>
+                <channel name="authresp" id="5">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]/#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
+                </channel>
+                <channel name="card-events" id="6">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardMasterShardId = hash(${cardNumber}, 1)]</key>
+                </channel>
+                <channel name="cardholder-events" id="7">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardholderMasterShardId = hash(${cardHolderId}, 1)]</key>
+                </channel>
+                <channel name="merchant-events" id="8">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[merchantMasterShardId = hash(${merchantId}, 1)]</key>
+                </channel>
+            </channels>
+        </bus>
+    </buses>
+
+    <apps>
         <templates>
-          <xvm name="xvm-template">
-            <env>
-              <GC_HEAP_SIZE_PARAMS>-Xms4g -Xmx4g</GC_HEAP_SIZE_PARAMS>
-              <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-            </env>
-            <provisioning>
-              <jvm>
-                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-                <jvmParamSets>
-                  <jvmParamSet name="prefer-ipv4">
-                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="heap-size" order="-1">
-                    <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="gc-tuning" order="0">
-                    <jvmParams>
-                        ${GC_TUNING_PARAMS}
-                      </jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="flight-recorder">
-                    <jvmParams>
-                      -XX:+UnlockCommercialFeatures 
-                      -XX:+FlightRecorder 
-                      -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile 
-                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
-                       </jvmParams>
-                  </jvmParamSet>
-                </jvmParamSets>
-              </jvm>
-            </provisioning>
-          </xvm>
+            <app name="cardmaster-app-template" mainClass="com.neeve.ccfd.cardmaster.Application" displayName="Card Master">
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <messaging>
+                    <factories>
+                        <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                    </factories>
+                    <bus name="ccfd">
+                        <channels>
+                            <channel name="authreq" join="true">
+                                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
+                            </channel>
+                            <channel name="authreq2" join="false"/>
+                            <channel name="authresp" join="false"/>
+                            <channel name="card-events" join="true">
+                                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
+                            </channel>
+                        </channels>
+                    </bus>
+                </messaging>
+                <storage>
+                    <factories>
+                        <factory name="com.neeve.ccfd.cardmaster.state.StateFactory"/>
+                    </factories>
+                    <clustering enabled="true">
+                        <localIfAddr>${CARDMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                        <storeName>cardmaster-${CARDMASTER_SHARDID}</storeName>
+                    </clustering>
+                    <persistence enabled="true">
+                        <!-- detached persist is not supported for state replication -->
+                        <detachedPersist enabled="false"/>
+                    </persistence>
+                </storage>
+            </app>
         </templates>
 
-        <xvm name="cardmaster-1-1" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
+        <!-- Card Master App Partitions -->
+        <app name="cardmaster-1" template="cardmaster-app-template"/>
+        <app name="cardmaster-2" template="cardmaster-app-template"/>
+
+        <app name="cardmaster-send-driver" displayName="Send Driver" mainClass="com.neeve.ccfd.cardmaster.driver.SendDriver">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq" join="false"/>
+                        <channel name="card-events" join="false"/>
+                    </channels>
+                </bus>
+            </messaging>
+        </app>
+
+        <app name="cardmaster-receive-driver" displayName="Receive Driver" mainClass="com.neeve.ccfd.cardmaster.driver.ReceiveDriver">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq2" join="true"/>
+                        <channel name="authresp" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage enabled="false">
+                <clustering enabled="false"/>
+                <persistence enabled="false"/>
+            </storage>
+        </app>
+    </apps>
+
+    <xvms>
+        <templates>
+            <xvm name="xvm-template">
+                <heartbeats enabled="true" interval="10">
+                    <collectIndividualThreadStats>false</collectIndividualThreadStats>
+                    <tracing enabled="false">
+                        <traceAdminClientStats>false</traceAdminClientStats>
+                        <traceAppStats>false</traceAppStats>
+                        <tracePoolStats>false</tracePoolStats>
+                        <traceSysStats>false</traceSysStats>
+                        <traceThreadStats>false</traceThreadStats>
+                        <traceUserStats>true</traceUserStats>
+                    </tracing>
+                </heartbeats>
+            </xvm>
+        </templates>
+        <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-1" autoStart="true"/>
+            </apps>
         </xvm>
-
-        <xvm name="cardmaster-1-2" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
+        <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-1" autoStart="true"/>
+            </apps>
         </xvm>
-
-        <xvm name="cardmaster-2-1" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
+        <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-2" autoStart="true"/>
+            </apps>
         </xvm>
-
-        <xvm name="cardmaster-2-2" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
+        <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-2" autoStart="true"/>
+            </apps>
         </xvm>
-
-        <xvm name="cardmaster-send-driver" template="xvm-template">
-          <provisioning>
-            <host>192.168.1.12</host>
-            <jvm>
-              <jvmParams>
-                -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
-              </jvmParams>
-            </jvm>
-          </provisioning>
+        <xvm name="cardmaster-send-driver" displayName="Card Master Send Driver" template="xvm-template">
+            <apps>
+                <app name="cardmaster-send-driver" autoStart="true"/>
+            </apps>
         </xvm>
-
-        <xvm name="cardmaster-receive-driver" template="xvm-template">
-          <provisioning>
-            <host>192.168.1.12</host>
-            <jvm>
-              <jvmParams>
-                -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
-              </jvmParams>
-            </jvm>
-          </provisioning>
+        <xvm name="cardmaster-receive-driver" displayName="Card Master Receiver" template="xvm-template">
+            <apps>
+                <app name="cardmaster-receive-driver" autoStart="true"/>
+            </apps>
         </xvm>
+    </xvms>
 
-      </xvms>
-    </profile>
+    <profiles>
+        <profile name="test">
+            <env>
+                <nv>
+                    <conservecpu>true</conservecpu>
+                    <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+                </nv>
+                <driver.autoStart>true</driver.autoStart>
+                <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+        <profile name="neeve-lab">
+            <env>
+                <cardmaster.numShards>2</cardmaster.numShards>
+                <merchantmaster.numShards>2</merchantmaster.numShards>
+                <cardholdermaster.numShards>2</cardholdermaster.numShards>
+                <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
+            </env>
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <env>
+                            <GC_HEAP_SIZE_PARAMS>-Xms4g -Xmx4g</GC_HEAP_SIZE_PARAMS>
+                            <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                        </env>
+                        <provisioning>
+                            <jvm>
+                                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                                <jvmParamSets>
+                                    <jvmParamSet name="prefer-ipv4">
+                                        <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="heap-size" order="-1">
+                                        <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="gc-tuning" order="0">
+                                        <jvmParams>
+                                            ${GC_TUNING_PARAMS}
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="flight-recorder">
+                                        <jvmParams>
+                                            -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
 
-    <profile name="solace-messaging">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>solace</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-        <CCFD_BUS_DESCRIPTOR>solace://${SOLACE_HOST::localhost}:${SOLACE_PORT::55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    
-    <profile name="activemq">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>activemq</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-          <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
-          <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    
-    <profile name="kafka">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>kafka</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-          <CCFD_BUS_DESCRIPTOR>kafka://${KAFKA_HOST::localhost}:${KAFKA_PORT::9092}</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-  </profiles>
+                <xvm name="cardmaster-1-1" template="xvm-template">
+                    <env>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-1-2" template="xvm-template">
+                    <env>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-2-1" template="xvm-template">
+                    <env>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-2-2" template="xvm-template">
+                    <env>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-send-driver" template="xvm-template">
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                        <jvm>
+                            <jvmParams>
+                                -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-receive-driver" template="xvm-template">
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                        <jvm>
+                            <jvmParams>
+                                -Xms4g -Xmx4g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+                </xvm>
+
+            </xvms>
+        </profile>
+
+        <profile name="solace-messaging">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>solace</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <CCFD_BUS_DESCRIPTOR>solace://${SOLACE_HOST::localhost}:${SOLACE_PORT::55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+        <profile name="activemq">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>activemq</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
+                <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+        <profile name="kafka">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>kafka</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <CCFD_BUS_DESCRIPTOR>kafka://${KAFKA_HOST::localhost}:${KAFKA_PORT::9092}</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+    </profiles>
 
 </model>
