@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.neeve</groupId>
         <artifactId>nvx-app-ccfd</artifactId>
-        <version>3.12.5</version>
+        <version>3.15.10</version>
     </parent>
 
     <dependencies>
@@ -19,7 +19,7 @@
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon-all</artifactId>
+            <artifactId>nvx-talon</artifactId>
             <scope>provided</scope>
         </dependency>
         
@@ -28,11 +28,6 @@
             <artifactId>nvx-jms</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-        </dependency>
-        
         <dependency>
             <groupId>com.neeve</groupId>
             <artifactId>nvx-solace</artifactId>

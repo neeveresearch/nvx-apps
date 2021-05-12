@@ -18,7 +18,7 @@ public class VehicleAlertReceiver {
     private final Counter receivedCount = StatsFactory.createCounterStat("Num Received");
 
     @AppStat(name = "VehicleAlertReceiver Event Latency")
-    private volatile Latencies receiveLatencies;
+    private volatile Latencies receiveLatencies = StatsFactory.createLatencyStat("Event latency", 10240);
 
     @EventHandler
     public final void onEvent(RouteViolationEvent event) {

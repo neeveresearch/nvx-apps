@@ -19,7 +19,7 @@ This is a simple financial service order management application.
 ### Low Latency Smart Order Routing (nvx-app-tick-to-trade)
 This is a simple financial service execution management system which includes a smart order router. This application uses Hornet with type based routing.
 
-### Stream Processing Ad Bidding Exchange (nvx-app-adbidding-engine)
+### Stream Processing Ad Bidding Exchange (nvx-app-ad-bidding-engine)
 This application is based on ad bidding solution donated by Kode41 which showcases the ease of developing a low latency ad exchange using the X Platform.
 
 ### IOT Geofencing App (nvx-app-geofencer)

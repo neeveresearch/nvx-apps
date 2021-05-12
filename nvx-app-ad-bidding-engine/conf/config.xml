@@ -1,571 +1,564 @@
 <?xml version="1.0"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <systemDetails>
-    <displayName>Ad Serving System</displayName>
-    <name>nvx-app-ad-bidding-engine</name>
-    <version>3.12.1</version>
-  </systemDetails>
+    <systemDetails>
+        <displayName>Ad Serving System</displayName>
+        <name>nvx-app-ad-bidding-engine</name>
+        <version>3.8-SNAPSHOT</version>
+    </systemDetails>
 
-  <env>
-    <nv>
-      <!-- Configure to optimize for latency -->
-      <optimizefor>latency</optimizefor>
-      <stats.latencymanager.samplesize>65536</stats.latencymanager.samplesize>
-      <msg.latency.stats>true</msg.latency.stats>
-      <ods.latency.stats>true</ods.latency.stats>
-      <link.network.stampiots>true</link.network.stampiots>
-    </nv>
-
-    <nv>
-      <aep.trace>config</aep.trace>
-    </nv>
-
-    <!-- Configure the test drivers -->
-    <driver.sendRate>100</driver.sendRate>
-    <driver.sendCount>1000</driver.sendCount>
-  </env>
-
-  <buses>
-    <bus name="ad-bidding"
-      descriptor="${AD_BIDDING_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2&amp;consumer_cpu_affinity_mask=${ADBIDDING_BUS_CONSUMER_CPUAFFMASK::0}&amp;producer_cpu_affinity_mask=${ADBIDDING_BUS_PRODUCER_CPUAFFMASK::0}&amp;detached_sends=false&amp;detached_dispatch=false&amp;sender_cpu_affinity_mask=[8]&amp;publish_window_size=255&amp;detached_dispatch_queue_depth=128&amp;dispatcher_cpu_affinity_mask=[1]}">
-      <channels>
-        <channel name="client_ad_responses" id="10">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="client_ad_requests" id="20">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="ad_requests" id="30">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="ad_responses" id="40">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="bid_responses" id="50">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="bid_requests" id="60">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="visitor_lookup_responses" id="70">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="visitor_lookup_requests" id="80">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="manage_visitors_requests" id="90">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="win_bid_notify_requests" id="100">
-          <qos>Guaranteed</qos>
-        </channel>
-        <channel name="manage_campaigns_requests" id="110">
-          <qos>Guaranteed</qos>
-        </channel>
-      </channels>
-    </bus>
-  </buses>
-
-  <apps>
-    <app name="driver" displayName="TestDriver App" mainClass="com.neeve.ads.driver.AdRequestDriverApplication">
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-        </factories>
-        <bus name="ad-bidding">
-          <channels>
-            <channel name="client_ad_responses" join="true" />
-            <channel name="client_ad_requests" join="false" />
-            <channel name="manage_visitors_requests" join="false" />
-            <channel name="manage_campaigns_requests" join="false" />
-          </channels>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${DRIVER_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-      <storage enabled="true">
-        <clustering enabled="false" />
-        <persistence enabled="false" />
-      </storage>
-
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <captureEventLatencyStats>true</captureEventLatencyStats>
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-
-      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
-      <inboundEventMultiplexing>
-        <queueDrainerCpuAffinityMask>${DRIVER_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-
-      <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
-    </app>
-
-    <app name="ssp" displayName="SSP App" mainClass="com.neeve.ads.SSPApplication">
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-        </factories>
-        <bus name="ad-bidding">
-          <channels>
-            <channel name="client_ad_responses" join="false" />
-            <channel name="client_ad_requests" join="true" />
-            <channel name="ad_responses" join="true" />
-            <channel name="ad_requests" join="false" />
-          </channels>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${SSP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-
-      <storage enabled="true">
-        <clustering enabled="false" />
-        <persistence enabled="false">
-          <detachedPersist enabled="true">
-            <queueDrainerCpuAffinityMask>${SSP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedPersist>
-          <flushOnCommit>true</flushOnCommit>
-          <flushUsingMappedMemory>true</flushUsingMappedMemory>
-        </persistence>
-        <persistenceQuorum>1</persistenceQuorum>
-      </storage>
-
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <captureEventLatencyStats>true</captureEventLatencyStats>
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-
-      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
-      <inboundEventMultiplexing>
-        <queueDrainerCpuAffinityMask>${SSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-    </app>
-
-    <app name="ad-exchange" displayName="AdExchange App" mainClass="com.neeve.ads.AdExchangeApplication">
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-        </factories>
-        <bus name="ad-bidding">
-          <channels>
-            <channel name="ad_responses" join="false" />
-            <channel name="ad_requests" join="true" />
-            <channel name="visitor_lookup_responses" join="true" />
-            <channel name="bid_responses" join="true" />
-            <channel name="visitor_lookup_requests" join="false" />
-            <channel name="bid_requests" join="false" />
-            <channel name="win_bid_notify_requests" join="false" />
-          </channels>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-
-      <storage>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-          <factory name="com.neeve.ads.state.StateFactory" />
-        </factories>
-
-        <clustering enabled="true">
-          <localPort>12000</localPort>
-          <localIfAddr>${AD_EXCHANGE_STORE_ADDR::0.0.0.0}</localIfAddr>
-          <linkParams>nativeio=true,eagerread=true,maxreadspintime=1000000</linkParams>
-          <linkReaderCpuAffinityMask>${AD_EXCHANGE_STORE_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${AD_EXCHANGE_STORE_SENDER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-          <detachedDispatch enabled="false">
-            <queueDrainerCpuAffinityMask>${AD_EXCHANGE_STORE_DISPATCH_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedDispatch>
-        </clustering>
-
-        <persistence enabled="false">
-          <detachedPersist enabled="true">
-            <queueDrainerCpuAffinityMask>${AD_EXCHANGE_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedPersist>
-          <flushOnCommit>true</flushOnCommit>
-          <flushUsingMappedMemory>true</flushUsingMappedMemory>
-        </persistence>
-        <persistenceQuorum>1</persistenceQuorum>
-      </storage>
-
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <captureEventLatencyStats>true</captureEventLatencyStats>
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
-      <inboundEventMultiplexing>
-        <queueDrainerCpuAffinityMask>${AD_EXCHANGE_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-    </app>
-
-    <app name="dmp" displayName="DMP App" mainClass="com.neeve.ads.DMPApplication">
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-        </factories>
-        <bus name="ad-bidding">
-          <channels>
-            <channel name="visitor_lookup_requests" join="true" />
-            <channel name="manage_visitors_requests" join="true" />
-            <channel name="visitor_lookup_responses" join="false" />
-          </channels>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${DMP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-      <storage enabled="true">
-        <clustering enabled="false" />
-        <persistence enabled="false">
-          <detachedPersist enabled="true">
-            <queueDrainerCpuAffinityMask>${DMP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedPersist>
-          <flushOnCommit>true</flushOnCommit>
-          <flushUsingMappedMemory>true</flushUsingMappedMemory>
-        </persistence>
-        <persistenceQuorum>1</persistenceQuorum>
-      </storage>
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <captureEventLatencyStats>true</captureEventLatencyStats>
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
-      <inboundEventMultiplexing>
-        <queueDrainerCpuAffinityMask>${DMP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-    </app>
-
-    <app name="dsp" displayName="DSP App" mainClass="com.neeve.ads.DSPApplication">
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ads.messages.MessageFactory" />
-        </factories>
-        <bus name="ad-bidding">
-          <channels>
-            <channel name="bid_requests" join="true" />
-            <channel name="win_bid_notify_requests" join="true" />
-            <channel name="manage_campaigns_requests" join="true" />
-            <channel name="bid_responses" join="false" />
-          </channels>
-          <detachedSend enabled="true">
-            <queueDrainerCpuAffinityMask>${DSP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-      <storage enabled="true">
-        <clustering enabled="false" />
-        <persistence enabled="false">
-          <detachedPersist enabled="true">
-            <queueDrainerCpuAffinityMask>${DSP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedPersist>
-          <flushOnCommit>true</flushOnCommit>
-          <flushUsingMappedMemory>true</flushUsingMappedMemory>
-        </persistence>
-        <persistenceQuorum>1</persistenceQuorum>
-      </storage>
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <captureEventLatencyStats>true</captureEventLatencyStats>
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-      <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
-      <inboundEventMultiplexing>
-        <queueDrainerCpuAffinityMask>${DSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-    </app>
-  </apps>
-
-  <xvms>
-    <templates>
-      <xvm name="xvm-template">
-        <autoStopOnLastAppStop>false</autoStopOnLastAppStop>
-        <heartbeats enabled="true" interval="5">
-          <tracing enabled="false">
-            <traceAdminClientStats>false</traceAdminClientStats>
-            <traceAppStats>false</traceAppStats>
-            <tracePoolStats>false</tracePoolStats>
-            <traceSysStats>false</traceSysStats>
-            <traceThreadStats>false</traceThreadStats>
-            <traceUserStats>false</traceUserStats>
-          </tracing>
-        </heartbeats>
-      </xvm>
-    </templates>
-
-    <xvm name="driver-1" displayName="TestDriver Server" template="xvm-template">
-      <apps>
-        <app name="driver" autoStart="true" />
-      </apps>
-    </xvm>
-
-    <xvm name="ssp-1" displayName="SSP Server" template="xvm-template">
-      <apps>
-        <app name="ssp" autoStart="true" />
-      </apps>
-    </xvm>
-
-    <xvm name="ad-exchange-1" displayName="AdExchange Primary Server" template="xvm-template">
-      <apps>
-        <app name="ad-exchange" autoStart="true" />
-      </apps>
-    </xvm>
-
-    <xvm name="ad-exchange-2" displayName="AdExchange Backup Server" template="xvm-template">
-      <apps>
-        <app name="ad-exchange" autoStart="true" />
-      </apps>
-    </xvm>
-
-    <xvm name="dmp-1" displayName="DMP Server" template="xvm-template">
-      <apps>
-        <app name="dmp" autoStart="true" />
-      </apps>
-    </xvm>
-
-    <xvm name="dsp-1" displayName="DSP Server" template="xvm-template">
-      <apps>
-        <app name="dsp" autoStart="true" />
-      </apps>
-    </xvm>
-  </xvms>
-
-  <profiles>
-    <profile name="test">
-      <env>
+    <env>
         <nv>
-            <conservecpu>true</conservecpu>
-            <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+            <!-- Configure to optimize for latency -->
+            <optimizefor>latency</optimizefor>
+            <stats.latencymanager.samplesize>65536</stats.latencymanager.samplesize>
+            <msg.latency.stats>true</msg.latency.stats>
+            <ods.latency.stats>true</ods.latency.stats>
+            <link.network.stampiots>true</link.network.stampiots>
         </nv>
-        <driver.autoStart>true</driver.autoStart>
-        <AD_BIDDING_BUS_DESCRIPTOR>loopback://ad-bidding</AD_BIDDING_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    <profile name="neeve-lab">
-      <activation>
-        <properties>
-          <lumino.agent.env>neeve-lab</lumino.agent.env>
-        </properties>
-      </activation>
-      <xvms>
+
+        <nv>
+            <aep.trace>config</aep.trace>
+        </nv>
+
+        <!-- Configure the test drivers -->
+        <driver.sendRate>100</driver.sendRate>
+        <driver.sendCount>1000</driver.sendCount>
+    </env>
+
+    <buses>
+        <bus name="ad-bidding" descriptor="${AD_BIDDING_BUS_DESCRIPTOR::solace://192.168.1.9:55555&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;usejni=true&amp;FLOW_FORWARDING_MODE=2&amp;consumer_cpu_affinity_mask=${ADBIDDING_BUS_CONSUMER_CPUAFFMASK::0}&amp;producer_cpu_affinity_mask=${ADBIDDING_BUS_PRODUCER_CPUAFFMASK::0}&amp;detached_sends=false&amp;detached_dispatch=false&amp;sender_cpu_affinity_mask=[8]&amp;publish_window_size=255&amp;detached_dispatch_queue_depth=128&amp;dispatcher_cpu_affinity_mask=[1]}">
+            <channels>
+                <channel name="client_ad_responses" id="10">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="client_ad_requests" id="20">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="ad_requests" id="30">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="ad_responses" id="40">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="bid_responses" id="50">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="bid_requests" id="60">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="visitor_lookup_responses" id="70">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="visitor_lookup_requests" id="80">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="manage_visitors_requests" id="90">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="win_bid_notify_requests" id="100">
+                    <qos>Guaranteed</qos>
+                </channel>
+                <channel name="manage_campaigns_requests" id="110">
+                    <qos>Guaranteed</qos>
+                </channel>
+            </channels>
+        </bus>
+    </buses>
+
+    <apps>
+        <app name="driver" displayName="TestDriver App" mainClass="com.neeve.ads.driver.AdRequestDriverApplication">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                </factories>
+                <bus name="ad-bidding">
+                    <channels>
+                        <channel name="client_ad_responses" join="true"/>
+                        <channel name="client_ad_requests" join="false"/>
+                        <channel name="manage_visitors_requests" join="false"/>
+                        <channel name="manage_campaigns_requests" join="false"/>
+                    </channels>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${DRIVER_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <storage enabled="true">
+                <clustering enabled="false"/>
+                <persistence enabled="false"/>
+            </storage>
+
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <captureEventLatencyStats>true</captureEventLatencyStats>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+
+            <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
+            <inboundEventMultiplexing>
+                <queueDrainerCpuAffinityMask>${DRIVER_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+
+            <sequenceUnsolicitedWithSolicitedSends>true</sequenceUnsolicitedWithSolicitedSends>
+        </app>
+
+        <app name="ssp" displayName="SSP App" mainClass="com.neeve.ads.SSPApplication">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                </factories>
+                <bus name="ad-bidding">
+                    <channels>
+                        <channel name="client_ad_responses" join="false"/>
+                        <channel name="client_ad_requests" join="true"/>
+                        <channel name="ad_responses" join="true"/>
+                        <channel name="ad_requests" join="false"/>
+                    </channels>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${SSP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+
+            <storage enabled="true">
+                <clustering enabled="false"/>
+                <persistence enabled="false">
+                    <detachedPersist enabled="true">
+                        <queueDrainerCpuAffinityMask>${SSP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                    <flushOnCommit>true</flushOnCommit>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <persistenceQuorum>1</persistenceQuorum>
+            </storage>
+
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <captureEventLatencyStats>true</captureEventLatencyStats>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+
+            <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
+            <inboundEventMultiplexing>
+                <queueDrainerCpuAffinityMask>${SSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+        </app>
+
+        <app name="ad-exchange" displayName="AdExchange App" mainClass="com.neeve.ads.AdExchangeApplication">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                </factories>
+                <bus name="ad-bidding">
+                    <channels>
+                        <channel name="ad_responses" join="false"/>
+                        <channel name="ad_requests" join="true"/>
+                        <channel name="visitor_lookup_responses" join="true"/>
+                        <channel name="bid_responses" join="true"/>
+                        <channel name="visitor_lookup_requests" join="false"/>
+                        <channel name="bid_requests" join="false"/>
+                        <channel name="win_bid_notify_requests" join="false"/>
+                    </channels>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+
+            <storage>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                    <factory name="com.neeve.ads.state.StateFactory"/>
+                </factories>
+
+                <clustering enabled="true">
+                    <localPort>12000</localPort>
+                    <localIfAddr>${AD_EXCHANGE_STORE_ADDR::0.0.0.0}</localIfAddr>
+                    <linkParams>nativeio=true,eagerread=true,maxreadspintime=1000000</linkParams>
+                    <linkReaderCpuAffinityMask>${AD_EXCHANGE_STORE_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${AD_EXCHANGE_STORE_SENDER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                    <detachedDispatch enabled="false">
+                        <queueDrainerCpuAffinityMask>${AD_EXCHANGE_STORE_DISPATCH_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedDispatch>
+                </clustering>
+
+                <persistence enabled="false">
+                    <detachedPersist enabled="true">
+                        <queueDrainerCpuAffinityMask>${AD_EXCHANGE_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                    <flushOnCommit>true</flushOnCommit>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <persistenceQuorum>1</persistenceQuorum>
+            </storage>
+
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <captureEventLatencyStats>true</captureEventLatencyStats>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+            <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
+            <inboundEventMultiplexing>
+                <queueDrainerCpuAffinityMask>${AD_EXCHANGE_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+        </app>
+
+        <app name="dmp" displayName="DMP App" mainClass="com.neeve.ads.DMPApplication">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                </factories>
+                <bus name="ad-bidding">
+                    <channels>
+                        <channel name="visitor_lookup_requests" join="true"/>
+                        <channel name="manage_visitors_requests" join="true"/>
+                        <channel name="visitor_lookup_responses" join="false"/>
+                    </channels>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${DMP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <storage enabled="true">
+                <clustering enabled="false"/>
+                <persistence enabled="false">
+                    <detachedPersist enabled="true">
+                        <queueDrainerCpuAffinityMask>${DMP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                    <flushOnCommit>true</flushOnCommit>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <persistenceQuorum>1</persistenceQuorum>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <captureEventLatencyStats>true</captureEventLatencyStats>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+            <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
+            <inboundEventMultiplexing>
+                <queueDrainerCpuAffinityMask>${DMP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+        </app>
+
+        <app name="dsp" displayName="DSP App" mainClass="com.neeve.ads.DSPApplication">
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ads.messages.MessageFactory"/>
+                </factories>
+                <bus name="ad-bidding">
+                    <channels>
+                        <channel name="bid_requests" join="true"/>
+                        <channel name="win_bid_notify_requests" join="true"/>
+                        <channel name="manage_campaigns_requests" join="true"/>
+                        <channel name="bid_responses" join="false"/>
+                    </channels>
+                    <detachedSend enabled="true">
+                        <queueDrainerCpuAffinityMask>${DSP_BUSMANAGER_SEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <storage enabled="true">
+                <clustering enabled="false"/>
+                <persistence enabled="false">
+                    <detachedPersist enabled="true">
+                        <queueDrainerCpuAffinityMask>${DSP_PERSISTER_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                    <flushOnCommit>true</flushOnCommit>
+                    <flushUsingMappedMemory>true</flushUsingMappedMemory>
+                </persistence>
+                <persistenceQuorum>1</persistenceQuorum>
+            </storage>
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <captureEventLatencyStats>true</captureEventLatencyStats>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+            <inboundEventAcknowledgementPolicy>OnSendStability</inboundEventAcknowledgementPolicy>
+            <inboundEventMultiplexing>
+                <queueDrainerCpuAffinityMask>${DSP_INPUT_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+        </app>
+    </apps>
+
+    <xvms>
         <templates>
-          <xvm name="xvm-template">
-            <env>
-              <GC_HEAP_SIZE_PARAMS>-Xms12g -Xmx12g</GC_HEAP_SIZE_PARAMS>
-              <GC_TUNING_PARAMS>-XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-            </env>
-            <provisioning>
-              <jvm>
-                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-                <jvmParamSets>
-                  <jvmParamSet name="prefer-ipv4">
-                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="heap-size" order="-1">
-                    <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="gc-tuning" order="0">
-                    <jvmParams>
-                        ${GC_TUNING_PARAMS}
-                      </jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="flight-recorder">
-                    <jvmParams>
-                      -XX:+UnlockCommercialFeatures 
-                      -XX:+FlightRecorder 
-                      -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile 
-                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
-                       </jvmParams>
-                  </jvmParamSet>
-                </jvmParamSets>
-              </jvm>
-            </provisioning>
-          </xvm>
+            <xvm name="xvm-template">
+                <autoStopOnLastAppStop>false</autoStopOnLastAppStop>
+                <heartbeats enabled="true" interval="5">
+                    <tracing enabled="false">
+                        <traceAdminClientStats>false</traceAdminClientStats>
+                        <traceAppStats>false</traceAppStats>
+                        <tracePoolStats>false</tracePoolStats>
+                        <traceSysStats>false</traceSysStats>
+                        <traceThreadStats>false</traceThreadStats>
+                        <traceUserStats>false</traceUserStats>
+                    </tracing>
+                </heartbeats>
+            </xvm>
         </templates>
 
         <xvm name="driver-1" displayName="TestDriver Server" template="xvm-template">
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <driver.sendCpuAffinityMask>[7]</driver.sendCpuAffinityMask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <DRIVER_BUSMANAGER_SEND_CPUAFFMASK>[4]</DRIVER_BUSMANAGER_SEND_CPUAFFMASK>
-            <DRIVER_PERSISTER_CPUAFFMASK>[5]</DRIVER_PERSISTER_CPUAFFMASK>
-            <DRIVER_INPUT_CPUAFFMASK>[6]</DRIVER_INPUT_CPUAFFMASK>
-            <DRIVER_STORE_READER_CPUAFFMASK>0</DRIVER_STORE_READER_CPUAFFMASK>
-            <DRIVER_STORE_SENDER_CPUAFFMASK>0</DRIVER_STORE_SENDER_CPUAFFMASK>
-            <DRIVER_STORE_DISPATCHER_CPUAFFMASK>0</DRIVER_STORE_DISPATCHER_CPUAFFMASK>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-          <apps>
-            <app name="driver" autoStart="true" />
-          </apps>
+            <apps>
+                <app name="driver" autoStart="true"/>
+            </apps>
         </xvm>
 
         <xvm name="ssp-1" displayName="SSP Server" template="xvm-template">
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <SSP_BUSMANAGER_SEND_CPUAFFMASK>[4]</SSP_BUSMANAGER_SEND_CPUAFFMASK>
-            <SSP_PERSISTER_CPUAFFMASK>[5]</SSP_PERSISTER_CPUAFFMASK>
-            <SSP_INPUT_CPUAFFMASK>[6]</SSP_INPUT_CPUAFFMASK>
-            <SSP_STORE_READER_CPUAFFMASK>0</SSP_STORE_READER_CPUAFFMASK>
-            <SSP_STORE_SENDER_CPUAFFMASK>0</SSP_STORE_SENDER_CPUAFFMASK>
-            <SSP_STORE_DISPATCHER_CPUAFFMASK>0</SSP_STORE_DISPATCHER_CPUAFFMASK>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-          <apps>
-            <app name="ssp" autoStart="true" />
-          </apps>
+            <apps>
+                <app name="ssp" autoStart="true"/>
+            </apps>
         </xvm>
 
         <xvm name="ad-exchange-1" displayName="AdExchange Primary Server" template="xvm-template">
-          <env>
-            <AD_EXCHANGE_STORE_ADDR>192.168.2.12</AD_EXCHANGE_STORE_ADDR>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>[13]</AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>
-            <AD_EXCHANGE_PERSISTER_CPUAFFMASK>[14]</AD_EXCHANGE_PERSISTER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_READER_CPUAFFMASK>[15]</AD_EXCHANGE_STORE_READER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>[16]</AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>[17]</AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>
-            <AD_EXCHANGE_INPUT_CPUAFFMASK>[18]</AD_EXCHANGE_INPUT_CPUAFFMASK>
-          </env>
-          
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-          <apps>
-            <app name="ad-exchange" autoStart="true" />
-          </apps>
+            <apps>
+                <app name="ad-exchange" autoStart="true"/>
+            </apps>
         </xvm>
 
         <xvm name="ad-exchange-2" displayName="AdExchange Backup Server" template="xvm-template">
-          <env>
-            <AD_EXCHANGE_STORE_ADDR>192.168.2.13</AD_EXCHANGE_STORE_ADDR>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>[13]</AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>
-            <AD_EXCHANGE_PERSISTER_CPUAFFMASK>[14]</AD_EXCHANGE_PERSISTER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_READER_CPUAFFMASK>[15]</AD_EXCHANGE_STORE_READER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>[16]</AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>
-            <AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>[17]</AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>
-            <AD_EXCHANGE_INPUT_CPUAFFMASK>[18]</AD_EXCHANGE_INPUT_CPUAFFMASK>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-          <apps>
-            <app name="ad-exchange" autoStart="true" />
-          </apps>
+            <apps>
+                <app name="ad-exchange" autoStart="true"/>
+            </apps>
         </xvm>
 
         <xvm name="dmp-1" displayName="DMP Server" template="xvm-template">
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <DMP_BUSMANAGER_SEND_CPUAFFMASK>[4]</DMP_BUSMANAGER_SEND_CPUAFFMASK>
-            <DMP_PERSISTER_CPUAFFMASK>[5]</DMP_PERSISTER_CPUAFFMASK>
-            <DMP_INPUT_CPUAFFMASK>[6]</DMP_INPUT_CPUAFFMASK>
-            <DMP_STORE_READER_CPUAFFMASK>0</DMP_STORE_READER_CPUAFFMASK>
-            <DMP_STORE_SENDER_CPUAFFMASK>0</DMP_STORE_SENDER_CPUAFFMASK>
-            <DMP_STORE_DISPATCHER_CPUAFFMASK>0</DMP_STORE_DISPATCHER_CPUAFFMASK>
-          </env>
-          
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-          <apps>
-            <app name="dmp" autoStart="true" />
-          </apps>
+            <apps>
+                <app name="dmp" autoStart="true"/>
+            </apps>
         </xvm>
 
         <xvm name="dsp-1" displayName="DSP Server" template="xvm-template">
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
-            
-            <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
-            <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
-            <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
-            <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
-            <DSP_BUSMANAGER_SEND_CPUAFFMASK>[13]</DSP_BUSMANAGER_SEND_CPUAFFMASK>
-            <DSP_PERSISTER_CPUAFFMASK>[14]</DSP_PERSISTER_CPUAFFMASK>
-            <DSP_STORE_READER_CPUAFFMASK>[15]</DSP_STORE_READER_CPUAFFMASK>
-            <DSP_STORE_SENDER_CPUAFFMASK>[16]</DSP_STORE_SENDER_CPUAFFMASK>
-            <DSP_STORE_DISPATCHER_CPUAFFMASK>[17]</DSP_STORE_DISPATCHER_CPUAFFMASK>
-            <DSP_INPUT_CPUAFFMASK>[18]</DSP_INPUT_CPUAFFMASK>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-          <apps>
-            <app name="dsp" autoStart="true" />
-          </apps>
-        </xvm>        
-      </xvms>
-    </profile>
-    
-    <profile name="zing">
-        <activation>
-          <properties>
-            <ad-bidding.useZing>true</ad-bidding.useZing>
-          </properties>
-        </activation>
-        
-        <xvms>
-          <templates>
-            <xvm name="xvm-template">       
-              <env>
-                <GC_HEAP_SIZE_PARAMS>-Xms16g -Xmx16g</GC_HEAP_SIZE_PARAMS>
-                <GC_TUNING_PARAMS></GC_TUNING_PARAMS>
-              </env>
-              <provisioning>
-                <jvm>
-                  <javaHome>${JAVA_HOME_ZING_1_8_0}</javaHome>
-                  <jvmParamSets>
-                    <jvmParamSet name="zing-license">
-                      <jvmParams>
-                        -XX:ZingLic=/opt/zing/license/nvx-zing-neeve-xplatform-support-1.0.0.jar
-                      </jvmParams>
-                    </jvmParamSet>
-                    <jvmParamSet name="jvm-tuning-params">
-                      <jvmParams>
-                        -XX:+UseC2
-                        -XX:+JNIDetachThreadsIfNotDetached
-                        -XX:GenPauselessNewThreads=2
-                        -XX:GenPauselessOldThreads=3
-                      </jvmParams>
-                    </jvmParamSet>
-                    <jvmParamSet name="flight-recorder" order="0">
-                      <jvmParams></jvmParams>
-                    </jvmParamSet>
-                  </jvmParamSets>
-                </jvm>
-              </provisioning> 
-            </xvm>
-          </templates>
-        </xvms>
-      </profile>
-  </profiles>
+            <apps>
+                <app name="dsp" autoStart="true"/>
+            </apps>
+        </xvm>
+    </xvms>
+
+    <profiles>
+        <profile name="test">
+            <env>
+                <nv>
+                    <conservecpu>true</conservecpu>
+                    <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+                </nv>
+                <driver.autoStart>true</driver.autoStart>
+                <AD_BIDDING_BUS_DESCRIPTOR>loopback://ad-bidding</AD_BIDDING_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+        <profile name="neeve-lab">
+            <activation>
+                <properties>
+                    <lumino.agent.env>neeve-lab</lumino.agent.env>
+                </properties>
+            </activation>
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <env>
+                            <GC_HEAP_SIZE_PARAMS>-Xms12g -Xmx12g</GC_HEAP_SIZE_PARAMS>
+                            <GC_TUNING_PARAMS>-XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                        </env>
+                        <provisioning>
+                            <jvm>
+                                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                                <jvmParamSets>
+                                    <jvmParamSet name="prefer-ipv4">
+                                        <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="heap-size" order="-1">
+                                        <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="gc-tuning" order="0">
+                                        <jvmParams>
+                                            ${GC_TUNING_PARAMS}
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="flight-recorder">
+                                        <jvmParams>
+                                            -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
+
+                <xvm name="driver-1" displayName="TestDriver Server" template="xvm-template">
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <driver.sendCpuAffinityMask>[7]</driver.sendCpuAffinityMask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <DRIVER_BUSMANAGER_SEND_CPUAFFMASK>[4]</DRIVER_BUSMANAGER_SEND_CPUAFFMASK>
+                        <DRIVER_PERSISTER_CPUAFFMASK>[5]</DRIVER_PERSISTER_CPUAFFMASK>
+                        <DRIVER_INPUT_CPUAFFMASK>[6]</DRIVER_INPUT_CPUAFFMASK>
+                        <DRIVER_STORE_READER_CPUAFFMASK>0</DRIVER_STORE_READER_CPUAFFMASK>
+                        <DRIVER_STORE_SENDER_CPUAFFMASK>0</DRIVER_STORE_SENDER_CPUAFFMASK>
+                        <DRIVER_STORE_DISPATCHER_CPUAFFMASK>0</DRIVER_STORE_DISPATCHER_CPUAFFMASK>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                    <apps>
+                        <app name="driver" autoStart="true"/>
+                    </apps>
+                </xvm>
+
+                <xvm name="ssp-1" displayName="SSP Server" template="xvm-template">
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <SSP_BUSMANAGER_SEND_CPUAFFMASK>[4]</SSP_BUSMANAGER_SEND_CPUAFFMASK>
+                        <SSP_PERSISTER_CPUAFFMASK>[5]</SSP_PERSISTER_CPUAFFMASK>
+                        <SSP_INPUT_CPUAFFMASK>[6]</SSP_INPUT_CPUAFFMASK>
+                        <SSP_STORE_READER_CPUAFFMASK>0</SSP_STORE_READER_CPUAFFMASK>
+                        <SSP_STORE_SENDER_CPUAFFMASK>0</SSP_STORE_SENDER_CPUAFFMASK>
+                        <SSP_STORE_DISPATCHER_CPUAFFMASK>0</SSP_STORE_DISPATCHER_CPUAFFMASK>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                    <apps>
+                        <app name="ssp" autoStart="true"/>
+                    </apps>
+                </xvm>
+
+                <xvm name="ad-exchange-1" displayName="AdExchange Primary Server" template="xvm-template">
+                    <env>
+                        <AD_EXCHANGE_STORE_ADDR>192.168.2.12</AD_EXCHANGE_STORE_ADDR>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>[13]</AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>
+                        <AD_EXCHANGE_PERSISTER_CPUAFFMASK>[14]</AD_EXCHANGE_PERSISTER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_READER_CPUAFFMASK>[15]</AD_EXCHANGE_STORE_READER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>[16]</AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>[17]</AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>
+                        <AD_EXCHANGE_INPUT_CPUAFFMASK>[18]</AD_EXCHANGE_INPUT_CPUAFFMASK>
+                    </env>
+
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                    <apps>
+                        <app name="ad-exchange" autoStart="true"/>
+                    </apps>
+                </xvm>
+
+                <xvm name="ad-exchange-2" displayName="AdExchange Backup Server" template="xvm-template">
+                    <env>
+                        <AD_EXCHANGE_STORE_ADDR>192.168.2.13</AD_EXCHANGE_STORE_ADDR>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>[13]</AD_EXCHANGE_BUSMANAGER_SEND_CPUAFFMASK>
+                        <AD_EXCHANGE_PERSISTER_CPUAFFMASK>[14]</AD_EXCHANGE_PERSISTER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_READER_CPUAFFMASK>[15]</AD_EXCHANGE_STORE_READER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>[16]</AD_EXCHANGE_STORE_SENDER_CPUAFFMASK>
+                        <AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>[17]</AD_EXCHANGE_STORE_DISPATCHER_CPUAFFMASK>
+                        <AD_EXCHANGE_INPUT_CPUAFFMASK>[18]</AD_EXCHANGE_INPUT_CPUAFFMASK>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                    <apps>
+                        <app name="ad-exchange" autoStart="true"/>
+                    </apps>
+                </xvm>
+
+                <xvm name="dmp-1" displayName="DMP Server" template="xvm-template">
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[2]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[3]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <DMP_BUSMANAGER_SEND_CPUAFFMASK>[4]</DMP_BUSMANAGER_SEND_CPUAFFMASK>
+                        <DMP_PERSISTER_CPUAFFMASK>[5]</DMP_PERSISTER_CPUAFFMASK>
+                        <DMP_INPUT_CPUAFFMASK>[6]</DMP_INPUT_CPUAFFMASK>
+                        <DMP_STORE_READER_CPUAFFMASK>0</DMP_STORE_READER_CPUAFFMASK>
+                        <DMP_STORE_SENDER_CPUAFFMASK>0</DMP_STORE_SENDER_CPUAFFMASK>
+                        <DMP_STORE_DISPATCHER_CPUAFFMASK>0</DMP_STORE_DISPATCHER_CPUAFFMASK>
+                    </env>
+
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                    <apps>
+                        <app name="dmp" autoStart="true"/>
+                    </apps>
+                </xvm>
+
+                <xvm name="dsp-1" displayName="DSP Server" template="xvm-template">
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
+
+                        <nv.enablecpuaffinitymasks>true</nv.enablecpuaffinitymasks>
+                        <nv.defaultcpuaffinitymask>[11]</nv.defaultcpuaffinitymask>
+                        <ADBIDDING_BUS_CONSUMER_CPUAFFMASK>[12]</ADBIDDING_BUS_CONSUMER_CPUAFFMASK>
+                        <ADBIDDING_BUS_PRODUCER_CPUAFFMASK>[11]</ADBIDDING_BUS_PRODUCER_CPUAFFMASK>
+                        <DSP_BUSMANAGER_SEND_CPUAFFMASK>[13]</DSP_BUSMANAGER_SEND_CPUAFFMASK>
+                        <DSP_PERSISTER_CPUAFFMASK>[14]</DSP_PERSISTER_CPUAFFMASK>
+                        <DSP_STORE_READER_CPUAFFMASK>[15]</DSP_STORE_READER_CPUAFFMASK>
+                        <DSP_STORE_SENDER_CPUAFFMASK>[16]</DSP_STORE_SENDER_CPUAFFMASK>
+                        <DSP_STORE_DISPATCHER_CPUAFFMASK>[17]</DSP_STORE_DISPATCHER_CPUAFFMASK>
+                        <DSP_INPUT_CPUAFFMASK>[18]</DSP_INPUT_CPUAFFMASK>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                    <apps>
+                        <app name="dsp" autoStart="true"/>
+                    </apps>
+                </xvm>
+            </xvms>
+        </profile>
+
+        <profile name="zing">
+            <activation>
+                <properties>
+                    <ad-bidding.useZing>true</ad-bidding.useZing>
+                </properties>
+            </activation>
+
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <env>
+                            <GC_HEAP_SIZE_PARAMS>-Xms16g -Xmx16g</GC_HEAP_SIZE_PARAMS>
+                            <GC_TUNING_PARAMS></GC_TUNING_PARAMS>
+                        </env>
+                        <provisioning>
+                            <jvm>
+                                <javaHome>${JAVA_HOME_ZING_1_8_0}</javaHome>
+                                <jvmParamSets>
+                                    <jvmParamSet name="zing-license">
+                                        <jvmParams>
+                                            -XX:ZingLic=/opt/zing/license/nvx-zing-neeve-xplatform-support-1.0.0.jar
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="jvm-tuning-params">
+                                        <jvmParams>
+                                            -XX:+UseC2 -XX:+JNIDetachThreadsIfNotDetached -XX:GenPauselessNewThreads=2 -XX:GenPauselessOldThreads=3
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="flight-recorder" order="0">
+                                        <jvmParams></jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
+            </xvms>
+        </profile>
+    </profiles>
 </model>

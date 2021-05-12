@@ -1,716 +1,733 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl">
 
-  <systemDetails>
-    <displayName>Fraud Detection System (3.8)</displayName>
-  </systemDetails>
-  <env>
-    <nv>
-      <!-- discovery descriptor -->
-      <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
-
-      <!-- optimize for latency -->
-      <optimizefor>latency</optimizefor>
-      <aep.trace>info</aep.trace>
-
-      <!-- use zero garbage spin locks -->
-      <pool.lockingstrategy>Spinning</pool.lockingstrategy>
-      
-      <!-- global latency stats settings -->
-      <msg.latency.stats>true</msg.latency.stats>
-      <ods.latency.stats>true</ods.latency.stats>
-      <link.network.stampiots>true</link.network.stampiots>
-      <latencymanager.samplesize>10240</latencymanager.samplesize>
-
-    </nv>
-
-    <!-- Configure the test drivers -->
-    <driver.sendRate>1000</driver.sendRate>
-    <driver.sendCount>1000</driver.sendCount>
-
-    <!-- Use XSQL Query for fraud checks? -->
-    <cardholdermaster.queryTransactions>false</cardholdermaster.queryTransactions>
-
-    <cardmaster.numShards>2</cardmaster.numShards>
-    <merchantmaster.numShards>2</merchantmaster.numShards>
-    <cardholdermaster.numShards>2</cardholdermaster.numShards>
-    <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
-
-    <!-- 
-      Default addresses for various messaging provider profiles.
-      This are typically overriden either by a environment profile
-      (e.g. production) or from the target environement where
-      the application is being deployed:
-      -->
-    <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
-    <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
-    
-    <SOLACE_HOST>localhost</SOLACE_HOST>
-    <SOLACE_PORT>55555</SOLACE_PORT>
-    
-    <KAFKA_HOST>localhost</KAFKA_HOST>
-    <KAFKA_PORT>9092</KAFKA_PORT>
-  </env>
-
-  <buses>
-    <bus name="ccfd" descriptor="${CCFD_BUS_DESCRIPTOR::solace://${SOLACE_HOST}:${SOLACE_PORT}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2}">
-      <channels>
-        <channel name="authreq" id="1">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
-        </channel>
-        <channel name="authreq2" id="2">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
-        </channel>
-        <channel name="authreq3" id="3">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
-        </channel>
-        <channel name="authreq4" id="4">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 2)]</key>
-        </channel>
-        <channel name="authresp" id="5">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-        </channel>
-        <channel name="card-events" id="6">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
-        </channel>
-        <channel name="cardholder-events" id="7">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
-        </channel>
-        <channel name="merchant-events" id="8">
-          <qos>${CCFD_QOS::Guaranteed}</qos>
-          <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
-        </channel>
-      </channels>
-    </bus>
-  </buses>
-
-  <apps>
-    <templates>
-      <app name="cardholdermaster-app-template" mainClass="com.neeve.ccfd.cardholdermaster.Application"
-        displayName="Cardholder Master">
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <messaging>
-          <factories>
-            <factory name="com.neeve.ccfd.messages.MessageFactory" />
-          </factories>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq3" join="true">
-                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
-              </channel>
-              <channel name="authreq4" join="false" />
-              <channel name="authresp" join="false" />
-              <channel name="cardholder-events" join="true">
-                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
-              </channel>
-            </channels>
-          </bus>
-        </messaging>
-        <storage>
-          <factories>
-            <factory name="com.neeve.ccfd.cardholdermaster.state.StateFactory" />
-          </factories>
-          <clustering enabled="true">
-            <localIfAddr>${CARDHOLDERMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
-            <storeName>cardholdermaster-${CARDHOLDERMASTER_SHARDID}</storeName>
-          </clustering>
-          <persistence enabled="true">
-            <!-- detached persist is not supported for state replication -->
-            <detachedPersist enabled="false" />
-          </persistence>
-          <queryable>${cardholdermaster.queryTransactions::false}</queryable>
-        </storage>
-        <captureMessageTypeStats>true</captureMessageTypeStats>
-      </app>
-
-      <app name="cardmaster-app-template" mainClass="com.neeve.ccfd.cardmaster.Application"
-        displayName="Card Master">
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <messaging>
-          <factories>
-            <factory name="com.neeve.ccfd.messages.MessageFactory" />
-          </factories>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq" join="true">
-                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
-              </channel>
-              <channel name="authresp" join="false" />
-              <channel name="authreq2" join="false" />
-              <channel name="card-events" join="true">
-                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
-              </channel>
-            </channels>
-          </bus>
-        </messaging>
-        <storage>
-          <factories>
-            <factory name="com.neeve.ccfd.cardmaster.state.StateFactory" />
-          </factories>
-          <clustering enabled="true">
-            <localIfAddr>${CARDMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
-            <storeName>cardmaster-${CARDMASTER_SHARDID}</storeName>
-          </clustering>
-          <persistence enabled="true">
-            <!-- detached persist is not supported for state replication -->
-            <detachedPersist enabled="false" />
-          </persistence>
-        </storage>
-        <captureMessageTypeStats>true</captureMessageTypeStats>
-      </app>
-
-      <app name="fraudanalyzer-app-template" mainClass="com.neeve.ccfd.fraudanalyzer.Application"
-        displayName="Fraud Analyzer">
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <messaging>
-          <factories>
-            <factory name="com.neeve.ccfd.messages.MessageFactory" />
-          </factories>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq4" join="true">
-                <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID}</filter>
-              </channel>
-              <channel name="authresp" join="false" />
-            </channels>
-          </bus>
-        </messaging>
-        <storage>
-          <factories>
-            <factory name="com.neeve.ccfd.fraudanalyzer.state.StateFactory" />
-          </factories>
-          <clustering enabled="true">
-            <localIfAddr>${FRAUDANALYZER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
-            <storeName>fraudanalyzer-${FRAUDANALYZER_SHARDID}</storeName>
-          </clustering>
-          <persistence enabled="true">
-            <!-- detached persist is not supported for state replication -->
-            <detachedPersist enabled="false" />
-          </persistence>
-        </storage>
-        <captureMessageTypeStats>true</captureMessageTypeStats>
-      </app>
-
-      <app name="merchantmaster-app-template" mainClass="com.neeve.ccfd.merchantmaster.Application"
-        displayName="Merchant Master">
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <messaging>
-          <factories>
-            <factory name="com.neeve.ccfd.messages.MessageFactory" />
-          </factories>
-          <bus name="ccfd">
-            <channels>
-              <channel name="authreq2" join="true">
-                <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
-              </channel>
-              <channel name="authreq3" join="false" />
-              <channel name="merchant-events" join="true">
-                <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
-              </channel>
-            </channels>
-          </bus>
-        </messaging>
-        <storage>
-          <factories>
-            <factory name="com.neeve.ccfd.merchantmaster.state.StateFactory" />
-          </factories>
-          <clustering enabled="true">
-            <localIfAddr>${MERCHANTMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
-            <storeName>merchantmaster-${MERCHANTMASTER_SHARDID}</storeName>
-          </clustering>
-          <persistence enabled="true">
-            <!-- detached persist is not supported for state replication -->
-            <detachedPersist enabled="false" />
-          </persistence>
-        </storage>
-        <captureMessageTypeStats>true</captureMessageTypeStats>
-      </app>
-    </templates>
-
-    <!-- Card Holder App Partitions -->
-    <app name="cardholdermaster-1" template="cardholdermaster-app-template" />
-    <app name="cardholdermaster-2" template="cardholdermaster-app-template" />
-
-    <!-- Card Master App Partitions -->
-    <app name="cardmaster-1" template="cardmaster-app-template" />
-    <app name="cardmaster-2" template="cardmaster-app-template" />
-
-    <!-- Fraud Analyzer App Partitions -->
-    <app name="fraudanalyzer-1" template="fraudanalyzer-app-template" />
-    <app name="fraudanalyzer-2" template="fraudanalyzer-app-template" />
-
-    <!-- Merchange Master App Partitions -->
-    <app name="merchantmaster-1" template="merchantmaster-app-template" />
-    <app name="merchantmaster-2" template="merchantmaster-app-template" />
-
-    <app name="perfdriver" mainClass="com.neeve.ccfd.perfdriver.Application">
-      <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-      <messaging>
-        <factories>
-          <factory name="com.neeve.ccfd.messages.MessageFactory" />
-        </factories>
-        <bus name="ccfd">
-          <channels>
-            <channel name="authreq" join="false" />
-            <channel name="authreq2" join="false" />
-            <channel name="authreq3" join="false" />
-            <channel name="card-events" join="false" />
-            <channel name="cardholder-events" join="false" />
-            <channel name="merchant-events" join="false" />
-            <channel name="authresp" join="true"/>
-          </channels>
-        </bus>
-      </messaging>
-      <storage enabled="false" />
-      <captureMessageTypeStats>true</captureMessageTypeStats>
-      <enableMessageTrace>false</enableMessageTrace>
-    </app>
-  </apps>
-
-  <xvms>
-    <templates>
-      <xvm name="xvm-template">
-        <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
-        <heartbeats enabled="true" interval="5">
-          <collectIndividualThreadStats>true</collectIndividualThreadStats>
-          <includeMessageTypeStats>true</includeMessageTypeStats>
-          <tracing enabled="false">
-            <traceAdminClientStats>false</traceAdminClientStats>
-            <traceAppStats>false</traceAppStats>
-            <tracePoolStats>false</tracePoolStats>
-            <traceSysStats>false</traceSysStats>
-            <traceThreadStats>false</traceThreadStats>
-            <traceUserStats>false</traceUserStats>
-          </tracing>
-        </heartbeats>
-      </xvm>
-    </templates>
-    <xvm name="cardholdermaster-1-1" displayName="Cardholder Master 1p" template="xvm-template">
-      <env>
-        <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardholdermaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardholdermaster-1-2" displayName="Cardholder Master 1s" template="xvm-template">
-      <env>
-        <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardholdermaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardholdermaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
-      <env>
-        <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardholdermaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardholdermaster-2-2" displayName="Cardholder Master 2s" template="xvm-template">
-      <env>
-        <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardholdermaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-  
-    <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
-      <env>
-        <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="cardmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
- 
-    <xvm name="fraudanalyzer-1-1" displayName="Fraud Analyzer 1p" template="xvm-template">
-      <env>
-        <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
-      </env>
-      <apps>
-        <app name="fraudanalyzer-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="fraudanalyzer-1-2" displayName="Fraud Analyzer 1s" template="xvm-template">
-      <env>
-        <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
-      </env>
-      <apps>
-        <app name="fraudanalyzer-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="fraudanalyzer-2-1" displayName="Fraud Analyzer 2p" template="xvm-template">
-      <env>
-        <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
-      </env>
-      <apps>
-        <app name="fraudanalyzer-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="fraudanalyzer-2-2" displayName="Fraud Analyzer 2s" template="xvm-template">
-      <env>
-        <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
-      </env>
-      <apps>
-        <app name="fraudanalyzer-2" autoStart="true" />
-      </apps>
-    </xvm>
-     
-    <xvm name="merchantmaster-1-1" displayName="Merchant Master 1p" template="xvm-template">
-      <env>
-        <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="merchantmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="merchantmaster-1-2" displayName="Merchant Master 1s" template="xvm-template">
-      <env>
-        <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="merchantmaster-1" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="merchantmaster-2-1" displayName="Merchant Master 2p" template="xvm-template">
-      <env>
-        <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="merchantmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-    <xvm name="merchantmaster-2-2" displayName="Merchant Master 2s" template="xvm-template">
-      <env>
-        <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
-      </env>
-      <apps>
-        <app name="merchantmaster-2" autoStart="true" />
-      </apps>
-    </xvm>
-  
-    <xvm name="perfdriver-1" displayName="Perf Test Driver" template="xvm-template">
-      <env>
-        <nv.time.useepochoffset>false</nv.time.useepochoffset>
-      </env>
-      <apps>
-        <app name="perfdriver" autoStart="true" />
-      </apps>
-    </xvm>
-  </xvms>
-    
-  <profiles>
-    <profile name="test">
-      <env>
+    <systemDetails>
+        <displayName>Fraud Detection System (3.8)</displayName>
+    </systemDetails>
+    <env>
         <nv>
-          <conservecpu>true</conservecpu>
-          <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
-        </nv>
-        <driver.autoStart>true</driver.autoStart>
-        <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-  
-    <profile name="neeve-lab">
-      <activation>
-        <properties>
-          <lumino.agent.env>neeve-lab</lumino.agent.env>
-        </properties>
-      </activation>
-      <env>
-        <driver.autoStart>false</driver.autoStart>
-      </env>
-      
-      <xvms>
-        <templates>
-          <xvm name="xvm-template">
-            <env>
-              <GC_HEAP_SIZE_PARAMS>-Xms4g -Xmx4g</GC_HEAP_SIZE_PARAMS>
-              <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-            </env>
-            <provisioning>
-              <jvm>
-                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-                <jvmParamSets>
-                  <jvmParamSet name="prefer-ipv4">
-                    <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="heap-size" order="-1">
-                    <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="gc-tuning" order="0">
-                    <jvmParams>
-                          ${GC_TUNING_PARAMS}
-                        </jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="flight-recorder">
-                    <jvmParams>
-                        -XX:+UnlockCommercialFeatures 
-                        -XX:+FlightRecorder 
-                        -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile 
-                        -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
-                         </jvmParams>
-                  </jvmParamSet>
-                </jvmParamSets>
-              </jvm>
-            </provisioning>
-          </xvm>
-        </templates>
-  
-        <xvm name="cardholdermaster-1-1" template="xvm-template">
-          <env>
-            <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.12</CARDHOLDERMASTER_STORE_ADDRESS>
-            <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
-                <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="cardholdermaster-1-2" template="xvm-template">
-          <env>
-            <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
-            <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
-                <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-        </xvm>
-        <xvm name="cardholdermaster-2-1" template="xvm-template">
-          <env>
-            <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
-            <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
-                <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-        </xvm>
-        <xvm name="cardholdermaster-2-2" template="xvm-template">
-          <env>
-            <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
-            <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g </GC_HEAP_SIZE_PARAMS>
-                <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="cardmaster-1-1" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="cardmaster-1-2" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="cardmaster-2-1" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="cardmaster-2-2" template="xvm-template">
-          <env>
-            <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="fraudanalyzer-1-1" template="xvm-template">
-          <env>
-            <FRAUDANALYZER_STORE_ADDRESS>192.168.2.14</FRAUDANALYZER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-        </xvm>
-        <xvm name="fraudanalyzer-1-2" template="xvm-template">
-          <env>
-            <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-        <xvm name="fraudanalyzer-2-1" template="xvm-template">
-          <env>
-            <FRAUDANALYZER_STORE_ADDRESS>192.168.2.13</FRAUDANALYZER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-        </xvm>
-        <xvm name="fraudanalyzer-2-2" template="xvm-template">
-          <env>
-            <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="merchantmaster-1-1" template="xvm-template">
-          <env>
-            <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-        </xvm>
-        <xvm name="merchantmaster-1-2" template="xvm-template">
-          <env>
-            <MERCHANTMASTER_STORE_ADDRESS>192.168.2.14</MERCHANTMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.14</host>
-          </provisioning>
-        </xvm>
-        <xvm name="merchantmaster-2-1" template="xvm-template">
-          <env>
-            <MERCHANTMASTER_STORE_ADDRESS>192.168.2.12</MERCHANTMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-        <xvm name="merchantmaster-2-2" template="xvm-template">
-          <env>
-            <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
-          </env>
-          <provisioning>
-            <host>192.168.1.13</host>
-          </provisioning>
-        </xvm>
-  
-        <xvm name="perfdriver-1" template="xvm-template">
-          <provisioning>
-            <host>192.168.1.12</host>
-          </provisioning>
-        </xvm>
-      </xvms>
-    </profile>
-  
-    <profile name="zing">
-      <activation>
-        <properties>
-          <ccfd.useZing>true</ccfd.useZing>
-        </properties>
-      </activation>
-  
-      <xvms>
-        <templates>
-          <xvm name="xvm-template">
-            <env>
-              <GC_HEAP_SIZE_PARAMS>-Xms5g -Xmx5g</GC_HEAP_SIZE_PARAMS>
-              <GC_TUNING_PARAMS></GC_TUNING_PARAMS>
-            </env>
-            <provisioning>
-              <jvm>
-                <javaHome>${JAVA_HOME_ZING_1_8_0}</javaHome>
-                <jvmParamSets>
-                  <jvmParamSet name="zing-license">
-                    <jvmParams>-XX:ZingLic=/opt/zing/license/nvx-zing-neeve-xplatform-support-1.0.0.jar</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="jvm-tuning-params">
-                    <jvmParams>-XX:+UseC2-XX:+JNIDetachThreadsIfNotDetached</jvmParams>
-                  </jvmParamSet>
-                  <jvmParamSet name="flight-recorder" order="0">
-                    <jvmParams></jvmParams>
-                  </jvmParamSet>
-                </jvmParamSets>
-              </jvm>
-            </provisioning>
-          </xvm>
-        </templates>
-      </xvms>
-    </profile>
-  
-    <profile name="solace-messaging">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>solace</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-        <CCFD_BUS_DESCRIPTOR>solace://${SOLACE_HOST::localhost}:${SOLACE_PORT::55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    
-    <profile name="activemq">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>activemq</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-          <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
-          <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
-    
-    <profile name="kafka">
-      <activation>
-        <properties>
-          <ccfd-bus-provider>kafka</ccfd-bus-provider>
-        </properties>
-      </activation>
-      <env>
-          <CCFD_BUS_DESCRIPTOR>kafka://${KAFKA_HOST::localhost}:${KAFKA_PORT::9092}</CCFD_BUS_DESCRIPTOR>
-      </env>
-    </profile>
+            <!-- discovery descriptor -->
+            <discovery.descriptor>mcast://224.0.1.200:4090</discovery.descriptor>
 
-  </profiles>
+            <!-- optimize for latency -->
+            <optimizefor>latency</optimizefor>
+            <aep.trace>config</aep.trace>
+
+            <!-- use zero garbage spin locks -->
+            <pool.lockingstrategy>Spinning</pool.lockingstrategy>
+
+            <!-- global latency stats settings -->
+            <msg.latency.stats>true</msg.latency.stats>
+            <ods.latency.stats>true</ods.latency.stats>
+            <link.network.stampiots>true</link.network.stampiots>
+            <latencymanager.samplesize>10240</latencymanager.samplesize>
+
+        </nv>
+
+        <!-- Configure the test drivers -->
+        <driver.sendRate>1000</driver.sendRate>
+        <driver.sendCount>1000</driver.sendCount>
+
+        <!-- Use XSQL Query for fraud checks? -->
+        <cardholdermaster.queryTransactions>false</cardholdermaster.queryTransactions>
+
+        <cardmaster.numShards>2</cardmaster.numShards>
+        <merchantmaster.numShards>2</merchantmaster.numShards>
+        <cardholdermaster.numShards>2</cardholdermaster.numShards>
+        <fraudanalyzer.numShards>2</fraudanalyzer.numShards>
+
+        <!-- 
+          Default addresses for various messaging provider profiles.
+          This are typically overriden either by a environment profile
+          (e.g. production) or from the target environement where
+          the application is being deployed:
+          -->
+        <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
+        <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
+
+        <SOLACE_HOST>localhost</SOLACE_HOST>
+        <SOLACE_PORT>55555</SOLACE_PORT>
+
+        <KAFKA_HOST>localhost</KAFKA_HOST>
+        <KAFKA_PORT>9092</KAFKA_PORT>
+    </env>
+
+    <buses>
+        <bus name="ccfd" descriptor="${CCFD_BUS_DESCRIPTOR::solace://${SOLACE_HOST}:${SOLACE_PORT}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2}">
+            <channels>
+                <channel name="authreq" id="1">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
+                </channel>
+                <channel name="authreq2" id="2">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
+                </channel>
+                <channel name="authreq3" id="3">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
+                </channel>
+                <channel name="authreq4" id="4">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[fraudanalyzerShardId = hash(${cardHolderId}, 2)]</key>
+                </channel>
+                <channel name="authresp" id="5">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                </channel>
+                <channel name="card-events" id="6">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardMasterShardId = hash(${cardNumber}, 2)]</key>
+                </channel>
+                <channel name="cardholder-events" id="7">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[cardholderMasterShardId = hash(${cardHolderId}, 2)]</key>
+                </channel>
+                <channel name="merchant-events" id="8">
+                    <qos>${CCFD_QOS::Guaranteed}</qos>
+                    <key>#[merchantMasterShardId = hash(${merchantId}, 2)]</key>
+                </channel>
+            </channels>
+        </bus>
+    </buses>
+
+    <apps>
+        <templates>
+            <app name="cardholdermaster-app-template" mainClass="com.neeve.ccfd.cardholdermaster.Application" displayName="Cardholder Master">
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <messaging>
+                    <factories>
+                        <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                    </factories>
+                    <bus name="ccfd">
+                        <channels>
+                            <channel name="authreq3" join="true">
+                                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
+                            </channel>
+                            <channel name="authreq4" join="false"/>
+                            <channel name="authresp" join="false"/>
+                            <channel name="cardholder-events" join="true">
+                                <filter>cardholderMasterShardId=${CARDHOLDERMASTER_SHARDID}</filter>
+                            </channel>
+                        </channels>
+                    </bus>
+                </messaging>
+                <storage>
+                    <factories>
+                        <factory name="com.neeve.ccfd.cardholdermaster.state.StateFactory"/>
+                    </factories>
+                    <clustering enabled="true">
+                        <localIfAddr>${CARDHOLDERMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                        <storeName>cardholdermaster-${CARDHOLDERMASTER_SHARDID}</storeName>
+                    </clustering>
+                    <persistence enabled="true">
+                        <!-- detached persist is not supported for state replication -->
+                        <detachedPersist enabled="false"/>
+                    </persistence>
+                    <queryable>${cardholdermaster.queryTransactions::false}</queryable>
+                </storage>
+                <captureMessageTypeStats>true</captureMessageTypeStats>
+            </app>
+
+            <app name="cardmaster-app-template" mainClass="com.neeve.ccfd.cardmaster.Application" displayName="Card Master">
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <messaging>
+                    <factories>
+                        <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                    </factories>
+                    <bus name="ccfd">
+                        <channels>
+                            <channel name="authreq" join="true">
+                                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
+                            </channel>
+                            <channel name="authresp" join="false"/>
+                            <channel name="authreq2" join="false"/>
+                            <channel name="card-events" join="true">
+                                <filter>cardMasterShardId=${CARDMASTER_SHARDID}</filter>
+                            </channel>
+                        </channels>
+                    </bus>
+                </messaging>
+                <storage>
+                    <factories>
+                        <factory name="com.neeve.ccfd.cardmaster.state.StateFactory"/>
+                    </factories>
+                    <clustering enabled="true">
+                        <localIfAddr>${CARDMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                        <storeName>cardmaster-${CARDMASTER_SHARDID}</storeName>
+                    </clustering>
+                    <persistence enabled="true">
+                        <!-- detached persist is not supported for state replication -->
+                        <detachedPersist enabled="false"/>
+                    </persistence>
+                </storage>
+                <captureMessageTypeStats>true</captureMessageTypeStats>
+            </app>
+
+            <app name="fraudanalyzer-app-template" mainClass="com.neeve.ccfd.fraudanalyzer.Application" displayName="Fraud Analyzer">
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <messaging>
+                    <factories>
+                        <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                    </factories>
+                    <bus name="ccfd">
+                        <channels>
+                            <channel name="authreq4" join="true">
+                                <filter>fraudanalyzerShardId=${FRAUDANALYZER_SHARDID}</filter>
+                            </channel>
+                            <channel name="authresp" join="false"/>
+                        </channels>
+                    </bus>
+                </messaging>
+                <storage>
+                    <factories>
+                        <factory name="com.neeve.ccfd.fraudanalyzer.state.StateFactory"/>
+                    </factories>
+                    <clustering enabled="true">
+                        <localIfAddr>${FRAUDANALYZER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                        <storeName>fraudanalyzer-${FRAUDANALYZER_SHARDID}</storeName>
+                    </clustering>
+                    <persistence enabled="true">
+                        <!-- detached persist is not supported for state replication -->
+                        <detachedPersist enabled="false"/>
+                    </persistence>
+                </storage>
+                <captureMessageTypeStats>true</captureMessageTypeStats>
+            </app>
+
+            <app name="merchantmaster-app-template" mainClass="com.neeve.ccfd.merchantmaster.Application" displayName="Merchant Master">
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <messaging>
+                    <factories>
+                        <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                    </factories>
+                    <bus name="ccfd">
+                        <channels>
+                            <channel name="authreq2" join="true">
+                                <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
+                            </channel>
+                            <channel name="authreq3" join="false"/>
+                            <channel name="merchant-events" join="true">
+                                <filter>merchantMasterShardId=${MERCHANTMASTER_SHARDID}</filter>
+                            </channel>
+                        </channels>
+                    </bus>
+                </messaging>
+                <storage>
+                    <factories>
+                        <factory name="com.neeve.ccfd.merchantmaster.state.StateFactory"/>
+                    </factories>
+                    <clustering enabled="true">
+                        <localIfAddr>${MERCHANTMASTER_STORE_ADDRESS::0.0.0.0}</localIfAddr>
+                        <storeName>merchantmaster-${MERCHANTMASTER_SHARDID}</storeName>
+                    </clustering>
+                    <persistence enabled="true">
+                        <!-- detached persist is not supported for state replication -->
+                        <detachedPersist enabled="false"/>
+                    </persistence>
+                </storage>
+                <captureMessageTypeStats>true</captureMessageTypeStats>
+            </app>
+        </templates>
+
+        <!-- Card Holder App Partitions -->
+        <app name="cardholdermaster-1" template="cardholdermaster-app-template"/>
+        <app name="cardholdermaster-2" template="cardholdermaster-app-template"/>
+
+        <!-- Card Master App Partitions -->
+        <app name="cardmaster-1" template="cardmaster-app-template"/>
+        <app name="cardmaster-2" template="cardmaster-app-template"/>
+
+        <!-- Fraud Analyzer App Partitions -->
+        <app name="fraudanalyzer-1" template="fraudanalyzer-app-template"/>
+        <app name="fraudanalyzer-2" template="fraudanalyzer-app-template"/>
+
+        <!-- Merchange Master App Partitions -->
+        <app name="merchantmaster-1" template="merchantmaster-app-template"/>
+        <app name="merchantmaster-2" template="merchantmaster-app-template"/>
+
+        <app name="perfdriver" mainClass="com.neeve.ccfd.perfdriver.Application">
+            <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+            <messaging>
+                <factories>
+                    <factory name="com.neeve.ccfd.messages.MessageFactory"/>
+                </factories>
+                <bus name="ccfd">
+                    <channels>
+                        <channel name="authreq" join="false"/>
+                        <channel name="authreq2" join="false"/>
+                        <channel name="authreq3" join="false"/>
+                        <channel name="card-events" join="false"/>
+                        <channel name="cardholder-events" join="false"/>
+                        <channel name="merchant-events" join="false"/>
+                        <channel name="authresp" join="true"/>
+                    </channels>
+                </bus>
+            </messaging>
+            <storage enabled="false"/>
+            <captureMessageTypeStats>true</captureMessageTypeStats>
+            <enableMessageTrace>false</enableMessageTrace>
+        </app>
+    </apps>
+
+    <xvms>
+        <templates>
+            <xvm name="xvm-template">
+                <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
+                <heartbeats enabled="true" interval="5">
+                    <collectIndividualThreadStats>true</collectIndividualThreadStats>
+                    <includeMessageTypeStats>true</includeMessageTypeStats>
+                    <tracing enabled="false">
+                        <traceAdminClientStats>false</traceAdminClientStats>
+                        <traceAppStats>false</traceAppStats>
+                        <tracePoolStats>false</tracePoolStats>
+                        <traceSysStats>false</traceSysStats>
+                        <traceThreadStats>false</traceThreadStats>
+                        <traceUserStats>false</traceUserStats>
+                    </tracing>
+                </heartbeats>
+            </xvm>
+        </templates>
+        <xvm name="cardholdermaster-1-1" displayName="Cardholder Master 1p" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardholdermaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardholdermaster-1-2" displayName="Cardholder Master 1s" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_SHARDID>1</CARDHOLDERMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardholdermaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardholdermaster-2-1" displayName="Cardholder Master 2p" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardholdermaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardholdermaster-2-2" displayName="Cardholder Master 2s" template="xvm-template">
+            <env>
+                <CARDHOLDERMASTER_SHARDID>2</CARDHOLDERMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardholdermaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+
+        <xvm name="cardmaster-1-1" displayName="Card Master 1p" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardmaster-1-2" displayName="Card Master 1s" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>1</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardmaster-2-1" displayName="Card Master 2p" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="cardmaster-2-2" displayName="Card Master 2s" template="xvm-template">
+            <env>
+                <CARDMASTER_SHARDID>2</CARDMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="cardmaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+
+        <xvm name="fraudanalyzer-1-1" displayName="Fraud Analyzer 1p" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
+            </env>
+            <apps>
+                <app name="fraudanalyzer-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="fraudanalyzer-1-2" displayName="Fraud Analyzer 1s" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_SHARDID>1</FRAUDANALYZER_SHARDID>
+            </env>
+            <apps>
+                <app name="fraudanalyzer-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="fraudanalyzer-2-1" displayName="Fraud Analyzer 2p" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
+            </env>
+            <apps>
+                <app name="fraudanalyzer-2" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="fraudanalyzer-2-2" displayName="Fraud Analyzer 2s" template="xvm-template">
+            <env>
+                <FRAUDANALYZER_SHARDID>2</FRAUDANALYZER_SHARDID>
+            </env>
+            <apps>
+                <app name="fraudanalyzer-2" autoStart="true"/>
+            </apps>
+        </xvm>
+
+        <xvm name="merchantmaster-1-1" displayName="Merchant Master 1p" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="merchantmaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="merchantmaster-1-2" displayName="Merchant Master 1s" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_SHARDID>1</MERCHANTMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="merchantmaster-1" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="merchantmaster-2-1" displayName="Merchant Master 2p" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="merchantmaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+        <xvm name="merchantmaster-2-2" displayName="Merchant Master 2s" template="xvm-template">
+            <env>
+                <MERCHANTMASTER_SHARDID>2</MERCHANTMASTER_SHARDID>
+            </env>
+            <apps>
+                <app name="merchantmaster-2" autoStart="true"/>
+            </apps>
+        </xvm>
+
+        <xvm name="perfdriver-1" displayName="Perf Test Driver" template="xvm-template">
+            <env>
+                <nv.time.useepochoffset>false</nv.time.useepochoffset>
+            </env>
+            <apps>
+                <app name="perfdriver" autoStart="true"/>
+            </apps>
+        </xvm>
+    </xvms>
+
+    <profiles>
+        <profile name="test">
+            <env>
+                <nv>
+                    <conservecpu>true</conservecpu>
+                    <discovery.descriptor>local://test&amp;initWaitTime=0</discovery.descriptor>
+                </nv>
+                <driver.autoStart>true</driver.autoStart>
+                <CCFD_BUS_DESCRIPTOR>loopback://ccfd</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+        <profile name="neeve-lab">
+            <activation>
+                <properties>
+                    <lumino.agent.env>neeve-lab</lumino.agent.env>
+                </properties>
+            </activation>
+            <env>
+                <SOLACE_HOST>192.168.1.7</SOLACE_HOST>
+                <SOLACE_PORT>55555</SOLACE_PORT>
+                <driver.autoStart>false</driver.autoStart>
+                <nv>
+                    <discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=${DISCOVERY_INTERFACE}</discovery.descriptor>
+                </nv>
+            </env>
+
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <env>
+                            <GC_HEAP_SIZE_PARAMS>-Xms4g -Xmx4g</GC_HEAP_SIZE_PARAMS>
+                            <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                        </env>
+                        <provisioning>
+                            <jvm>
+                                <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                                <jvmParamSets>
+                                    <jvmParamSet name="prefer-ipv4">
+                                        <jvmParams>-Djava.net.preferIPv4Stack=true</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="heap-size" order="-1">
+                                        <jvmParams>${GC_HEAP_SIZE_PARAMS}</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="gc-tuning" order="0">
+                                        <jvmParams>
+                                            ${GC_TUNING_PARAMS}
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="flight-recorder">
+                                        <jvmParams>
+                                            -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=name=${nv.ddl.targetxvm::default}-flight-recording,settings=profile -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${XVMRUNDIR::~}/${nv.ddl.targetxvm::default}-flight-recording.jfr
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
+
+                <xvm name="cardholdermaster-1-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.12</CARDHOLDERMASTER_STORE_ADDRESS>
+                        <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g</GC_HEAP_SIZE_PARAMS>
+                        <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardholdermaster-1-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
+                        <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
+                        <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g</GC_HEAP_SIZE_PARAMS>
+                        <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="cardholdermaster-2-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
+                        <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.13</CARDHOLDERMASTER_STORE_ADDRESS>
+                        <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g</GC_HEAP_SIZE_PARAMS>
+                        <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="cardholdermaster-2-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
+                        <CARDHOLDERMASTER_STORE_ADDRESS>192.168.2.14</CARDHOLDERMASTER_STORE_ADDRESS>
+                        <GC_HEAP_SIZE_PARAMS>-Xms20g -Xmx20g</GC_HEAP_SIZE_PARAMS>
+                        <GC_TUNING_PARAMS>-XX:MaxNewSize=4m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Xnoclassgc -XX:MaxTenuringThreshold=2</GC_TUNING_PARAMS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-1-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-1-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.13</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-2-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.14</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="cardmaster-2-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <CARDMASTER_STORE_ADDRESS>192.168.2.12</CARDMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="fraudanalyzer-1-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
+                        <FRAUDANALYZER_STORE_ADDRESS>192.168.2.14</FRAUDANALYZER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="fraudanalyzer-1-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="fraudanalyzer-2-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
+                        <FRAUDANALYZER_STORE_ADDRESS>192.168.2.13</FRAUDANALYZER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="fraudanalyzer-2-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <FRAUDANALYZER_STORE_ADDRESS>192.168.2.12</FRAUDANALYZER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="merchantmaster-1-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
+                        <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="merchantmaster-1-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.14</DISCOVERY_INTERFACE>
+                        <MERCHANTMASTER_STORE_ADDRESS>192.168.2.14</MERCHANTMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="merchantmaster-2-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                        <MERCHANTMASTER_STORE_ADDRESS>192.168.2.12</MERCHANTMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+                <xvm name="merchantmaster-2-2" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.13</DISCOVERY_INTERFACE>
+                        <MERCHANTMASTER_STORE_ADDRESS>192.168.2.13</MERCHANTMASTER_STORE_ADDRESS>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                    </provisioning>
+                </xvm>
+
+                <xvm name="perfdriver-1" template="xvm-template">
+                    <env>
+                        <DISCOVERY_INTERFACE>64.71.157.12</DISCOVERY_INTERFACE>
+                    </env>
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                    </provisioning>
+                </xvm>
+            </xvms>
+        </profile>
+
+        <profile name="zing">
+            <activation>
+                <properties>
+                    <ccfd.useZing>true</ccfd.useZing>
+                </properties>
+            </activation>
+
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <env>
+                            <GC_HEAP_SIZE_PARAMS>-Xms5g -Xmx5g</GC_HEAP_SIZE_PARAMS>
+                            <GC_TUNING_PARAMS></GC_TUNING_PARAMS>
+                        </env>
+                        <provisioning>
+                            <jvm>
+                                <javaHome>${JAVA_HOME_ZING_1_8_0}</javaHome>
+                                <jvmParamSets>
+                                    <jvmParamSet name="zing-license">
+                                        <jvmParams>-XX:ZingLic=/opt/zing/license/nvx-zing-neeve-xplatform-support-1.0.0.jar</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="jvm-tuning-params">
+                                        <jvmParams>-XX:+UseC2-XX:+JNIDetachThreadsIfNotDetached</jvmParams>
+                                    </jvmParamSet>
+                                    <jvmParamSet name="flight-recorder" order="0">
+                                        <jvmParams></jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
+            </xvms>
+        </profile>
+
+        <profile name="solace-messaging">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>solace</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <CCFD_BUS_DESCRIPTOR>solace://${SOLACE_HOST::localhost}:${SOLACE_PORT::55555}&amp;use_default_queue_name=true&amp;SESSION_VPN_NAME=default&amp;SESSION_USERNAME=test&amp;FLOW_FORWARDING_MODE=2</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+        <profile name="activemq">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>activemq</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <nv.discovery.descriptor>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</nv.discovery.descriptor>
+                <CCFD_BUS_DESCRIPTOR>activemq://${ACTIVEMQ_HOST::localhost}:${ACTIVEMQ_PORT::61616}</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+        <profile name="kafka">
+            <activation>
+                <properties>
+                    <ccfd-bus-provider>kafka</ccfd-bus-provider>
+                </properties>
+            </activation>
+            <env>
+                <CCFD_BUS_DESCRIPTOR>kafka://${KAFKA_HOST::localhost}:${KAFKA_PORT::9092}</CCFD_BUS_DESCRIPTOR>
+            </env>
+        </profile>
+
+    </profiles>
 </model>

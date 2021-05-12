@@ -1,661 +1,614 @@
 <?xml version="1.0"?>
 <model xmlns="http://www.neeveresearch.com/schema/x-ddl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <env>
-    <nv>
-      <optimizefor>latency</optimizefor>
-      <checked>false</checked>
-
-      <aep>
-        <enablesendcommitcompletesequencealerts>false</enablesendcommitcompletesequencealerts>
-        <!--
-          Event scheduling:
-          Prioritize messages events above other events.
-        -->
-        <messageeventpriority>-5</messageeventpriority>
-      </aep>
-
-      <xbuf>
-        <!-- Optimized deserialization of new order messages -->
-        <com.neeve.tick2trade.messages>
-          <EMSNewOrderSingle>
-            <desyncpolicy>FrameFields</desyncpolicy>
-          </EMSNewOrderSingle>
-        </com.neeve.tick2trade.messages>
-      </xbuf>
-
-      <!-- Enable Global Stats -->
-      <msg.latency.stats>true</msg.latency.stats>
-      <msgtype.latency.stats>true</msgtype.latency.stats>
-      <latencymanager.samplesize>10240</latencymanager.samplesize>
-      <ods.latency.stats>true</ods.latency.stats>
-      <link.network.stampiots>true</link.network.stampiots>
-      <aep.trace>config</aep.trace>
-      <server.controller.trace>config</server.controller.trace>
-    </nv>
-
-    <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
-    <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
-
-    <SOLACE_HOST>localhost</SOLACE_HOST>
-    <SOLACE_PORT>55555</SOLACE_PORT>
-  </env>
-
-  <buses>
-    <bus name="ems">
-      <provider>loopback</provider>
-      <address>ems</address>
-    </bus>
-    <bus name="market">
-      <provider>loopback</provider>
-      <address>market</address>
-    </bus>
-  </buses>
-
-  <apps>
-    <templates>
-      <app name="app-template">
-        <captureEventLatencyStats>false</captureEventLatencyStats>
-        <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
-        <captureMessageTypeStats>true</captureMessageTypeStats>
-        <capturePerTransactionStats>false</capturePerTransactionStats>
-        <performDuplicateChecking>false</performDuplicateChecking>
-      </app>
-    </templates>
-
-    <app name="ems" mainClass="com.neeve.tick2trade.App" template="app-template">
-      <messaging>
-        <bus name="ems">
-          <nonBlockingInboundMessageDispatch>${EMS_EMSNONBLOCKINGMESSAGEDISPATCH::false}</nonBlockingInboundMessageDispatch>
-          <detachedSend enabled="true">
-            <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
-            <queueWaitStrategy>BusySpin</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${EMS_EMSDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-        <bus name="market">
-          <nonBlockingInboundMessageDispatch>${EMS_MARKETNONBLOCKINGMESSAGEDISPATCH::true}</nonBlockingInboundMessageDispatch>
-          <detachedSend enabled="true">
-            <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
-            <queueWaitStrategy>BusySpin</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${EMS_MARKETDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-      <inboundEventMultiplexing>
-        <queueOfferStrategy>MultiThreadedSufficientCores</queueOfferStrategy>
-        <queueWaitStrategy>BusySpin</queueWaitStrategy>
-        <queueDrainerCpuAffinityMask>${EMS_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-      <storage enabled="true">
-        <clustering enabled="true">
-          <localIfAddr>${EMS_REPLICATION_INTERFACE::0.0.0.0}</localIfAddr>
-          <localPort>${EMS_REPLICATION_PORT::0}</localPort>
-          <linkParams>nativeio=true,eagerread=true,maxreadspintime=1000000</linkParams>
-          <linkReaderCpuAffinityMask>${EMS_STORE_LINK_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
-          <memberElectionPriority>${EMS_MEMBER_ELECTION_PRIORITY::255}</memberElectionPriority>
-          <detachedSend enabled="${EMS_STORE_DETACHEDSEND_ENABLED::false}">
-            <queueDepth>${EMS_STORE_DETACHEDSEND_QUEUEDEPTH::1024}</queueDepth>
-            <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
-            <queueWaitStrategy>${EMS_STORE_DETACHEDSEND_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${EMS_STORE_DETACHEDSEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-          <detachedDispatch enabled="${EMS_STORE_DETACHEDDISPATCH_ENABLED::false}">
-            <queueDepth>${EMS_STORE_DETACHEDDISPATCH_QUEUEDEPTH::1024}</queueDepth>
-            <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
-            <queueWaitStrategy>${EMS_STORE_DETACHEDDISPATCH_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${EMS_STORE_DETACHEDDISPATCH_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedDispatch>
-        </clustering>
-        <persistence enabled="true">
-          <flushOnCommit>${EMS_PERSISTERFLUSHONCOMMIT::false}</flushOnCommit>
-          <initialLogLength>${EMS_PERSISTERINITIALLOGLENGTH::10}</initialLogLength>
-          <zeroOutInitial>false</zeroOutInitial>
-          <autoFlushSize>8192</autoFlushSize>
-          <pageSize>8192</pageSize>
-          <detachedPersist enabled="${EMS_DETACHEDPERSISTENABLE::true}">
-            <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
-            <queueWaitStrategy>${EMS_DETACHEDPERSIST_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${EMS_DETACHEDPERSISTCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedPersist>
-        </persistence>
-      </storage>
-      <outboundMessageLogging policy="UseDedicated">
-        <flushOnCommit>false</flushOnCommit>
-        <detachedWrite enabled="true">
-          <queueWaitStrategy>BusySpin</queueWaitStrategy>
-          <queueDrainerCpuAffinityMask>${EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-        </detachedWrite>
-      </outboundMessageLogging>
-      <replicateInParallel>true</replicateInParallel>
-      <disposeOnSend>true</disposeOnSend>
-    </app>
-
-    <app name="market" mainClass="com.neeve.tick2trade.driver.Market">
-      <messaging>
-        <bus name="market" enabled="${MARKET_BUS_ENABLED::true}">
-          <nonBlockingInboundMessageDispatch>${MARKET_MARKETNONBLOCKINGMESSAGEDISPATCH::false}</nonBlockingInboundMessageDispatch>
-          <detachedSend enabled="${MARKET_MARKETDETACHEDSEND::true}">
-            <queueWaitStrategy>${MARKET_MARKETDETACHEDSEND_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
-            <queueDrainerCpuAffinityMask>${MARKET_MARKETDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-          </detachedSend>
-        </bus>
-      </messaging>
-      <inboundEventMultiplexing>
-        <queueWaitStrategy>${MARKET_INPUTMUTIPLEX_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
-        <queueDrainerCpuAffinityMask>${MARKET_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-      <storage enabled="false">
-        <clustering enabled="false" />
-      </storage>
-    </app>
-
-    <app name="client" mainClass="com.neeve.tick2trade.driver.Client">
-      <messaging>
-        <bus name="ems">
-          <detachedSend enabled="false" />
-        </bus>
-      </messaging>
-      <sequenceUnsolicitedSends>true</sequenceUnsolicitedSends>
-      <inboundEventMultiplexing>
-        <queueWaitStrategy>BusySpin</queueWaitStrategy>
-        <queueDrainerCpuAffinityMask>${CLIENT_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
-      </inboundEventMultiplexing>
-      <storage enabled="false">
-      </storage>
-    </app>
-  </apps>
-
-  <xvms>
-    <templates>
-      <xvm name="xvm-template">
-        <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
-        <heartbeats enabled="true" interval="5">
-          <collectIndividualThreadStats>true</collectIndividualThreadStats>
-          <includeMessageTypeStats>true</includeMessageTypeStats>
-          <inactiveMessageTypeStatsInclusionFrequency>0</inactiveMessageTypeStatsInclusionFrequency>
-          <tracing enabled="true">
-            <traceAdminClientStats>false</traceAdminClientStats>
-            <traceAppStats>false</traceAppStats>
-            <tracePoolStats>false</tracePoolStats>
-            <traceSysStats>false</traceSysStats>
-            <traceThreadStats>false</traceThreadStats>
-            <traceUserStats>true</traceUserStats>
-          </tracing>
-        </heartbeats>
-      </xvm>
-    </templates>
-
-    <xvm name="ems1" template="xvm-template">
-      <env>
-        <EMS_MEMBER_ELECTION_PRIORITY>1</EMS_MEMBER_ELECTION_PRIORITY>
-      </env>
-      <apps>
-        <app name="ems" autoStart="true" />
-      </apps>
-      <acceptors>
-        <acceptor descriptor="${EMS1_ACCEPTOR::tcp://0.0.0.0:0}" />
-      </acceptors>
-      <multiThreading enabled="true">
-        <ioThreads>
-          <ioThread id="0" affinity="0" enabled="true" />
-          <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true" />
-        </ioThreads>
-      </multiThreading>
-    </xvm>
-
-    <xvm name="ems2" template="xvm-template">
-      <env>
-        <EMS_MEMBER_ELECTION_PRIORITY>2</EMS_MEMBER_ELECTION_PRIORITY>
-      </env>
-      <apps>
-        <app name="ems" autoStart="true" />
-      </apps>
-      <acceptors>
-        <acceptor descriptor="${EMS2_ACCEPTOR::tcp://0.0.0.0:0}" />
-      </acceptors>
-      <multiThreading enabled="true">
-        <ioThreads>
-          <ioThread id="0" affinity="0" enabled="true" />
-          <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true" />
-        </ioThreads>
-      </multiThreading>
-    </xvm>
-
-    <xvm name="market" template="xvm-template">
-      <env>
-        <nv.time.useepochoffset>false</nv.time.useepochoffset>
-      </env>
-      <apps>
-        <app name="market" autoStart="true" />
-      </apps>
-      <acceptors>
-        <acceptor descriptor="${MARKET_ACCEPTOR::tcp://0.0.0.0:0}" />
-      </acceptors>
-      <multiThreading enabled="true">
-        <ioThreads>
-          <ioThread id="0" affinity="0" enabled="true" />
-          <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true" />
-        </ioThreads>
-      </multiThreading>
-    </xvm>
-
-    <xvm name="client" template="xvm-template">
-      <env>
-        <nv.time.useepochoffset>false</nv.time.useepochoffset>
-      </env>
-      <apps>
-        <app name="client" autoStart="true" />
-      </apps>
-      <acceptors>
-        <acceptor descriptor="${CLIENT_ACCEPTOR::tcp://0.0.0.0:0}" />
-      </acceptors>
-      <multiThreading enabled="true">
-        <ioThreads>
-          <ioThread id="0" affinity="0" enabled="true" />
-          <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true" />
-        </ioThreads>
-      </multiThreading>
-    </xvm>
-  </xvms>
-
-  <profiles>
-    <profile name="test">
-      <env>
+    <env>
         <nv>
-          <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
-          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
-          <nv.native.suppressextraction>true</nv.native.suppressextraction>
+            <optimizefor>latency</optimizefor>
+            <checked>false</checked>
+
+            <aep>
+                <enablesendcommitcompletesequencealerts>false</enablesendcommitcompletesequencealerts>
+                <!--
+                  Event scheduling:
+                  Prioritize messages events above other events.
+                -->
+                <messageeventpriority>-5</messageeventpriority>
+            </aep>
+
+            <xbuf>
+                <!-- Optimized deserialization of new order messages -->
+                <com.neeve.tick2trade.messages>
+                    <EMSNewOrderSingle>
+                        <desyncpolicy>FrameFields</desyncpolicy>
+                    </EMSNewOrderSingle>
+                </com.neeve.tick2trade.messages>
+            </xbuf>
+
+            <!-- Enable Global Stats -->
+            <msg.latency.stats>true</msg.latency.stats>
+            <msgtype.latency.stats>true</msgtype.latency.stats>
+            <latencymanager.samplesize>10240</latencymanager.samplesize>
+            <ods.latency.stats>true</ods.latency.stats>
+            <link.network.stampiots>true</link.network.stampiots>
+            <aep.trace>config</aep.trace>
+            <server.controller.trace>config</server.controller.trace>
         </nv>
 
-        <!-- performance tuning parameters: -->
-        <nv>
-          <conservecpu>true</conservecpu>
-          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
-        </nv>
-
-        <!-- preallocation & pooling -->
-        <simulator>
-          <ems.orderPreallocateCount>1000</ems.orderPreallocateCount>
-          <sendCount>1000</sendCount>
-          <sendRate>1000</sendRate>
-        </simulator>
-      </env>
-    </profile>
-    
-    <profile name="neeve-lab">
-      <activation>
-        <properties>
-          <lumino.agent.env>neeve-lab</lumino.agent.env>
-        </properties>
-      </activation>
-
-      <env>
-        <nv>
-          <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
-        </nv>
-
-        <ACTIVEMQ_HOST>192.168.1.8</ACTIVEMQ_HOST>
+        <ACTIVEMQ_HOST>localhost</ACTIVEMQ_HOST>
         <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
 
-        <SOLACE_HOST>192.168.1.9</SOLACE_HOST>
+        <SOLACE_HOST>localhost</SOLACE_HOST>
         <SOLACE_PORT>55555</SOLACE_PORT>
+    </env>
 
-        <CLIENT_ACCEPTOR>tcp://192.168.1.12:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</CLIENT_ACCEPTOR>
-        <MARKET_ACCEPTOR>tcp://192.168.1.12:12000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</MARKET_ACCEPTOR>
-        <EMS1_ACCEPTOR>tcp://192.168.1.13:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS1_ACCEPTOR>
-        <EMS2_ACCEPTOR>tcp://192.168.1.14:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS2_ACCEPTOR>
+    <buses>
+        <bus name="ems">
+            <provider>loopback</provider>
+            <address>ems</address>
+        </bus>
+        <bus name="market">
+            <provider>loopback</provider>
+            <address>market</address>
+        </bus>
+    </buses>
 
-        <simulator.ems.orderPreallocateCount>1000000</simulator.ems.orderPreallocateCount>
-
-      </env>
-
-      <xvms>
-        <xvm name="ems1">
-          <provisioning>
-            <host>192.168.1.13</host>
-            <jvm>
-              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-              <jvmParams>
-                -Xms8g
-                -Xmx8g
-                -XX:NewSize=1536m
-                -XX:MaxNewSize=1536m
-                -XX:SurvivorRatio=6
-                -XX:+UseParNewGC
-                -XX:ParallelGCThreads=1
-                -XX:MaxTenuringThreshold=2
-                -Xnoclassgc
-                -XX:+PrintGCDetails
-                -XX:+PrintGCTimeStamps
-                -XX:+PrintTenuringDistribution
-              </jvmParams>
-            </jvm>
-          </provisioning>
-
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
-            <EMS_REPLICATION_INTERFACE>192.168.2.13</EMS_REPLICATION_INTERFACE>
-            <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
-
-            <!-- CPU AFFINITIZATION -->
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
-            <EMS_STORE_LINK_READER_CPUAFFMASK>[3]</EMS_STORE_LINK_READER_CPUAFFMASK>
-            <EMS_DETACHEDPERSISTCPUAFFMASK>[4]</EMS_DETACHEDPERSISTCPUAFFMASK>
-            <EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>[5]</EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>
-            <EMS_EMSDETACHEDSENDCPUAFFMASK>[6]</EMS_EMSDETACHEDSENDCPUAFFMASK>
-            <EMS_MARKETDETACHEDSENDCPUAFFMASK>[7]</EMS_MARKETDETACHEDSENDCPUAFFMASK>
-            <EMS1_IOTHRCPUAFFMASK>[8]</EMS1_IOTHRCPUAFFMASK>
-            <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
-            <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
-          </env>
-        </xvm>
-
-        <xvm name="ems2">
-          <provisioning>
-            <host>192.168.1.14</host>
-            <jvm>
-              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-              <jvmParams>
-                -Xms8g
-                -Xmx8g
-                -XX:NewSize=1536m
-                -XX:MaxNewSize=1536m
-                -XX:SurvivorRatio=6
-                -XX:+UseParNewGC
-                -XX:ParallelGCThreads=1
-                -XX:MaxTenuringThreshold=2
-                -Xnoclassgc
-                -XX:+PrintGCDetails
-                -XX:+PrintGCTimeStamps
-                -XX:+PrintTenuringDistribution
-              </jvmParams>
-            </jvm>
-          </provisioning>
-
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
-            <EMS_REPLICATION_INTERFACE>192.168.2.14</EMS_REPLICATION_INTERFACE>
-            <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
-
-            <!-- CPU Affinitization -->
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
-            <EMS_STORE_LINK_READER_CPUAFFMASK>[3]</EMS_STORE_LINK_READER_CPUAFFMASK>
-            <EMS_DETACHEDPERSISTCPUAFFMASK>[4]</EMS_DETACHEDPERSISTCPUAFFMASK>
-            <EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>[5]</EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>
-            <EMS_EMSDETACHEDSENDCPUAFFMASK>[6]</EMS_EMSDETACHEDSENDCPUAFFMASK>
-            <EMS_MARKETDETACHEDSENDCPUAFFMASK>[7]</EMS_MARKETDETACHEDSENDCPUAFFMASK>
-            <EMS1_IOTHRCPUAFFMASK>[8]</EMS1_IOTHRCPUAFFMASK>
-            <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
-            <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
-          </env>
-        </xvm>
-
-        <xvm name="market">
-          <provisioning>
-            <host>192.168.1.12</host>
-            <jvm>
-              <javaHome>/usr/java/jdk1.8.0_60</javaHome>
-              <jvmParams>
-                -Xms1572m
-                -Xmx1572m
-                -XX:NewSize=1024m
-                -XX:MaxNewSize=1024m
-                -XX:SurvivorRatio=32
-                -XX:+UseParNewGC
-                -XX:ParallelGCThreads=3
-                -Xnoclassgc
-                -XX:MaxTenuringThreshold=5
-                -XX:+PrintGCDetails
-                -XX:+PrintGCTimeStamps
-                -XX:+PrintTenuringDistribution
-              </jvmParams>
-            </jvm>
-          </provisioning>
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
-            <!-- CPU Affinitization -->
-            <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
-            <MARKET_INPUTMUTIPLEXERCPUAFFMASK>[2]</MARKET_INPUTMUTIPLEXERCPUAFFMASK>
-            <MARKET_IOTHRCPUAFFMASK>[3]</MARKET_IOTHRCPUAFFMASK>
-            <MARKET_MARKETDETACHEDSENDCPUAFFMASK>[4]</MARKET_MARKETDETACHEDSENDCPUAFFMASK>
-            <MARKET_BUSREADER_CPUAFFMASK>[5]</MARKET_BUSREADER_CPUAFFMASK>
-          </env>
-        </xvm>
-
-        <xvm name="client">
-          <provisioning>
-            <host>192.168.1.12</host>
-            <jvm>
-              <jvmParams>
-                -Xms1572m
-                -Xmx1572m
-                -XX:NewSize=1024m
-                -XX:MaxNewSize=1024m
-                -XX:SurvivorRatio=32
-                -XX:+UseParNewGC
-                -XX:ParallelGCThreads=3
-                -Xnoclassgc
-                -XX:MaxTenuringThreshold=5
-                -XX:+PrintGCDetails
-                -XX:+PrintGCTimeStamps
-                -XX:+PrintTenuringDistribution
-              </jvmParams>
-            </jvm>
-          </provisioning>
-
-          <env>
-            <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
-            <!-- CPU Affinitization -->
-            <nv.defaultcpuaffinitymask>[10]</nv.defaultcpuaffinitymask>
-            <simulator.client.sendAffinity>[11]</simulator.client.sendAffinity>
-            <CLIENT_INPUTMUTIPLEXERCPUAFFMASK>[12]</CLIENT_INPUTMUTIPLEXERCPUAFFMASK>
-            <CLIENT_IOTHRCPUAFFMASK>[13]</CLIENT_IOTHRCPUAFFMASK>
-            <EMS_BUSREADER_CPUAFFMASK>[14]</EMS_BUSREADER_CPUAFFMASK>
-          </env>
-        </xvm>
-
-      </xvms>
-    </profile>
-
-    <profile name="autosend">
-      <env>
-        <!-- preallocation & pooling -->
-        <simulator>
-          <sendCount>1000000</sendCount>
-          <sendRate>300</sendRate>
-        </simulator>
-      </env>
-    </profile>
-
-    <profile name="desktop">
-      <env>
-        <nv>
-          <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
-          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
-          <nv.native.suppressextraction>true</nv.native.suppressextraction>
-        </nv>
-
-        <!-- performance tuning parameters: -->
-        <nv>
-          <conservecpu>true</conservecpu>
-          <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
-        </nv>
-
-        <!-- preallocation & pooling -->
-        <simulator>
-          <ems.orderPreallocateCount>1000</ems.orderPreallocateCount>
-          <sendCount>1000</sendCount>
-          <sendRate>1000</sendRate>
-        </simulator>
-      </env>
-    </profile>
-
-    <profile name="flight-recorder">
-      <xvms>
+    <apps>
         <templates>
-          <xvm name="xvm-template">
-            <provisioning>
-              <jvm>
-                <jvmParamSets>
-                  <jvmParamSet name="flight-recorder">
-                    <jvmParams>
-                      -XX:+UnlockCommercialFeatures
-                      -XX:+FlightRecorder
-                      -XX:StartFlightRecording=name=MyRecording,settings=profile
-                      -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${nv.ddl.targetxvm::server}-recording.jfr
-                    </jvmParams>
-                  </jvmParamSet>
-                </jvmParamSets>
-              </jvm>
-            </provisioning>
-          </xvm>
+            <app name="app-template">
+                <captureEventLatencyStats>false</captureEventLatencyStats>
+                <captureTransactionLatencyStats>true</captureTransactionLatencyStats>
+                <captureMessageTypeStats>true</captureMessageTypeStats>
+                <capturePerTransactionStats>false</capturePerTransactionStats>
+                <performDuplicateChecking>false</performDuplicateChecking>
+            </app>
         </templates>
-      </xvms>
-    </profile>
 
-    <profile name="direct">
-      <!-- Direct Binding does not yet fully support Guaranteed -->
-      <env>
-        <simulator.qos>BestEffort</simulator.qos>
-      </env>
-      <activation>
-        <properties>
-          <tick-to-trade-bus-provider>direct</tick-to-trade-bus-provider>
-        </properties>
-      </activation>
-      <buses>
-        <bus name="ems">
-          <provider>direct</provider>
-          <address>ems</address>
-          <properties>
-            <nativio>true</nativio>
-            <eagerread>true</eagerread>
-            <maxreadspintime>1000000</maxreadspintime>
-            <threadaffinity>1</threadaffinity>
-            <cpuaffinitymask>${EMS_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
-          </properties>
-        </bus>
-        <bus name="market">
-          <provider>direct</provider>
-          <address>market</address>
-          <properties>
-            <nativio>true</nativio>
-            <eagerread>true</eagerread>
-            <maxreadspintime>1000000</maxreadspintime>
-            <threadaffinity>1</threadaffinity>
-            <cpuaffinitymask>${MARKET_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
-          </properties>
-        </bus>
-      </buses>
+        <app name="ems" mainClass="com.neeve.tick2trade.App" template="app-template">
+            <messaging>
+                <bus name="ems">
+                    <nonBlockingInboundMessageDispatch>${EMS_EMSNONBLOCKINGMESSAGEDISPATCH::false}</nonBlockingInboundMessageDispatch>
+                    <detachedSend enabled="true">
+                        <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
+                        <queueWaitStrategy>BusySpin</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${EMS_EMSDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+                <bus name="market">
+                    <nonBlockingInboundMessageDispatch>${EMS_MARKETNONBLOCKINGMESSAGEDISPATCH::true}</nonBlockingInboundMessageDispatch>
+                    <detachedSend enabled="true">
+                        <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
+                        <queueWaitStrategy>BusySpin</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${EMS_MARKETDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <inboundEventMultiplexing>
+                <queueOfferStrategy>MultiThreadedSufficientCores</queueOfferStrategy>
+                <queueWaitStrategy>BusySpin</queueWaitStrategy>
+                <queueDrainerCpuAffinityMask>${EMS_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+            <storage enabled="true">
+                <clustering enabled="true">
+                    <localIfAddr>${EMS_REPLICATION_INTERFACE::0.0.0.0}</localIfAddr>
+                    <localPort>${EMS_REPLICATION_PORT::0}</localPort>
+                    <linkParams>nativeio=true,eagerread=true,maxreadspintime=1000000</linkParams>
+                    <linkReaderCpuAffinityMask>${EMS_STORE_LINK_READER_CPUAFFMASK::0}</linkReaderCpuAffinityMask>
+                    <memberElectionPriority>${EMS_MEMBER_ELECTION_PRIORITY::255}</memberElectionPriority>
+                    <detachedSend enabled="${EMS_STORE_DETACHEDSEND_ENABLED::false}">
+                        <queueDepth>${EMS_STORE_DETACHEDSEND_QUEUEDEPTH::1024}</queueDepth>
+                        <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
+                        <queueWaitStrategy>${EMS_STORE_DETACHEDSEND_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${EMS_STORE_DETACHEDSEND_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                    <detachedDispatch enabled="${EMS_STORE_DETACHEDDISPATCH_ENABLED::false}">
+                        <queueDepth>${EMS_STORE_DETACHEDDISPATCH_QUEUEDEPTH::1024}</queueDepth>
+                        <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
+                        <queueWaitStrategy>${EMS_STORE_DETACHEDDISPATCH_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${EMS_STORE_DETACHEDDISPATCH_CPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedDispatch>
+                </clustering>
+                <persistence enabled="true">
+                    <flushOnCommit>${EMS_PERSISTERFLUSHONCOMMIT::false}</flushOnCommit>
+                    <initialLogLength>${EMS_PERSISTERINITIALLOGLENGTH::10}</initialLogLength>
+                    <zeroOutInitial>false</zeroOutInitial>
+                    <autoFlushSize>8192</autoFlushSize>
+                    <pageSize>8192</pageSize>
+                    <detachedPersist enabled="${EMS_DETACHEDPERSISTENABLE::true}">
+                        <queueOfferStrategy>SingleThreaded</queueOfferStrategy>
+                        <queueWaitStrategy>${EMS_DETACHEDPERSIST_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${EMS_DETACHEDPERSISTCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedPersist>
+                </persistence>
+            </storage>
+            <outboundMessageLogging policy="UseDedicated">
+                <flushOnCommit>false</flushOnCommit>
+                <detachedWrite enabled="true">
+                    <queueWaitStrategy>BusySpin</queueWaitStrategy>
+                    <queueDrainerCpuAffinityMask>${EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                </detachedWrite>
+            </outboundMessageLogging>
+            <replicateInParallel>true</replicateInParallel>
+            <disposeOnSend>true</disposeOnSend>
+        </app>
 
-      <xvms>
-        <xvm name="ems1">
-          <multiThreading enabled="true">
-            <ioThreads>
-              <ioThread id="0" affinity="0" enabled="true" />
-              <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true" />
-            </ioThreads>
-          </multiThreading>
+        <app name="market" mainClass="com.neeve.tick2trade.driver.Market">
+            <messaging>
+                <bus name="market" enabled="${MARKET_BUS_ENABLED::true}">
+                    <nonBlockingInboundMessageDispatch>${MARKET_MARKETNONBLOCKINGMESSAGEDISPATCH::false}</nonBlockingInboundMessageDispatch>
+                    <detachedSend enabled="${MARKET_MARKETDETACHEDSEND::true}">
+                        <queueWaitStrategy>${MARKET_MARKETDETACHEDSEND_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
+                        <queueDrainerCpuAffinityMask>${MARKET_MARKETDETACHEDSENDCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+                    </detachedSend>
+                </bus>
+            </messaging>
+            <inboundEventMultiplexing>
+                <queueWaitStrategy>${MARKET_INPUTMUTIPLEX_WAIT_STRATEGY::BusySpin}</queueWaitStrategy>
+                <queueDrainerCpuAffinityMask>${MARKET_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+            <storage enabled="false">
+                <clustering enabled="false"/>
+            </storage>
+        </app>
+
+        <app name="client" mainClass="com.neeve.tick2trade.driver.Client">
+            <messaging>
+                <bus name="ems">
+                    <detachedSend enabled="false"/>
+                </bus>
+            </messaging>
+            <sequenceUnsolicitedSends>true</sequenceUnsolicitedSends>
+            <inboundEventMultiplexing>
+                <queueWaitStrategy>BusySpin</queueWaitStrategy>
+                <queueDrainerCpuAffinityMask>${CLIENT_INPUTMUTIPLEXERCPUAFFMASK::0}</queueDrainerCpuAffinityMask>
+            </inboundEventMultiplexing>
+            <storage enabled="false">
+            </storage>
+        </app>
+    </apps>
+
+    <xvms>
+        <templates>
+            <xvm name="xvm-template">
+                <autoStopOnLastAppStop>true</autoStopOnLastAppStop>
+                <heartbeats enabled="true" interval="5">
+                    <collectIndividualThreadStats>true</collectIndividualThreadStats>
+                    <includeMessageTypeStats>true</includeMessageTypeStats>
+                    <inactiveMessageTypeStatsInclusionFrequency>0</inactiveMessageTypeStatsInclusionFrequency>
+                    <tracing enabled="true">
+                        <traceAdminClientStats>false</traceAdminClientStats>
+                        <traceAppStats>false</traceAppStats>
+                        <tracePoolStats>false</tracePoolStats>
+                        <traceSysStats>false</traceSysStats>
+                        <traceThreadStats>false</traceThreadStats>
+                        <traceUserStats>true</traceUserStats>
+                    </tracing>
+                </heartbeats>
+            </xvm>
+        </templates>
+
+        <xvm name="ems1" template="xvm-template">
+            <env>
+                <EMS_MEMBER_ELECTION_PRIORITY>1</EMS_MEMBER_ELECTION_PRIORITY>
+            </env>
+            <apps>
+                <app name="ems" autoStart="true"/>
+            </apps>
+            <acceptors>
+                <acceptor descriptor="${EMS1_ACCEPTOR::tcp://0.0.0.0:0}"/>
+            </acceptors>
+            <multiThreading enabled="true">
+                <ioThreads>
+                    <ioThread id="0" affinity="0" enabled="true"/>
+                    <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                </ioThreads>
+            </multiThreading>
         </xvm>
 
-        <xvm name="ems2">
-          <multiThreading enabled="true">
-            <ioThreads>
-              <ioThread id="0" affinity="0" enabled="true" />
-              <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true" />
-            </ioThreads>
-          </multiThreading>
+        <xvm name="ems2" template="xvm-template">
+            <env>
+                <EMS_MEMBER_ELECTION_PRIORITY>2</EMS_MEMBER_ELECTION_PRIORITY>
+            </env>
+            <apps>
+                <app name="ems" autoStart="true"/>
+            </apps>
+            <acceptors>
+                <acceptor descriptor="${EMS2_ACCEPTOR::tcp://0.0.0.0:0}"/>
+            </acceptors>
+            <multiThreading enabled="true">
+                <ioThreads>
+                    <ioThread id="0" affinity="0" enabled="true"/>
+                    <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                </ioThreads>
+            </multiThreading>
         </xvm>
 
-        <xvm name="market">
-          <multiThreading enabled="true">
-            <ioThreads>
-              <ioThread id="0" affinity="0" enabled="true" />
-              <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true" />
-            </ioThreads>
-          </multiThreading>
+        <xvm name="market" template="xvm-template">
+            <env>
+                <nv.time.useepochoffset>false</nv.time.useepochoffset>
+            </env>
+            <apps>
+                <app name="market" autoStart="true"/>
+            </apps>
+            <acceptors>
+                <acceptor descriptor="${MARKET_ACCEPTOR::tcp://0.0.0.0:0}"/>
+            </acceptors>
+            <multiThreading enabled="true">
+                <ioThreads>
+                    <ioThread id="0" affinity="0" enabled="true"/>
+                    <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                </ioThreads>
+            </multiThreading>
         </xvm>
 
-        <xvm name="client">
-          <multiThreading enabled="true">
-            <ioThreads>
-              <ioThread id="0" affinity="0" enabled="true" />
-              <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true" />
-            </ioThreads>
-          </multiThreading>
+        <xvm name="client" template="xvm-template">
+            <env>
+                <nv.time.useepochoffset>false</nv.time.useepochoffset>
+            </env>
+            <apps>
+                <app name="client" autoStart="true"/>
+            </apps>
+            <acceptors>
+                <acceptor descriptor="${CLIENT_ACCEPTOR::tcp://0.0.0.0:0}"/>
+            </acceptors>
+            <multiThreading enabled="true">
+                <ioThreads>
+                    <ioThread id="0" affinity="0" enabled="true"/>
+                    <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                </ioThreads>
+            </multiThreading>
         </xvm>
-      </xvms>
-    </profile>
+    </xvms>
 
-    <profile name="activemq">
-      <activation>
-        <properties>
-          <tick-to-trade-bus-provider>activemq</tick-to-trade-bus-provider>
-        </properties>
-      </activation>
-      <buses>
-        <bus name="ems">
-          <provider>activemq</provider>
-          <address>${ACTIVEMQ_HOST}</address>
-          <port>${ACTIVEMQ_PORT}</port>
-          <properties>
-            <topic_starts_with_channel>false</topic_starts_with_channel>
-          </properties>
-        </bus>
-        <bus name="market">
-          <provider>activemq</provider>
-          <address>${ACTIVEMQ_HOST}</address>
-          <port>${ACTIVEMQ_PORT}</port>
-          <properties>
-            <topic_starts_with_channel>false</topic_starts_with_channel>
-          </properties>
-        </bus>
-      </buses>
-    </profile>
+    <profiles>
+        <profile name="test">
+            <env>
+                <nv>
+                    <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
+                    <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+                    <nv.native.suppressextraction>true</nv.native.suppressextraction>
+                </nv>
 
-    <profile name="solace">
-      <activation>
-        <properties>
-          <tick-to-trade-bus-provider>solace</tick-to-trade-bus-provider>
-        </properties>
-      </activation>
-      <buses>
-        <bus name="ems">
-          <provider>solace</provider>
-          <address>${SOLACE_HOST}</address>
-          <port>${SOLACE_PORT}</port>
-          <properties>
-            <topic_starts_with_channel>false</topic_starts_with_channel>
-            <use_default_queue_name>true</use_default_queue_name>
-            <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
-            <SESSION_USERNAME>test</SESSION_USERNAME>
-            <usejni>true</usejni>
-            <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
-            <publish_window_size>255</publish_window_size>
-            <consumer_cpu_affinity_mask>${EMS_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
-            <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
-          </properties>
-        </bus>
-        <bus name="market">
-          <provider>solace</provider>
-          <address>${SOLACE_HOST}</address>
-          <port>${SOLACE_PORT}</port>
-          <properties>
-            <topic_starts_with_channel>false</topic_starts_with_channel>
-            <use_default_queue_name>true</use_default_queue_name>
-            <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
-            <SESSION_USERNAME>test</SESSION_USERNAME>
-            <usejni>true</usejni>
-            <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
-            <publish_window_size>255</publish_window_size>
-            <consumer_cpu_affinity_mask>${MARKET_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
-            <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
-          </properties>
-        </bus>
-      </buses>
-    </profile>
-  </profiles>
+                <!-- performance tuning parameters: -->
+                <nv>
+                    <conservecpu>true</conservecpu>
+                    <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+                </nv>
+
+                <!-- preallocation & pooling -->
+                <simulator>
+                    <ems.orderPreallocateCount>1000</ems.orderPreallocateCount>
+                    <sendCount>1000</sendCount>
+                    <sendRate>1000</sendRate>
+                </simulator>
+            </env>
+        </profile>
+
+        <profile name="neeve-lab">
+            <activation>
+                <properties>
+                    <lumino.agent.env>neeve-lab</lumino.agent.env>
+                </properties>
+            </activation>
+
+            <env>
+                <nv>
+                    <enablecpuaffinitymasks>true</enablecpuaffinitymasks>
+                </nv>
+
+                <ACTIVEMQ_HOST>192.168.1.8</ACTIVEMQ_HOST>
+                <ACTIVEMQ_PORT>61616</ACTIVEMQ_PORT>
+
+                <SOLACE_HOST>192.168.1.9</SOLACE_HOST>
+                <SOLACE_PORT>55555</SOLACE_PORT>
+
+                <CLIENT_ACCEPTOR>tcp://192.168.1.12:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</CLIENT_ACCEPTOR>
+                <MARKET_ACCEPTOR>tcp://192.168.1.12:12000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</MARKET_ACCEPTOR>
+                <EMS1_ACCEPTOR>tcp://192.168.1.13:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS1_ACCEPTOR>
+                <EMS2_ACCEPTOR>tcp://192.168.1.14:11000&amp;nativeio=true&amp;eagerread=true&amp;maxreadspintime=1000000</EMS2_ACCEPTOR>
+
+                <simulator.ems.orderPreallocateCount>1000000</simulator.ems.orderPreallocateCount>
+
+            </env>
+
+            <xvms>
+                <xvm name="ems1">
+                    <provisioning>
+                        <host>192.168.1.13</host>
+                        <jvm>
+                            <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                            <jvmParams>
+                                -Xms8g -Xmx8g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=1 -XX:MaxTenuringThreshold=2 -Xnoclassgc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.13</nv.discovery.descriptor>
+                        <EMS_REPLICATION_INTERFACE>192.168.2.13</EMS_REPLICATION_INTERFACE>
+                        <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
+
+                        <!-- CPU AFFINITIZATION -->
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
+                        <EMS_STORE_LINK_READER_CPUAFFMASK>[3]</EMS_STORE_LINK_READER_CPUAFFMASK>
+                        <EMS_DETACHEDPERSISTCPUAFFMASK>[4]</EMS_DETACHEDPERSISTCPUAFFMASK>
+                        <EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>[5]</EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>
+                        <EMS_EMSDETACHEDSENDCPUAFFMASK>[6]</EMS_EMSDETACHEDSENDCPUAFFMASK>
+                        <EMS_MARKETDETACHEDSENDCPUAFFMASK>[7]</EMS_MARKETDETACHEDSENDCPUAFFMASK>
+                        <EMS1_IOTHRCPUAFFMASK>[8]</EMS1_IOTHRCPUAFFMASK>
+                        <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
+                        <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
+                    </env>
+                </xvm>
+
+                <xvm name="ems2">
+                    <provisioning>
+                        <host>192.168.1.14</host>
+                        <jvm>
+                            <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                            <jvmParams>
+                                -Xms8g -Xmx8g -XX:NewSize=1536m -XX:MaxNewSize=1536m -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:ParallelGCThreads=1 -XX:MaxTenuringThreshold=2 -Xnoclassgc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.14</nv.discovery.descriptor>
+                        <EMS_REPLICATION_INTERFACE>192.168.2.14</EMS_REPLICATION_INTERFACE>
+                        <EMS_REPLICATION_PORT>12000</EMS_REPLICATION_PORT>
+
+                        <!-- CPU Affinitization -->
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <EMS_INPUTMUTIPLEXERCPUAFFMASK>[2]</EMS_INPUTMUTIPLEXERCPUAFFMASK>
+                        <EMS_STORE_LINK_READER_CPUAFFMASK>[3]</EMS_STORE_LINK_READER_CPUAFFMASK>
+                        <EMS_DETACHEDPERSISTCPUAFFMASK>[4]</EMS_DETACHEDPERSISTCPUAFFMASK>
+                        <EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>[5]</EMS_OUTBOUND_DETACHEDPERSISTCPUAFFMASK>
+                        <EMS_EMSDETACHEDSENDCPUAFFMASK>[6]</EMS_EMSDETACHEDSENDCPUAFFMASK>
+                        <EMS_MARKETDETACHEDSENDCPUAFFMASK>[7]</EMS_MARKETDETACHEDSENDCPUAFFMASK>
+                        <EMS1_IOTHRCPUAFFMASK>[8]</EMS1_IOTHRCPUAFFMASK>
+                        <EMS_BUSREADER_CPUAFFMASK>[9]</EMS_BUSREADER_CPUAFFMASK>
+                        <MARKET_BUSREADER_CPUAFFMASK>[10]</MARKET_BUSREADER_CPUAFFMASK>
+                    </env>
+                </xvm>
+
+                <xvm name="market">
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                        <jvm>
+                            <javaHome>/usr/java/jdk1.8.0_60</javaHome>
+                            <jvmParams>
+                                -Xms1572m -Xmx1572m -XX:NewSize=1024m -XX:MaxNewSize=1024m -XX:SurvivorRatio=32 -XX:+UseParNewGC -XX:ParallelGCThreads=3 -Xnoclassgc -XX:MaxTenuringThreshold=5 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
+                        <!-- CPU Affinitization -->
+                        <nv.defaultcpuaffinitymask>[1]</nv.defaultcpuaffinitymask>
+                        <MARKET_INPUTMUTIPLEXERCPUAFFMASK>[2]</MARKET_INPUTMUTIPLEXERCPUAFFMASK>
+                        <MARKET_IOTHRCPUAFFMASK>[3]</MARKET_IOTHRCPUAFFMASK>
+                        <MARKET_MARKETDETACHEDSENDCPUAFFMASK>[4]</MARKET_MARKETDETACHEDSENDCPUAFFMASK>
+                        <MARKET_BUSREADER_CPUAFFMASK>[5]</MARKET_BUSREADER_CPUAFFMASK>
+                    </env>
+                </xvm>
+
+                <xvm name="client">
+                    <provisioning>
+                        <host>192.168.1.12</host>
+                        <jvm>
+                            <jvmParams>
+                                -Xms1572m -Xmx1572m -XX:NewSize=1024m -XX:MaxNewSize=1024m -XX:SurvivorRatio=32 -XX:+UseParNewGC -XX:ParallelGCThreads=3 -Xnoclassgc -XX:MaxTenuringThreshold=5 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution
+                            </jvmParams>
+                        </jvm>
+                    </provisioning>
+
+                    <env>
+                        <nv.discovery.descriptor>mcast://224.0.1.200:4090&amp;localIfAddr=64.71.157.12</nv.discovery.descriptor>
+                        <!-- CPU Affinitization -->
+                        <nv.defaultcpuaffinitymask>[10]</nv.defaultcpuaffinitymask>
+                        <simulator.client.sendAffinity>[11]</simulator.client.sendAffinity>
+                        <CLIENT_INPUTMUTIPLEXERCPUAFFMASK>[12]</CLIENT_INPUTMUTIPLEXERCPUAFFMASK>
+                        <CLIENT_IOTHRCPUAFFMASK>[13]</CLIENT_IOTHRCPUAFFMASK>
+                        <EMS_BUSREADER_CPUAFFMASK>[14]</EMS_BUSREADER_CPUAFFMASK>
+                    </env>
+                </xvm>
+
+            </xvms>
+        </profile>
+
+        <profile name="autosend">
+            <env>
+                <!-- preallocation & pooling -->
+                <simulator>
+                    <sendCount>1000000</sendCount>
+                    <sendRate>300</sendRate>
+                </simulator>
+            </env>
+        </profile>
+
+        <profile name="desktop">
+            <env>
+                <nv>
+                    <discovery.descriptor>loopback://discovery&amp;initWaitTime=0</discovery.descriptor>
+                    <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+                    <nv.native.suppressextraction>true</nv.native.suppressextraction>
+                </nv>
+
+                <!-- performance tuning parameters: -->
+                <nv>
+                    <conservecpu>true</conservecpu>
+                    <enablecpuaffinitymasks>false</enablecpuaffinitymasks>
+                </nv>
+
+                <!-- preallocation & pooling -->
+                <simulator>
+                    <ems.orderPreallocateCount>1000</ems.orderPreallocateCount>
+                    <sendCount>1000</sendCount>
+                    <sendRate>1000</sendRate>
+                </simulator>
+            </env>
+        </profile>
+
+        <profile name="flight-recorder">
+            <xvms>
+                <templates>
+                    <xvm name="xvm-template">
+                        <provisioning>
+                            <jvm>
+                                <jvmParamSets>
+                                    <jvmParamSet name="flight-recorder">
+                                        <jvmParams>
+                                            -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -XX:StartFlightRecording=name=MyRecording,settings=profile -XX:FlightRecorderOptions=defaultrecording=true,dumponexit=true,dumponexitpath=${nv.ddl.targetxvm::server}-recording.jfr
+                                        </jvmParams>
+                                    </jvmParamSet>
+                                </jvmParamSets>
+                            </jvm>
+                        </provisioning>
+                    </xvm>
+                </templates>
+            </xvms>
+        </profile>
+
+        <profile name="direct">
+            <!-- Direct Binding does not yet fully support Guaranteed -->
+            <env>
+                <simulator.qos>BestEffort</simulator.qos>
+            </env>
+            <activation>
+                <properties>
+                    <tick-to-trade-bus-provider>direct</tick-to-trade-bus-provider>
+                </properties>
+            </activation>
+            <buses>
+                <bus name="ems">
+                    <provider>direct</provider>
+                    <address>ems</address>
+                    <properties>
+                        <nativio>true</nativio>
+                        <eagerread>true</eagerread>
+                        <maxreadspintime>1000000</maxreadspintime>
+                        <threadaffinity>1</threadaffinity>
+                        <cpuaffinitymask>${EMS_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
+                    </properties>
+                </bus>
+                <bus name="market">
+                    <provider>direct</provider>
+                    <address>market</address>
+                    <properties>
+                        <nativio>true</nativio>
+                        <eagerread>true</eagerread>
+                        <maxreadspintime>1000000</maxreadspintime>
+                        <threadaffinity>1</threadaffinity>
+                        <cpuaffinitymask>${MARKET_BUSREADER_CPUAFFMASK::0}</cpuaffinitymask>
+                    </properties>
+                </bus>
+            </buses>
+
+            <xvms>
+                <xvm name="ems1">
+                    <multiThreading enabled="true">
+                        <ioThreads>
+                            <ioThread id="0" affinity="0" enabled="true"/>
+                            <ioThread id="1" affinity="${EMS1_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                        </ioThreads>
+                    </multiThreading>
+                </xvm>
+
+                <xvm name="ems2">
+                    <multiThreading enabled="true">
+                        <ioThreads>
+                            <ioThread id="0" affinity="0" enabled="true"/>
+                            <ioThread id="1" affinity="${EMS2_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                        </ioThreads>
+                    </multiThreading>
+                </xvm>
+
+                <xvm name="market">
+                    <multiThreading enabled="true">
+                        <ioThreads>
+                            <ioThread id="0" affinity="0" enabled="true"/>
+                            <ioThread id="1" affinity="${MARKET_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                        </ioThreads>
+                    </multiThreading>
+                </xvm>
+
+                <xvm name="client">
+                    <multiThreading enabled="true">
+                        <ioThreads>
+                            <ioThread id="0" affinity="0" enabled="true"/>
+                            <ioThread id="1" affinity="${CLIENT_IOTHRCPUAFFMASK::0}" enabled="true"/>
+                        </ioThreads>
+                    </multiThreading>
+                </xvm>
+            </xvms>
+        </profile>
+
+        <profile name="activemq">
+            <activation>
+                <properties>
+                    <tick-to-trade-bus-provider>activemq</tick-to-trade-bus-provider>
+                </properties>
+            </activation>
+            <buses>
+                <bus name="ems">
+                    <provider>activemq</provider>
+                    <address>${ACTIVEMQ_HOST}</address>
+                    <port>${ACTIVEMQ_PORT}</port>
+                    <properties>
+                        <topic_starts_with_channel>false</topic_starts_with_channel>
+                    </properties>
+                </bus>
+                <bus name="market">
+                    <provider>activemq</provider>
+                    <address>${ACTIVEMQ_HOST}</address>
+                    <port>${ACTIVEMQ_PORT}</port>
+                    <properties>
+                        <topic_starts_with_channel>false</topic_starts_with_channel>
+                    </properties>
+                </bus>
+            </buses>
+        </profile>
+
+        <profile name="solace">
+            <activation>
+                <properties>
+                    <tick-to-trade-bus-provider>solace</tick-to-trade-bus-provider>
+                </properties>
+            </activation>
+            <buses>
+                <bus name="ems">
+                    <provider>solace</provider>
+                    <address>${SOLACE_HOST}</address>
+                    <port>${SOLACE_PORT}</port>
+                    <properties>
+                        <topic_starts_with_channel>false</topic_starts_with_channel>
+                        <use_default_queue_name>true</use_default_queue_name>
+                        <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
+                        <SESSION_USERNAME>test</SESSION_USERNAME>
+                        <usejni>true</usejni>
+                        <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
+                        <publish_window_size>255</publish_window_size>
+                        <consumer_cpu_affinity_mask>${EMS_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
+                        <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
+                    </properties>
+                </bus>
+                <bus name="market">
+                    <provider>solace</provider>
+                    <address>${SOLACE_HOST}</address>
+                    <port>${SOLACE_PORT}</port>
+                    <properties>
+                        <topic_starts_with_channel>false</topic_starts_with_channel>
+                        <use_default_queue_name>true</use_default_queue_name>
+                        <SESSION_VPN_NAME>default</SESSION_VPN_NAME>
+                        <SESSION_USERNAME>test</SESSION_USERNAME>
+                        <usejni>true</usejni>
+                        <FLOW_FORWARDING_MODE>1</FLOW_FORWARDING_MODE>
+                        <publish_window_size>255</publish_window_size>
+                        <consumer_cpu_affinity_mask>${MARKET_BUSREADER_CPUAFFMASK::0}</consumer_cpu_affinity_mask>
+                        <producer_cpu_affinity_mask>0</producer_cpu_affinity_mask>
+                    </properties>
+                </bus>
+            </buses>
+        </profile>
+    </profiles>
 
 </model>
