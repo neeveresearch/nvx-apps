@@ -3,7 +3,7 @@
     <groupId>com.neeve</groupId>
     <artifactId>nvx-apps-parent</artifactId>
     <packaging>pom</packaging>
-    <version>3.15.12</version>
+    <version>3.16.14</version>
     <name>X Platform Apps Parent</name>
 
     <organization>
