@@ -21,7 +21,7 @@
     </licenses>
 
     <properties>
-        <nvx.platform.version>3.16.16</nvx.platform.version>
+        <nvx.platform.version>3.16.18</nvx.platform.version>
     </properties>
 
     <modules>
