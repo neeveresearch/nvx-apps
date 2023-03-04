@@ -28,7 +28,7 @@ import com.neeve.util.UtlTime;
 
 @AppHAPolicy(value = AepEngine.HAPolicy.StateReplication)
 public class Application {
-    private static final Tracer tracer = Tracer.create("ccfd.fraudanalyzer", Level.INFO);
+    private static final Tracer tracer = Tracer.get("ccfd.fraudanalyzer");
     private AepMessageSender _messageSender;
     @AppStat
     private final Counter authorizationRequestCount = StatsFactory.createCounterStat("AuthorizationRequest Received Count");

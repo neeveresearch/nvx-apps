@@ -37,7 +37,7 @@ import com.neeve.util.UtlJar;
  * This implementation uses a TensorFlow trained model to check for fraud. 
  */
 public class TensorFlowFraudAnalyzer implements FraudAnalyzer {
-    private static Tracer tracer = Tracer.create("ccfc.fraudanalyzer", Level.INFO);
+    private static Tracer tracer = Tracer.get("ccfc.fraudanalyzer");
 
     private final FloatBuffer paramInputData = ByteBuffer.allocateDirect(Long.SIZE * 37).asFloatBuffer();
     private final long[] paramInputDimensions = new long[] { 1, 37 };

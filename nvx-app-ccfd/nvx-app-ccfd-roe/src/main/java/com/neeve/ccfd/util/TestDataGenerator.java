@@ -22,7 +22,7 @@ import com.neeve.trace.Tracer.Level;
  * Generates sample data set. Fields in the set take values from Gaussian distribution.
  */
 public class TestDataGenerator {
-    private static final Tracer tracer = Tracer.create("ccdfd", Level.INFO);
+    private static final Tracer tracer = Tracer.get("ccdfd");
     private static final int txnDataLoadCount = XRuntime.getValue("ccfd.txnDataLoadCount", 64 * 1024);
     private static final float[][] txnData;
     private static final String fieldNames[];
