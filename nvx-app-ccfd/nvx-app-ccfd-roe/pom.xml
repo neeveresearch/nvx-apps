@@ -13,8 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
-            <scope>provided</scope>
+            <artifactId>nvx-rumi</artifactId>
         </dependency>
     </dependencies>
 

@@ -32,13 +32,13 @@
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-talon</artifactId>
+            <artifactId>nvx-rumi</artifactId>
             <scope>provided</scope>
         </dependency>
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-native</artifactId>
+            <artifactId>nvx-rumi-native</artifactId>
             <classifier>linux-x86-64</classifier>
         </dependency>
 
