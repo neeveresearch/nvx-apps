@@ -25,17 +25,17 @@
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-jms</artifactId>
+            <artifactId>nvx-rumi-jms</artifactId>
         </dependency>
 
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-solace</artifactId>
+            <artifactId>nvx-rumi-solace</artifactId>
         </dependency>
         
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-kafka</artifactId>
+            <artifactId>nvx-rumi-kafka</artifactId>
         </dependency>
 
         <dependency>

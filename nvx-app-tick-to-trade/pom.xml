@@ -176,7 +176,7 @@
         <!-- For running against active mq in the activemq profile -->
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-jms</artifactId>
+            <artifactId>nvx-rumi-jms</artifactId>
         </dependency>
 
         <dependency>
@@ -188,7 +188,7 @@
         <!-- For running against solace -->
         <dependency>
             <groupId>com.neeve</groupId>
-            <artifactId>nvx-solace</artifactId>
+            <artifactId>nvx-rumi-solace</artifactId>
         </dependency>
     </dependencies>
 </project>
