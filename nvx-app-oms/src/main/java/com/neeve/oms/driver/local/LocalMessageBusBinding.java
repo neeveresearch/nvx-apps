@@ -1,6 +1,6 @@
 package com.neeve.oms.driver.local;
 
-import com.neeve.ci.XRuntime;
+import com.neeve.config.Config;
 import com.neeve.event.IEventHandler;
 import com.neeve.pkt.PktPacket;
 import com.neeve.sma.MessageView;
@@ -25,13 +25,13 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
 
     private LatencyManager latencyManager;
     private volatile Thread sendThread;
-    private int sendCount = XRuntime.getValue("oms.driver.sendCount", 10000);
-    private int sendRate = XRuntime.getValue("oms.driver.sendRate", 1000);
-    private boolean useFix = XRuntime.getValue("oms.driver.useFix", false);
-    private int latencySampleSize = XRuntime.getValue("oms.driver.latencySampleSize", 1024 * 1024);
-    private boolean printLatencyStats = XRuntime.getValue("oms.driver.printLatencyStats", true);
-    private boolean summarizeLatencyStats = XRuntime.getValue("oms.driver.summarizeLatencyStats", true);
-    private long sendAffinity = UtlThread.parseAffinityMask(XRuntime.getValue("oms.driver.sendAffinity", "0"));
+    private int sendCount = Config.getValue("oms.driver.sendCount", 10000);
+    private int sendRate = Config.getValue("oms.driver.sendRate", 1000);
+    private boolean useFix = Config.getValue("oms.driver.useFix", false);
+    private int latencySampleSize = Config.getValue("oms.driver.latencySampleSize", 1024 * 1024);
+    private boolean printLatencyStats = Config.getValue("oms.driver.printLatencyStats", true);
+    private boolean summarizeLatencyStats = Config.getValue("oms.driver.summarizeLatencyStats", true);
+    private long sendAffinity = UtlThread.parseAffinityMask(Config.getValue("oms.driver.sendAffinity", "0"));
     private int warmupCount;
     private int totalReceived;
     private int totalSent;
@@ -116,7 +116,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
     @Override
     final protected void doOpen() throws SmaException {
         synchronized (this) {
-            if (XRuntime.getValue("oms.driver.autoStart", false)) {
+            if (Config.getValue("oms.driver.autoStart", false)) {
                 startSender(sendCount, sendRate, useFix);
             }
             else {
@@ -134,25 +134,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
     final protected void doStart() throws SmaException {}
 
     @Override
-    final protected void doFlush(final FlushContext flushContext) throws SmaException {
-        if (flushContext != null) {
-            switch (flushContext.flushMode) {
-                case SYNC_BLOCKING:
-                    ((SynchronousBlockingFlushContext)flushContext).complete = true;
-                    break;
-
-                case SYNC_NON_BLOCKING:
-                    ((SynchronousNonBlockingFlushContext)flushContext).complete = true;
-                    break;
-
-                case ASYNC:
-                    ((AsynchronousFlushContext)flushContext).syncComplete = true;
-                    break;
-
-                default:
-                    break;
-            }
-        }
+    final protected void doFlush() throws SmaException {
     }
 
     @Override
@@ -207,7 +189,7 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                         final MessageView view = createNewOrderMessage();
                         final PktPacket packet = view.serializeToPacket();
                         final short vfid = view.getVfid();
-                        final short type = view.getType();
+                        final short type = view.getMessageType();
                         final int encodingType = view.getMessageEncodingType();
                         view.dispose();
                         final long now = System.nanoTime();
@@ -219,6 +201,9 @@ final public class LocalMessageBusBinding extends MessageBusBindingBase implemen
                                                                                                sender,
                                                                                                0,
                                                                                                0l,
+                                                                                               0l,
+                                                                                               null,
+                                                                                               null,
                                                                                                null,
                                                                                                0l,
                                                                                                0l,

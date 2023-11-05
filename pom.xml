@@ -114,33 +114,9 @@
 
     <repositories>
         <repository>
-            <id>central</id>
-            <name>Maven Central Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <!-- Visit http://license.neeveresearch.com to get credentials -->
-        <repository>
-            <id>neeve-public</id>
-            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-public/</url>
-            <name>Neeve Public Repository</name>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>neeve-licensed</id>
-            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
-            <name>Neeve Licensed Repository</name>
+            <id>rumi-public</id>
+            <url>http://nexus.rumidata.io:8081/repository/maven-public/</url>
+            <name>Rumi Repository</name>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -152,22 +128,9 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>central</id>
-            <name>Maven Plugin Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-        </pluginRepository>
-        <!-- Visit http://license.neeveresearch.com to get credentials -->
-        <pluginRepository>
-            <id>neeve-licensed</id>
-            <url>http://nexus.neeveresearch.com/nexus/content/repositories/neeve-licensed/</url>
-            <name>Neeve Licensed Repository</name>
+            <id>rumi-public</id>
+            <url>http://nexus.rumidata.io:8081/repository/maven-public/</url>
+            <name>Rumi Repository</name>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>

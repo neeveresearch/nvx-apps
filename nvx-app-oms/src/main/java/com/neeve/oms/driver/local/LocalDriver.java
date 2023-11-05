@@ -5,7 +5,7 @@
  */
 package com.neeve.oms.driver.local;
 
-import com.neeve.aep.AepBusManager;
+import com.neeve.aep.AepBusConnection;
 import com.neeve.aep.AepEngine;
 import com.neeve.aep.annotations.EventHandler;
 import com.neeve.aep.event.AepMessagingStartedEvent;
@@ -26,9 +26,9 @@ public class LocalDriver {
 
     @EventHandler
     public void onBusCreation(AepMessagingStartedEvent event) {
-        for (AepBusManager manager : ((AepEngine)event.getSource()).getBusManagers()) {
-            if (manager.getBusBinding() instanceof LocalMessageBusBinding) {
-                bus = (LocalMessageBusBinding)manager.getBusBinding();
+        for (AepBusConnection connection : ((AepEngine)event.getSource()).getBusConnections()) {
+            if (connection.getBusBinding() instanceof LocalMessageBusBinding) {
+                bus = (LocalMessageBusBinding)connection.getBusBinding();
                 bus.setW2WLatencyManager(localW2W);
             }
         }

@@ -15,9 +15,7 @@ final public class LocalMessageChannel extends MessageChannelBase {
     }
 
     @Override
-    final protected boolean doSend(final MessageView view,
-                                   final MessageBusBinding.FlushContext flushContext,
-                                   final int flags) throws SmaException {
+    final protected boolean doSend(final MessageView view, final int flags) throws SmaException {
         _binding.send(view);
         return false;
     }
